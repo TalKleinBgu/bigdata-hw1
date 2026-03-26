@@ -1311,9 +1311,10 @@ section[data-testid="stSidebar"] > div:first-child { padding-top: 0.5rem !import
     with st.sidebar:
         st.header("About This App")
         st.markdown(
-            "This app loads Pokemon stats into **SQLite** and runs a data-driven "
-            "battle arena with team selection, type effectiveness, cheat-code SQL writes, "
-            "and post-battle analysis."
+            "This app loads the [Pokemon dataset]"
+            "(https://www.kaggle.com/datasets/abcsds/pokemon) "
+            "into **SQLite** and runs a data-driven battle arena with team selection, "
+            "type effectiveness, cheat-code SQL writes, and post-battle analysis."
         )
 if __name__ == "__main__":
     main()

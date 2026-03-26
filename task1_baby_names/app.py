@@ -169,9 +169,10 @@ section[data-testid="stSidebar"] > div:first-child { padding-top: 0.5rem !import
 with st.sidebar:
     st.header("About This App")
     st.markdown(
-        "This app loads the US Baby Names dataset into **SQLite** and provides "
-        "interactive tools for popularity trends, safe custom SQL queries, "
-        "and pattern discovery."
+        "This app loads the [US Baby Names dataset]"
+        "(https://www.kaggle.com/datasets/kaggle/us-baby-names) "
+        "into **SQLite** and provides interactive tools for popularity trends, "
+        "safe custom SQL queries, and pattern discovery."
     )
 # ---------------------------------------------------------------------------
 # Main content — organized with tabs
