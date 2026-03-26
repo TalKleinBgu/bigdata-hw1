@@ -223,7 +223,7 @@ with tab_explore:
             fig.update_layout(hovermode="x unified", template="plotly_white",
                                 dragmode=False,
                                 xaxis=dict(showspikes=True, spikemode="across", spikethickness=1),
-                                yaxis=dict(showspikes=True, spikemode="across", spikethickness=1))
+                                yaxis=dict(showspikes=True, spikemode="across", spikethickness=1, showgrid=False))
             st.plotly_chart(fig, use_container_width=True)
     else:
         st.info("Type at least one name above to see the chart.")
@@ -344,7 +344,7 @@ with tab_sql:
                             template="plotly_white", dragmode=False,
                             hovermode="x unified", yaxis_title=y_label,
                             xaxis=dict(showspikes=True, spikemode="across", spikethickness=1),
-                            yaxis=dict(showspikes=True, spikemode="across", spikethickness=1),
+                            yaxis=dict(showspikes=True, spikemode="across", spikethickness=1, showgrid=False),
                         )
                         st.plotly_chart(chart, use_container_width=True)
             except Exception as exc:
@@ -431,7 +431,7 @@ with tab_patterns:
     fig_p1.add_vline(x=1950, line_dash="dash", line_color="red", annotation_text="1950")
     fig_p1.update_layout(template="plotly_white", dragmode=False, hovermode="x unified",
                           xaxis=dict(showspikes=True, spikemode="across", spikethickness=1),
-                          yaxis=dict(showspikes=True, spikemode="across", spikethickness=1))
+                          yaxis=dict(showspikes=True, spikemode="across", spikethickness=1, showgrid=False))
     st.plotly_chart(fig_p1, use_container_width=True)
 
     st.markdown(
@@ -473,7 +473,7 @@ with tab_patterns:
                      annotation_text="GoT S1 (2011)")
     fig_p2.update_layout(template="plotly_white", dragmode=False, hovermode="x unified",
                           xaxis=dict(showspikes=True, spikemode="across", spikethickness=1),
-                          yaxis=dict(showspikes=True, spikemode="across", spikethickness=1))
+                          yaxis=dict(showspikes=True, spikemode="across", spikethickness=1, showgrid=False))
     st.plotly_chart(fig_p2, use_container_width=True)
 
     st.markdown(
@@ -550,7 +550,7 @@ with tab_patterns:
         )
         fig_p3.update_layout(template="plotly_white", dragmode=False, hovermode="x unified",
                               xaxis=dict(showspikes=True, spikemode="across", spikethickness=1),
-                              yaxis=dict(showspikes=True, spikemode="across", spikethickness=1))
+                              yaxis=dict(showspikes=True, spikemode="across", spikethickness=1, showgrid=False))
         st.plotly_chart(fig_p3, use_container_width=True)
 
     st.markdown(

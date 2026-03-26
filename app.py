@@ -94,8 +94,8 @@ st.markdown("""
 .hw1-tag {
     display: inline-block; background: #f2f5fb;
     color: var(--accent, #4A90D9);
-    border-radius: 10px; padding: 2px 9px;
-    font-size: 0.72rem; font-weight: 600; margin: 2px 2px 0 0;
+    border-radius: 10px; padding: 4px 14px;
+    font-size: 0.76rem; font-weight: 600; margin: 3px 3px 0 0;
 }
 .hw1-card-arrow {
     margin-top: 1.1rem; text-align: right;
@@ -115,7 +115,7 @@ st.markdown("""
 <div class="hw1-hero">
   <div style="font-size:3.2rem; margin-bottom:0.5rem;">📊</div>
   <h1>Big Data Homework 1</h1>
-  <div class="sub"><b>Tal Klein</b> &nbsp;·&nbsp; Student ID: <i>[YOUR_ID]</i></div>
+  <div class="sub"><b>Tal Klein</b> &nbsp;·&nbsp; Student ID: <i>209234103</i></div>
   <div class="meta">
     The Art of Analyzing Big Data: The Data Scientist's Toolbox &nbsp;·&nbsp; Dr. Michael Fire
   </div>
