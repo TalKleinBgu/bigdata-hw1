@@ -90,12 +90,13 @@ st.markdown("""
 .hw1-card-icon  { font-size: 2.6rem; margin-bottom: 0.5rem; }
 .hw1-card-title { font-size: 1.15rem; font-weight: 700; color: #1a1a1a; margin-bottom: 0.6rem; }
 .hw1-card-desc  { font-size: 0.87rem; color: #555; line-height: 1.6; flex: 1; }
-.hw1-card-tags  { margin-top: 1rem; }
+.hw1-card-tags  { margin-top: 1rem; white-space: nowrap; overflow: hidden; }
 .hw1-tag {
     display: inline-block; background: #f2f5fb;
     color: var(--accent, #4A90D9);
-    border-radius: 10px; padding: 4px 14px;
-    font-size: 0.76rem; font-weight: 600; margin: 3px 3px 0 0;
+    border-radius: 10px; padding: 4px 10px;
+    font-size: 0.72rem; font-weight: 600; margin: 2px 2px 0 0;
+    white-space: nowrap;
 }
 .hw1-card-arrow {
     margin-top: 1.1rem; text-align: right;
