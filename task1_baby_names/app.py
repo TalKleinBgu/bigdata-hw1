@@ -441,9 +441,6 @@ with tab_patterns:
         GROUP BY Year
         ORDER BY Year;
     """
-    with st.expander("Show SQL query"):
-        st.code(p1_sql, language="sql")
-
     p1_df = run_query(p1_sql, conn)
 
     fig_p1 = px.line(
@@ -457,6 +454,8 @@ with tab_patterns:
                           xaxis=dict(showspikes=True, spikemode="across", spikethickness=1),
                           yaxis=dict(showspikes=True, spikemode="across", spikethickness=1, showgrid=False))
     st.plotly_chart(fig_p1, use_container_width=True)
+    with st.expander("Show SQL query"):
+        st.code(p1_sql, language="sql")
 
     st.markdown(
         """
@@ -482,9 +481,6 @@ with tab_patterns:
         GROUP BY Year
         ORDER BY Year;
     """
-    with st.expander("Show SQL query"):
-        st.code(p2_sql, language="sql")
-
     p2_df = run_query(p2_sql, conn)
 
     fig_p2 = px.bar(
@@ -499,6 +495,8 @@ with tab_patterns:
                           xaxis=dict(showspikes=True, spikemode="across", spikethickness=1),
                           yaxis=dict(showspikes=True, spikemode="across", spikethickness=1, showgrid=False))
     st.plotly_chart(fig_p2, use_container_width=True)
+    with st.expander("Show SQL query"):
+        st.code(p2_sql, language="sql")
 
     st.markdown(
         """
@@ -529,9 +527,6 @@ with tab_patterns:
         WHERE rn = 1
         ORDER BY State;
     """
-    with st.expander("Show SQL query"):
-        st.code(p3_top_sql, language="sql")
-
     p3_top_df = run_query(p3_top_sql, conn)
     if not p3_top_df.empty:
         st.markdown("**Most popular name per state (all available years):**")
@@ -560,6 +555,8 @@ with tab_patterns:
             yaxis=dict(showspikes=True, spikemode="across", spikethickness=1, showgrid=False),
         )
         st.plotly_chart(fig_p3_topname_states, use_container_width=True)
+        with st.expander("Show SQL query"):
+            st.code(p3_top_sql, language="sql")
 
     # Compare a name across selected states
     p3c_sql = """
@@ -572,9 +569,6 @@ with tab_patterns:
     """
 
     p3c_df = run_query(p3c_sql, conn)
-    with st.expander("Show SQL query"):
-        st.code(p3c_sql, language="sql")
-    
     if not p3c_df.empty:
         fig_p3 = px.line(
             p3c_df, x="Year", y="Total", color="State",
@@ -585,6 +579,8 @@ with tab_patterns:
                               xaxis=dict(showspikes=True, spikemode="across", spikethickness=1),
                               yaxis=dict(showspikes=True, spikemode="across", spikethickness=1, showgrid=False))
         st.plotly_chart(fig_p3, use_container_width=True)
+        with st.expander("Show SQL query"):
+            st.code(p3c_sql, language="sql")
 
     st.markdown(
         """
