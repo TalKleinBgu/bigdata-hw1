@@ -333,11 +333,18 @@ with tab_sql:
                         color_col = other_cols[1] if len(other_cols) > 1 else None
                         plot_df = result_df.copy()
 
-                        # Always show as % when there are multiple numeric columns
-                        use_pct = len(numeric_cols) > 1
+                        # For gender queries, calculate % only from Male/Female.
+                        pct_cols = numeric_cols.copy()
+                        pct_label = "Percentage (%)"
+                        if "Male" in plot_df.columns and "Female" in plot_df.columns:
+                            pct_cols = ["Male", "Female"]
+                            pct_label = "Percentage (%) of Male + Female"
+
+                        # Show percentages when multiple numeric columns are charted.
+                        use_pct = len(pct_cols) > 1
                         if use_pct:
-                            row_total = plot_df[numeric_cols].sum(axis=1).replace(0, 1)
-                            for c in numeric_cols:
+                            row_total = plot_df[pct_cols].sum(axis=1).replace(0, 1)
+                            for c in pct_cols:
                                 plot_df[c] = (plot_df[c] / row_total * 100).round(2)
 
                         # Decide chart type: line if x looks like years, else bar
@@ -345,15 +352,15 @@ with tab_sql:
                             pd.api.types.is_numeric_dtype(plot_df[x_col])
                             and plot_df[x_col].between(1800, 2100).all()
                         )
-                        y_label = "Percentage (%)" if use_pct else "Count"
+                        y_label = pct_label if use_pct else "Count"
                         title = "Query Result (line chart)" if is_time else "Query Result (bar chart)"
-                        y_col = numeric_cols[0] if (color_col and len(numeric_cols) == 1) else numeric_cols
+                        y_col = pct_cols[0] if (color_col and len(pct_cols) == 1) else pct_cols
 
                         if is_time:
                             chart = px.line(plot_df, x=x_col, y=y_col,
                                             color=color_col, title=title)
                         else:
-                            barmode = "stack" if (use_pct and len(numeric_cols) > 1) else "group"
+                            barmode = "stack" if (use_pct and len(pct_cols) > 1) else "group"
                             chart = px.bar(plot_df, x=x_col, y=y_col,
                                            color=color_col, title=title, barmode=barmode)
 
@@ -522,7 +529,7 @@ with tab_patterns:
         WHERE rn = 1
         ORDER BY State;
     """
-    with st.expander("Show top-name-per-state query"):
+    with st.expander("Show SQL query"):
         st.code(p3_top_sql, language="sql")
 
     p3_top_df = run_query(p3_top_sql, conn)
@@ -563,8 +570,6 @@ with tab_patterns:
         GROUP BY Year, State
         ORDER BY Year;
     """
-    with st.expander("Show regional comparison query"):
-        st.code(p3c_sql, language="sql")
 
     p3c_df = run_query(p3c_sql, conn)
     if not p3c_df.empty:
@@ -577,6 +582,9 @@ with tab_patterns:
                               xaxis=dict(showspikes=True, spikemode="across", spikethickness=1),
                               yaxis=dict(showspikes=True, spikemode="across", spikethickness=1, showgrid=False))
         st.plotly_chart(fig_p3, use_container_width=True)
+        
+    with st.expander("Show regional comparison query"):
+        st.code(p3c_sql, language="sql")
 
     st.markdown(
         """
