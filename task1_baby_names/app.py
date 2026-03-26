@@ -76,6 +76,13 @@ def run_query(sql: str, conn: sqlite3.Connection) -> pd.DataFrame:
 
 
 @st.cache_data(show_spinner=False)
+def cached_static_query(sql: str) -> pd.DataFrame:
+    """Cache static analysis queries that do not depend on user input."""
+    with sqlite3.connect(str(DB_PATH)) as _conn:
+        return pd.read_sql_query(sql, _conn)
+
+
+@st.cache_data(show_spinner=False)
 def get_dataset_stats(_conn) -> dict:
     """Cached dataset-level stats used in multiple sections."""
     row = _conn.execute(
@@ -94,10 +101,11 @@ def cached_query(sql: str, _conn) -> pd.DataFrame:
 
 
 def ensure_extra_indexes(conn: sqlite3.Connection) -> None:
-    """Add a Name-only index if it doesn't exist (speeds up GROUP BY Name)."""
-    conn.execute(
-        "CREATE INDEX IF NOT EXISTS idx_name ON national_names (Name)"
-    )
+    """Ensure extra read-optimized indexes used by heavy analysis queries."""
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_name ON national_names (Name)")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_year_name ON national_names (Year, Name)")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_state_name ON national_names (State, Name)")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_name_state_year ON national_names (Name, State, Year)")
     conn.commit()
 
 
@@ -374,7 +382,7 @@ with tab_diversity:
         GROUP BY Year
         ORDER BY Year
     """
-    div_df = run_query(diversity_sql, conn)
+    div_df = cached_static_query(diversity_sql)
 
     fig_div = go.Figure()
     fig_div.add_trace(
@@ -424,7 +432,7 @@ with tab_patterns:
         GROUP BY Year
         ORDER BY Year;
     """
-    p1_df = run_query(p1_sql, conn)
+    p1_df = cached_static_query(p1_sql)
 
     fig_p1 = px.line(
         p1_df, x="Year", y="UniqueNames",
@@ -463,7 +471,7 @@ with tab_patterns:
         GROUP BY Year
         ORDER BY Year;
     """
-    p2_df = run_query(p2_sql, conn)
+    p2_df = cached_static_query(p2_sql)
 
     fig_p2 = px.bar(
         p2_df, x="Year", y="Total",
@@ -509,7 +517,7 @@ with tab_patterns:
         WHERE rn = 1
         ORDER BY State;
     """
-    p3_top_df = run_query(p3_top_sql, conn)
+    p3_top_df = cached_static_query(p3_top_sql)
     if not p3_top_df.empty:
         st.markdown("**Most popular name per state (all available years):**")
         st.dataframe(p3_top_df, use_container_width=True)
@@ -550,7 +558,7 @@ with tab_patterns:
         ORDER BY Year;
     """
 
-    p3c_df = run_query(p3c_sql, conn)
+    p3c_df = cached_static_query(p3c_sql)
     if not p3c_df.empty:
         fig_p3 = px.line(
             p3c_df, x="Year", y="Total", color="State",

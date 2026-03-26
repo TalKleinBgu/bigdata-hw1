@@ -9,6 +9,7 @@ import sqlite3
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
+import html
 import os
 import random
 import time
@@ -253,14 +254,23 @@ def get_selection_stat_maxima() -> dict:
             MAX(defense),
             MAX(sp_atk),
             MAX(sp_def),
-            MAX(speed)
+            MAX(speed),
+            MAX(total)
         FROM pokemon_original
         """
     ).fetchone()
     conn.close()
 
     if not row:
-        return {"hp": 1, "attack": 1, "defense": 1, "sp_atk": 1, "sp_def": 1, "speed": 1}
+        return {
+            "hp": 1,
+            "attack": 1,
+            "defense": 1,
+            "sp_atk": 1,
+            "sp_def": 1,
+            "speed": 1,
+            "total": 1,
+        }
 
     return {
         "hp": max(1, int(row[0] or 1)),
@@ -269,6 +279,7 @@ def get_selection_stat_maxima() -> dict:
         "sp_atk": max(1, int(row[3] or 1)),
         "sp_def": max(1, int(row[4] or 1)),
         "speed": max(1, int(row[5] or 1)),
+        "total": max(1, int(row[6] or 1)),
     }
 
 
@@ -547,6 +558,7 @@ def pokemon_preview_card(p: dict, slot_num: int, stat_maxima: dict):
         + stat_bar("SpA", "sp_atk", "#8E24AA")
         + stat_bar("SpD", "sp_def", "#1E88E5")
         + stat_bar("SPD", "speed", "#43A047")
+        + stat_bar("TOTAL", "total", "#1565C0")
     )
 
     st.markdown(
@@ -568,6 +580,124 @@ def pokemon_preview_card(p: dict, slot_num: int, stat_maxima: dict):
         """,
         unsafe_allow_html=True,
     )
+
+
+def classify_log_entry(entry: str) -> tuple[str, str, str, str]:
+    """Return (kind, label, accent_color, bg_color) for a log entry."""
+    txt = entry.lower()
+    if entry.startswith("**Turn"):
+        return ("turn", "TURN", "#6366F1", "#EEF2FF")
+    if "cheat activated" in txt:
+        return ("cheat", "CHEAT", "#C026D3", "#FDF4FF")
+    if "fainted" in txt:
+        return ("ko", "K.O.", "#DC2626", "#FEF2F2")
+    if "wins" in txt or "draw" in txt:
+        return ("result", "RESULT", "#D97706", "#FFFBEB")
+    if "super effective" in txt:
+        return ("damage", "DAMAGE+", "#16A34A", "#F0FDF4")
+    if "not very effective" in txt:
+        return ("damage", "DAMAGE-", "#CA8A04", "#FEFCE8")
+    if "no effect" in txt:
+        return ("damage", "IMMUNE", "#6B7280", "#F3F4F6")
+    return ("damage", "DAMAGE", "#0284C7", "#EFF6FF")
+
+
+def build_battle_summary(log_entries: list[str], winner: str | None = None) -> str:
+    """Generate a concise plain-text battle summary."""
+    if not log_entries:
+        return "No battle events yet."
+
+    turns = len([e for e in log_entries if e.startswith("**Turn")])
+    kos = len([e for e in log_entries if "fainted" in e.lower()])
+    cheats = len([e for e in log_entries if "CHEAT ACTIVATED" in e])
+    last_events = [e.replace("**", "").replace("*", "") for e in log_entries[-6:]]
+
+    winner_line = ""
+    if winner:
+        winner_line = f"Winner: {winner}\n"
+
+    summary = (
+        f"{winner_line}"
+        f"Turns: {turns}\n"
+        f"Knockouts: {kos}\n"
+        f"Cheats used: {cheats}\n"
+        "\nRecent events:\n- "
+        + "\n- ".join(last_events)
+    )
+    return summary
+
+
+def render_battle_log(log_entries: list[str], title: str, key_prefix: str, height: int = 340):
+    """Render styled battle log with filters and ordering."""
+    st.markdown(f"### {title}")
+    filter_col, order_col = st.columns([2, 1])
+    with filter_col:
+        selected_filter = st.selectbox(
+            "Show",
+            ["All", "Damage", "Turns", "KOs", "Cheats", "Results"],
+            key=f"{key_prefix}_filter",
+        )
+    with order_col:
+        newest_first = st.toggle("Newest first", value=True, key=f"{key_prefix}_newest")
+
+    normalized = []
+    for entry in log_entries:
+        kind, label, accent, bg = classify_log_entry(entry)
+        normalized.append(
+            {
+                "entry": entry,
+                "kind": kind,
+                "label": label,
+                "accent": accent,
+                "bg": bg,
+            }
+        )
+
+    filter_map = {
+        "All": None,
+        "Damage": "damage",
+        "Turns": "turn",
+        "KOs": "ko",
+        "Cheats": "cheat",
+        "Results": "result",
+    }
+    target_kind = filter_map[selected_filter]
+    if target_kind:
+        normalized = [n for n in normalized if n["kind"] == target_kind]
+
+    if newest_first:
+        normalized = list(reversed(normalized))
+
+    cards = []
+    for item in normalized:
+        clean = item["entry"].replace("**", "").replace("*", "")
+        clean = html.escape(clean)
+        cards.append(
+            f"""
+            <div style="border-left:4px solid {item['accent']}; background:{item['bg']};
+                        border-radius:8px; padding:8px 10px; margin-bottom:7px;">
+                <div style="font-size:0.66rem; font-weight:800; color:{item['accent']}; letter-spacing:0.3px;">
+                    {item['label']}
+                </div>
+                <div style="font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+                            font-size:0.82rem; color:#111827; white-space:pre-wrap;">
+                    {clean}
+                </div>
+            </div>
+            """
+        )
+
+    if cards:
+        st.markdown(
+            f"""
+            <div style="height:{height}px; overflow-y:auto; padding:6px 4px 4px 0;">
+                {''.join(cards)}
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+    else:
+        st.info("No log entries for this filter yet.")
 
 
 def render_battle_card(p: dict):
@@ -723,6 +853,34 @@ def page_battle():
                 "padding-top:40px;color:#555;'>VS</div>",
                 unsafe_allow_html=True,
             )
+            st.markdown(
+                """
+                <div style="
+                    margin-top:14px;
+                    border:1px solid #d8e0ec;
+                    border-radius:10px;
+                    padding:10px;
+                    background:linear-gradient(180deg,#f9fbff 0%, #f1f5fb 100%);
+                ">
+                    <div style="font-size:0.74rem;font-weight:800;color:#334155;text-align:center;">
+                        BATTLE CONTROLS
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+            ctrl_a, ctrl_b = st.columns(2)
+            with ctrl_a:
+                if st.button("Next Turn", key="next_turn_main", type="primary", use_container_width=True):
+                    execute_turn(player_team, ai_team)
+                    st.rerun()
+            with ctrl_b:
+                if st.button("Auto x3", key="auto_turns_3", use_container_width=True):
+                    for _ in range(3):
+                        if st.session_state.battle_state != "battle":
+                            break
+                        execute_turn(player_team, ai_team)
+                    st.rerun()
         with col2:
             st.markdown("### 🔵 AI Team")
             for p in ai_team:
@@ -746,34 +904,28 @@ def page_battle():
                         st.rerun()
                     else:
                         st.error("Invalid cheat code!")
+        render_battle_log(
+            st.session_state.battle_log,
+            title="Battle Log",
+            key_prefix="battle_live_log",
+            height=320,
+        )
 
-        # Next turn button
-        if st.button("\u2694\ufe0f Next Turn", type="primary"):
-            execute_turn(player_team, ai_team)
-            st.rerun()
-
-        # Battle log
-        st.markdown("### \U0001f4dc Battle Log")
-        log_html = '<div style="height:300px;overflow-y:auto;background:#1a1a2e;padding:12px;border-radius:8px;font-family:monospace">'
-        for entry in st.session_state.battle_log:
-            if "Super effective" in entry:
-                color = "#4CAF50"
-            elif "Not very effective" in entry:
-                color = "#FFC107"
-            elif "No effect" in entry:
-                color = "#9E9E9E"
-            elif "fainted" in entry.lower():
-                color = "#F44336"
-            elif "CHEAT" in entry:
-                color = "#E040FB"
-            elif "WINS" in entry:
-                color = "#FFD700"
-            else:
-                color = "#FAFAFA"
-            log_html += f'<p style="color:{color};margin:2px 0">{entry}</p>'
-        log_html += "</div>"
-        st.markdown(log_html, unsafe_allow_html=True)
-
+        with st.expander("Battle Summary (copy/download)"):
+            summary_txt = build_battle_summary(st.session_state.battle_log)
+            st.text_area(
+                "Summary Text",
+                value=summary_txt,
+                height=140,
+                key="battle_summary_live",
+            )
+            st.download_button(
+                "Download Summary (.txt)",
+                data=summary_txt,
+                file_name="pokemon_battle_summary.txt",
+                mime="text/plain",
+                use_container_width=True,
+            )
     # ---- BATTLE DONE ----
     elif st.session_state.battle_state == "done":
         winner = st.session_state.get("winner", "player")
@@ -788,29 +940,27 @@ def page_battle():
                 'border:1px solid #ccc;font-size:1.05rem;">😞 You lost... Better luck next time!</div>',
                 unsafe_allow_html=True,
             )
-
-        # Show final battle log
-        st.markdown("### \U0001f4dc Full Battle Log")
-        log_html = '<div style="height:400px;overflow-y:auto;background:#1a1a2e;padding:12px;border-radius:8px;font-family:monospace">'
-        for entry in st.session_state.battle_log:
-            if "Super effective" in entry:
-                color = "#4CAF50"
-            elif "Not very effective" in entry:
-                color = "#FFC107"
-            elif "No effect" in entry:
-                color = "#9E9E9E"
-            elif "fainted" in entry.lower():
-                color = "#F44336"
-            elif "CHEAT" in entry:
-                color = "#E040FB"
-            elif "WINS" in entry:
-                color = "#FFD700"
-            else:
-                color = "#FAFAFA"
-            log_html += f'<p style="color:{color};margin:2px 0">{entry}</p>'
-        log_html += "</div>"
-        st.markdown(log_html, unsafe_allow_html=True)
-
+        render_battle_log(
+            st.session_state.battle_log,
+            title="Full Battle Log",
+            key_prefix="battle_done_log",
+            height=420,
+        )
+        with st.expander("Final Battle Summary (copy/download)"):
+            summary_txt = build_battle_summary(st.session_state.battle_log, winner=winner)
+            st.text_area(
+                "Summary Text",
+                value=summary_txt,
+                height=160,
+                key="battle_summary_done",
+            )
+            st.download_button(
+                "Download Final Summary (.txt)",
+                data=summary_txt,
+                file_name="pokemon_battle_final_summary.txt",
+                mime="text/plain",
+                use_container_width=True,
+            )
         # Save result
         save_battle_result(
             st.session_state.player_team,
