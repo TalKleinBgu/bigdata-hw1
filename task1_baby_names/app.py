@@ -75,6 +75,20 @@ def run_query(sql: str, conn: sqlite3.Connection) -> pd.DataFrame:
     return pd.read_sql_query(sql, conn)
 
 
+@st.cache_data(show_spinner="Running query…")
+def cached_query(sql: str, _conn) -> pd.DataFrame:
+    """Cache-backed version for heavy/example queries."""
+    return pd.read_sql_query(sql, _conn)
+
+
+def ensure_extra_indexes(conn: sqlite3.Connection) -> None:
+    """Add a Name-only index if it doesn't exist (speeds up GROUP BY Name)."""
+    conn.execute(
+        "CREATE INDEX IF NOT EXISTS idx_name ON national_names (Name)"
+    )
+    conn.commit()
+
+
 # ---------------------------------------------------------------------------
 # Page configuration
 # ---------------------------------------------------------------------------
@@ -87,8 +101,9 @@ st.set_page_config(
 st.title("Baby Names Explorer")
 st.caption("Exploring US baby-name trends by state from the Social Security Administration (1910 -- present)")
 
-# Ensure DB exists
+# Ensure DB exists and indexes are up to date
 conn = get_connection()
+ensure_extra_indexes(conn)
 
 # ---------------------------------------------------------------------------
 # Sidebar — Schema & Index Info  (Task 1.1)
@@ -243,12 +258,12 @@ with tab_sql:
         ),
         "Names that disappeared after 1980": (
             "SELECT Name, SUM(Count) AS PreCount\n"
-            "FROM national_names\n"
+            "FROM national_names n\n"
             "WHERE Year <= 1980\n"
             "GROUP BY Name\n"
             "HAVING PreCount > 5000\n"
-            "   AND Name NOT IN (\n"
-            "       SELECT DISTINCT Name FROM national_names WHERE Year > 1980\n"
+            "   AND NOT EXISTS (\n"
+            "       SELECT 1 FROM national_names WHERE Name = n.Name AND Year > 1980\n"
             "   )\n"
             "ORDER BY PreCount DESC\n"
             "LIMIT 15;"
@@ -275,7 +290,8 @@ with tab_sql:
         key="sql_area",
     )
 
-    should_run = st.button("Run Query", type="primary") or st.session_state.auto_run_sql
+    is_example = st.session_state.auto_run_sql
+    should_run = st.button("Run Query", type="primary") or is_example
     st.session_state.auto_run_sql = False
     if should_run:
         stripped = user_sql.strip().rstrip(";").strip()
@@ -288,7 +304,8 @@ with tab_sql:
             )
         else:
             try:
-                result_df = run_query(user_sql, conn)
+                # Use cache for the heavy example queries; plain run_query for user queries
+                result_df = cached_query(user_sql, conn) if is_example else run_query(user_sql, conn)
                 st.success(f"Query returned {len(result_df):,} rows.")
                 st.dataframe(result_df, use_container_width=True)
 
