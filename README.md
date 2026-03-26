@@ -13,6 +13,9 @@ This repository contains one unified Streamlit deployment with separate pages fo
 
 Each task also has its own dedicated `README.md` inside its folder with requirement mapping and implementation notes.
 
+## Live Demo
+Streamlit deployment link: `https://bigdata-hw1.streamlit.app/`
+
 ## Unified Deployment Structure
 - Main app entry point: `app.py`
 - Streamlit page wrappers: `pages/`
