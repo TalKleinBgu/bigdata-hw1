@@ -3,36 +3,31 @@ import streamlit as st
 
 st.set_page_config(page_title="NBA SQL Trivia — HW1", page_icon="🏀", layout="wide")
 
-_NAV = """
+st.markdown("""
 <style>
 [data-testid="stSidebarNav"] { display: none; }
-.hw1-topnav {
-    display: flex; align-items: center; gap: 0; margin-bottom: 1.2rem;
-    background: #fff8f0; border: 1px solid #f5d0a0;
-    border-radius: 12px; padding: 0.5rem 1rem; font-size: 0.88rem;
-    flex-wrap: wrap;
+div[data-testid="stHorizontalBlock"]:first-of-type {
+    background: #fff8f0;
+    border: 1px solid #f5d0a0;
+    border-radius: 12px;
+    padding: 4px 8px;
+    margin-bottom: 1rem;
+    align-items: center;
 }
-.hw1-topnav a {
-    color: #E65100; text-decoration: none; font-weight: 600;
-    padding: 3px 10px; border-radius: 8px; transition: background 0.15s;
-}
-.hw1-topnav a:hover { background: #fde8d0; }
-.hw1-topnav .sep { color: #ccc; margin: 0 2px; }
-.hw1-topnav .current { color: #333; font-weight: 700; padding: 3px 10px; }
 </style>
-<div class="hw1-topnav">
-  <a href="/" target="_self">🏠 Home</a>
-  <span class="sep">›</span>
-  <span class="current">🏀 Task 4 — NBA SQL Trivia</span>
-  <span class="sep" style="margin-left:auto"></span>
-  <a href="/Baby_Names" target="_self">Task 1 👶</a>
-  <span class="sep">·</span>
-  <a href="/Oscar" target="_self">Task 2 🎬</a>
-  <span class="sep">·</span>
-  <a href="/Pokemon" target="_self">Task 3 ⚔️</a>
-</div>
-"""
-st.markdown(_NAV, unsafe_allow_html=True)
+""", unsafe_allow_html=True)
+
+c0, c1, csep, c2, c3, c4 = st.columns([0.7, 2.2, 0.1, 0.85, 0.85, 0.85])
+with c0:
+    st.page_link("app.py", label="🏠 Home")
+with c1:
+    st.markdown("<span style='font-weight:700; color:#333; font-size:0.9rem;'>🏀 Task 4 — NBA SQL Trivia</span>", unsafe_allow_html=True)
+with c2:
+    st.page_link("pages/1_Baby_Names.py", label="👶 Task 1")
+with c3:
+    st.page_link("pages/2_Oscar.py", label="🎬 Task 2")
+with c4:
+    st.page_link("pages/3_Pokemon.py", label="⚔️ Task 3")
 
 _task_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'task4_sql_game'))
 _app_file = os.path.join(_task_dir, 'app.py')
