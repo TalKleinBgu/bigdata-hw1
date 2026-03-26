@@ -318,14 +318,12 @@ with tab_sql:
                         x_col = other_cols[0]
                         plot_df = result_df.copy()
 
-                        # % toggle when there are multiple numeric columns
-                        use_pct = False
-                        if len(numeric_cols) > 1:
-                            use_pct = st.toggle("Show as %", key="autochart_pct")
-                            if use_pct:
-                                row_total = plot_df[numeric_cols].sum(axis=1).replace(0, 1)
-                                for c in numeric_cols:
-                                    plot_df[c] = (plot_df[c] / row_total * 100).round(2)
+                        # Always show as % when there are multiple numeric columns
+                        use_pct = len(numeric_cols) > 1
+                        if use_pct:
+                            row_total = plot_df[numeric_cols].sum(axis=1).replace(0, 1)
+                            for c in numeric_cols:
+                                plot_df[c] = (plot_df[c] / row_total * 100).round(2)
 
                         # Decide chart type: line if x looks like years, else bar
                         is_time = (
