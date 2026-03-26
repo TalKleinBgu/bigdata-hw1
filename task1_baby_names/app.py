@@ -309,35 +309,45 @@ with tab_sql:
                 st.success(f"Query returned {len(result_df):,} rows.")
                 st.dataframe(result_df, use_container_width=True)
 
-                # Auto-chart: if there is a numeric column and a time/categorical column
+                # Auto-chart
                 if len(result_df.columns) >= 2:
                     numeric_cols = result_df.select_dtypes(include="number").columns.tolist()
                     other_cols = [c for c in result_df.columns if c not in numeric_cols]
 
                     if numeric_cols and other_cols:
                         x_col = other_cols[0]
-                        y_col = numeric_cols[0]
+                        plot_df = result_df.copy()
+
+                        # % toggle when there are multiple numeric columns
+                        use_pct = False
+                        if len(numeric_cols) > 1:
+                            use_pct = st.toggle("Show as %", key="autochart_pct")
+                            if use_pct:
+                                row_total = plot_df[numeric_cols].sum(axis=1).replace(0, 1)
+                                for c in numeric_cols:
+                                    plot_df[c] = (plot_df[c] / row_total * 100).round(2)
 
                         # Decide chart type: line if x looks like years, else bar
-                        is_time = False
-                        if pd.api.types.is_numeric_dtype(result_df[x_col]):
-                            if result_df[x_col].between(1800, 2100).all():
-                                is_time = True
+                        is_time = (
+                            pd.api.types.is_numeric_dtype(plot_df[x_col])
+                            and plot_df[x_col].between(1800, 2100).all()
+                        )
+                        y_label = "Percentage (%)" if use_pct else "Count"
+                        title = "Query Result (line chart)" if is_time else "Query Result (bar chart)"
 
                         if is_time:
-                            chart = px.line(
-                                result_df, x=x_col, y=y_col,
-                                title="Query Result (line chart)",
-                            )
+                            chart = px.line(plot_df, x=x_col, y=numeric_cols, title=title)
                         else:
-                            chart = px.bar(
-                                result_df, x=x_col, y=y_col,
-                                title="Query Result (bar chart)",
-                            )
-                        chart.update_layout(template="plotly_white", dragmode=False,
-                                            hovermode="x unified",
-                                            xaxis=dict(showspikes=True, spikemode="across", spikethickness=1),
-                                            yaxis=dict(showspikes=True, spikemode="across", spikethickness=1))
+                            barmode = "stack" if (use_pct and len(numeric_cols) > 1) else "group"
+                            chart = px.bar(plot_df, x=x_col, y=numeric_cols,
+                                           title=title, barmode=barmode)
+
+                        chart.update_layout(
+                            template="plotly_white", dragmode=False,
+                            hovermode="x unified", yaxis_title=y_label,
+                            xaxis=dict(showspikes=True, spikemode="across", spikethickness=1),
+                            yaxis=dict(showspikes=True, spikemode="across", spikethickness=1),
+                        )
                         st.plotly_chart(chart, use_container_width=True)
             except Exception as exc:
                 st.error(f"Query error: {exc}")
