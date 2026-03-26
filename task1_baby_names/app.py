@@ -105,49 +105,19 @@ st.caption("Exploring US baby-name trends by state from the Social Security Admi
 conn = get_connection()
 ensure_extra_indexes(conn)
 
+# Sidebar — stats only  (Task 1.1)
 # ---------------------------------------------------------------------------
-# Sidebar — Schema & Index Info  (Task 1.1)
-# ---------------------------------------------------------------------------
+st.markdown("""
+<style>
+[data-testid="stSidebarContent"] { padding-top: 0.5rem !important; }
+</style>
+""", unsafe_allow_html=True)
+
 with st.sidebar:
-    st.header("Database Schema")
-    st.code(
-        """CREATE TABLE national_names (
-    Id     INTEGER PRIMARY KEY AUTOINCREMENT,
-    Name   TEXT    NOT NULL,
-    Year   INTEGER NOT NULL,
-    Gender TEXT    NOT NULL,
-    State  TEXT    NOT NULL,
-    Count  INTEGER NOT NULL
-);""",
-        language="sql",
-    )
-
-    st.subheader("Indexes")
-
-    st.markdown("**1. `idx_name_year` on (Name, Year)**")
-    st.markdown(
-        "Speeds up the most common query pattern: looking up a specific "
-        "name's popularity across years. Used by the Name Popularity chart."
-    )
-
-    st.markdown("**2. `idx_year_gender` on (Year, Gender)**")
-    st.markdown(
-        "Speeds up aggregate queries that group by year and gender, such as "
-        "computing total births per year (needed for percentage calculations) "
-        "and yearly statistics."
-    )
-
-    st.markdown("**3. `idx_state` on (State)**")
-    st.markdown(
-        "Speeds up queries filtering or grouping by state, enabling "
-        "efficient regional analysis of naming trends."
-    )
-
-    st.divider()
     row_count = run_query("SELECT COUNT(*) AS n FROM national_names", conn).iloc[0, 0]
     year_range = run_query("SELECT MIN(Year) AS lo, MAX(Year) AS hi FROM national_names", conn)
     st.metric("Total rows", f"{row_count:,}")
-    st.metric("Year range", f"{year_range.iloc[0, 0]} -- {year_range.iloc[0, 1]}")
+    st.metric("Year range", f"{year_range.iloc[0, 0]} – {year_range.iloc[0, 1]}")
 
 # ---------------------------------------------------------------------------
 # Main content — organized with tabs
@@ -235,6 +205,23 @@ with tab_sql:
         "Run any **SELECT** query against the `national_names` table. "
         "Non-SELECT statements are blocked for safety."
     )
+
+    with st.expander("📋 Database Schema & Indexes (Task 1.1)", expanded=False):
+        st.code(
+            """CREATE TABLE national_names (
+    Id     INTEGER PRIMARY KEY AUTOINCREMENT,
+    Name   TEXT    NOT NULL,
+    Year   INTEGER NOT NULL,
+    Gender TEXT    NOT NULL,
+    State  TEXT    NOT NULL,
+    Count  INTEGER NOT NULL
+);""",
+            language="sql",
+        )
+        st.markdown("**Indexes:**")
+        st.markdown("- `idx_name_year` on (Name, Year) — name popularity lookups")
+        st.markdown("- `idx_year_gender` on (Year, Gender) — aggregate queries by year/gender")
+        st.markdown("- `idx_state` on (State) — regional filtering and grouping")
 
     # Pre-built example queries
     example_queries = {

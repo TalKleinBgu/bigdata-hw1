@@ -1008,7 +1008,10 @@ def page_schema():
     conn = get_conn()
 
     st.subheader("Tables")
-    tables = pd.read_sql_query("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name", conn)
+    tables = pd.read_sql_query(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name != 'sqlite_sequence' ORDER BY name",
+        conn,
+    )
     st.dataframe(tables, use_container_width=True)
 
     for tbl in tables["name"]:
@@ -1066,6 +1069,12 @@ def main():
         page_schema()
 
     # --- Damage formula documentation in sidebar ---
+    st.markdown("""
+<style>
+[data-testid="stSidebarContent"] { padding-top: 0.5rem !important; }
+</style>
+""", unsafe_allow_html=True)
+
     with st.sidebar:
         st.markdown("## \U0001f4d6 Battle Mechanics")
         st.markdown("""

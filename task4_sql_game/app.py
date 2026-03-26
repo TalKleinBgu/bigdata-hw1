@@ -1651,6 +1651,12 @@ _updateTimer();
 # ---------------------------------------------------------------------------
 
 def render_sidebar(conn):
+    st.markdown("""
+<style>
+[data-testid="stSidebarContent"] { padding-top: 0.5rem !important; }
+</style>
+""", unsafe_allow_html=True)
+
     with st.sidebar:
         st.markdown("### 🔍 Quick ID Lookup")
         st.caption("Find IDs without writing SQL")
@@ -2055,7 +2061,8 @@ def render_practice_tab(conn):
 
     sql = st.text_area(
         "SQL Query",
-        value="-- Try any SELECT query!\nSELECT * FROM teams ORDER BY wins DESC",
+        value="",
+        placeholder="-- Try any SELECT query!\nSELECT * FROM teams ORDER BY wins DESC",
         height=120,
         key="practice_sql",
         label_visibility="collapsed",
