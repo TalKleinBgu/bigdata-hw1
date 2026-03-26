@@ -6,7 +6,8 @@ import streamlit as st
 
 st.set_page_config(page_title="Baby Names - HW1", page_icon="👶", layout="wide")
 
-st.markdown("""
+st.markdown(
+    """
 <style>
 [data-testid="stSidebarNav"] { display: none; }
 .hw1-nav {
@@ -48,15 +49,17 @@ st.markdown("""
 .hw1-nav .hw1-spacer { flex: 1; }
 </style>
 <nav class="hw1-nav">
-  <a href="/" target="_self">🏠 Home</a>
-  <span class="hw1-sep">│</span>
-  <span class="hw1-active">👶 Task 1 · Baby Names</span>
+  <a href="/" target="_self">&#127968; Home</a>
+  <span class="hw1-sep">|</span>
+  <span class="hw1-active">&#128118; Task 1 - Baby Names</span>
   <div class="hw1-spacer"></div>
-  <a href="/Oscar" target="_self">🎬 Task 2</a>
-  <a href="/Pokemon" target="_self">⚔️ Task 3</a>
-  <a href="/NBA_Trivia" target="_self">🏀 Task 4</a>
+  <a href="/Oscar" target="_self">&#127916; Task 2</a>
+  <a href="/Pokemon" target="_self">&#9876;&#65039; Task 3</a>
+  <a href="/NBA_Trivia" target="_self">&#127936; Task 4</a>
 </nav>
-""", unsafe_allow_html=True)
+""",
+    unsafe_allow_html=True,
+)
 
 _task_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "task1_baby_names"))
 _app_file = os.path.join(_task_dir, "app.py")

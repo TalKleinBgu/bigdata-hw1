@@ -951,6 +951,15 @@ def page_battle():
                 'border:1px solid #ccc;font-size:1.05rem;">😞 You lost... Better luck next time!</div>',
                 unsafe_allow_html=True,
             )
+        pa_l, pa_c, pa_r = st.columns([1.4, 2.2, 1.4])
+        with pa_c:
+            play_again_top = st.button("Play Again", key="play_again_top", type="primary", use_container_width=True)
+        if play_again_top:
+            st.session_state.battle_state = "select"
+            st.session_state.battle_log = []
+            st.session_state.cheats_used = []
+            st.rerun()
+
         render_battle_log(
             st.session_state.battle_log,
             title="Full Battle Log",
@@ -995,12 +1004,6 @@ def page_battle():
 
         # Restore DB
         restore_pokemon_db()
-
-        if st.button("\U0001f504 Play Again"):
-            st.session_state.battle_state = "select"
-            st.session_state.battle_log = []
-            st.session_state.cheats_used = []
-            st.rerun()
 
         # Battle history
         st.markdown("---")
