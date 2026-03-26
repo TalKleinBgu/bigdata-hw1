@@ -783,6 +783,7 @@ def page_battle():
                 p = get_pokemon_by_name(name)
                 if p:
                     pokemon_preview_card(p, i + 1, stat_maxima)
+        st.markdown("<div style='height:20px;'></div>", unsafe_allow_html=True)
 
         start_l, start_c, start_r = st.columns([1.2, 2.8, 1.2])
         with start_c:
