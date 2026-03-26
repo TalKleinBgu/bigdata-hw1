@@ -148,7 +148,7 @@ TASKS = [
         "icon": "🎬",
         "title": "Oscar Actor Explorer",
         "desc": "Browse Oscar nominations modeled with SQLAlchemy ORM. Get actor profiles with Wikipedia photos, win statistics, and discover who waited longest for their first Academy Award.",
-        "tags": ["SQLAlchemy ORM", "Wikipedia API", "Profiles"],
+        "tags": ["SQLAlchemy", "Wikipedia API", "Profiles"],
         "accent": "#E8A838",
         "url": "/Oscar",
     },
