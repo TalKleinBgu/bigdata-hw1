@@ -486,46 +486,106 @@ def pokemon_card(p: dict):
         cols[i].metric(stat.upper().replace("_", " "), p.get(stat, 0))
 
 
+def _stat_bar_html(label: str, value: int, max_val: int = 255, color: str = "#4A90D9") -> str:
+    pct = min(100, value / max_val * 100)
+    return (
+        f'<div style="margin-bottom:5px;">'
+        f'<div style="display:flex;justify-content:space-between;font-size:0.78rem;margin-bottom:2px;">'
+        f'<span style="color:#555;">{label}</span><span style="font-weight:600;">{value}</span></div>'
+        f'<div style="background:#e0e0e0;border-radius:4px;height:7px;overflow:hidden;">'
+        f'<div style="background:{color};height:100%;width:{pct:.0f}%;border-radius:4px;"></div>'
+        f'</div></div>'
+    )
+
+
 def pokemon_preview_card(p: dict, slot_num: int):
-    """Compact, cleaner preview card used during team selection."""
+    """Compact preview card used during team selection."""
     t1 = type_badge(p.get("type1", ""))
     t2_raw = p.get("type2", "")
     t2 = type_badge(t2_raw) if t2_raw else ""
-    types_str = t1 + (f" / {t2}" if t2 else "")
+    types_str = t1 + (f"&nbsp;&nbsp;{t2}" if t2 else "")
+
+    stat_bars = (
+        _stat_bar_html("HP",  p.get("hp", 0),      255, "#E53935")
+        + _stat_bar_html("ATK", p.get("attack", 0),   255, "#FB8C00")
+        + _stat_bar_html("DEF", p.get("defense", 0),  255, "#F9A825")
+        + _stat_bar_html("SpA", p.get("sp_atk", 0),   255, "#8E24AA")
+        + _stat_bar_html("SpD", p.get("sp_def", 0),   255, "#1E88E5")
+        + _stat_bar_html("SPD", p.get("speed", 0),    255, "#43A047")
+    )
+
     st.markdown(
         f"""
         <div style="
             border: 1px solid #d6dde8;
             border-radius: 14px;
-            padding: 12px;
-            background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
-            box-shadow: 0 1px 2px rgba(20, 40, 60, 0.08);
-            min-height: 220px;
+            padding: 14px 14px 10px 14px;
+            background: linear-gradient(160deg, #f0f6ff 0%, #ffffff 100%);
+            box-shadow: 0 2px 6px rgba(20,40,80,0.09);
         ">
-            <div style="
-                display: inline-block;
-                font-size: 0.78rem;
-                font-weight: 700;
-                color: #1f3a56;
-                background: #e9f1fb;
-                border: 1px solid #cfe0f4;
-                border-radius: 999px;
-                padding: 2px 8px;
-                margin-bottom: 8px;
-            ">Slot {slot_num}</div>
-            <h4 style="margin: 4px 0 6px 0;">{p['name']}</h4>
-            <div style="margin-bottom: 10px; font-size: 0.95rem;">{types_str}</div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:0.9rem;">
-                <div><b>HP</b>: {p.get('hp', 0)}</div>
-                <div><b>ATK</b>: {p.get('attack', 0)}</div>
-                <div><b>DEF</b>: {p.get('defense', 0)}</div>
-                <div><b>SPD</b>: {p.get('speed', 0)}</div>
+            <div style="font-size:0.72rem;font-weight:700;color:#1f3a56;
+                background:#deeaf8;border-radius:999px;padding:2px 9px;
+                display:inline-block;margin-bottom:8px;">Slot {slot_num}</div>
+            <div style="font-size:1.05rem;font-weight:800;margin-bottom:4px;">{p['name']}</div>
+            <div style="font-size:0.9rem;margin-bottom:12px;color:#444;">{types_str}</div>
+            {stat_bars}
+            <div style="margin-top:8px;text-align:right;font-size:0.78rem;color:#888;">
+                Total&nbsp;<b style="color:#1f3a56;">{p.get('total', 0)}</b>
             </div>
-            <div style="margin-top:10px;font-size:0.9rem;"><b>Total</b>: {p.get('total', 0)}</div>
         </div>
         """,
         unsafe_allow_html=True,
     )
+
+
+def render_battle_card(p: dict, is_active: bool):
+    """Render a battle card with the HP bar inside the styled box."""
+    pct = max(0, p["current_hp"] / p["max_hp"]) if p["max_hp"] > 0 else 0
+    if pct > 0.5:
+        bar_color = "#4CAF50"
+    elif pct > 0.2:
+        bar_color = "#FFC107"
+    else:
+        bar_color = "#F44336"
+
+    fainted = p["current_hp"] <= 0
+    border_color = "#4A90D9" if is_active else ("#bbb" if not fainted else "#F44336")
+    bg = "linear-gradient(135deg,#e8f4fd 0%,#f8fbff 100%)" if is_active else ("#f5f5f5" if not fainted else "#fff5f5")
+    opacity = "0.55" if fainted else "1"
+
+    t1 = type_badge(p.get("type1", ""))
+    t2_raw = p.get("type2", "")
+    t2 = type_badge(t2_raw) if t2_raw else ""
+    types_str = t1 + (f"&nbsp;/&nbsp;{t2}" if t2 else "")
+
+    status_text = "⚔️ Active" if is_active else ("💀 Fainted" if fainted else "⏳ Waiting")
+    status_color = "#4A90D9" if is_active else ("#F44336" if fainted else "#999")
+
+    hp_text = f"{max(0, p['current_hp'])} / {p['max_hp']}"
+
+    st.markdown(f"""
+    <div style="
+        border: 2px solid {border_color};
+        border-radius: 12px;
+        padding: 12px 14px;
+        background: {bg};
+        opacity: {opacity};
+        margin-bottom: 8px;
+        box-shadow: {'0 3px 10px rgba(74,144,217,0.25)' if is_active else '0 1px 4px rgba(0,0,0,0.07)'};
+    ">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+            <span style="font-weight:800;font-size:1rem;">{p['name']}</span>
+            <span style="font-size:0.72rem;font-weight:700;color:{status_color};">{status_text}</span>
+        </div>
+        <div style="font-size:0.82rem;color:#555;margin-bottom:8px;">{types_str}</div>
+        <div style="font-size:0.78rem;color:#666;margin-bottom:4px;">
+            HP:&nbsp;<b>{hp_text}</b>
+        </div>
+        <div style="background:#ddd;border-radius:6px;height:14px;width:100%;overflow:hidden;">
+            <div style="background:{bar_color};height:100%;width:{pct*100:.1f}%;border-radius:6px;transition:width 0.3s;"></div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
 
 # ---------------------------------------------------------------------------
@@ -551,26 +611,21 @@ def page_battle():
 
         team_size = st.selectbox("Team size", [1, 2, 3], index=0)
 
-        selected = []
-        for i in range(team_size):
-            name = st.selectbox(f"Pokemon {i+1}", all_names, key=f"sel_{i}")
-            selected.append(name)
+        st.markdown("---")
+        st.subheader("Your Team")
 
-        # Show previews
-        if selected:
-            st.markdown("---")
-            st.subheader("Your Team Preview")
-            st.caption(
-                f"Selected {len(selected)} Pokemon. Each card is a separate team slot."
-            )
-            cols = st.columns(len(selected))
-            player_pokemon = []
-            for i, n in enumerate(selected):
-                p = get_pokemon_by_name(n)
+        # One column per slot — selectbox + preview card together
+        slot_cols = st.columns(team_size)
+        selected = []
+        player_pokemon = []
+        for i in range(team_size):
+            with slot_cols[i]:
+                name = st.selectbox(f"Slot {i+1}", all_names, key=f"sel_{i}")
+                selected.append(name)
+                p = get_pokemon_by_name(name)
                 if p:
                     player_pokemon.append(p)
-                    with cols[i]:
-                        pokemon_preview_card(p, i + 1)
+                    pokemon_preview_card(p, i + 1)
 
         if st.button("\u2694\ufe0f Start Battle!", type="primary"):
             # Restore DB before new battle
@@ -610,7 +665,7 @@ def page_battle():
         if st.session_state.get("scroll_to_top", False):
             components.html(
                 "<script>window.parent.scrollTo({top: 0, behavior: 'smooth'});</script>",
-                height=0,
+                height=1,
             )
             st.session_state.scroll_to_top = False
 
@@ -624,23 +679,21 @@ def page_battle():
         a_mon = ai_team[a_idx]
 
         # Layout: player vs AI
-        col1, col_mid, col2 = st.columns([2, 1, 2])
+        col1, col_mid, col2 = st.columns([5, 1, 5])
         with col1:
-            st.markdown("### \U0001f7e2 Your Team")
+            st.markdown("### 🟢 Your Team")
             for i, p in enumerate(player_team):
-                prefix = "\u25b6 " if i == p_idx else "  "
-                fainted = " (fainted)" if p["current_hp"] <= 0 else ""
-                st.markdown(f"{prefix}**{p['name']}**{fainted}")
-                render_hp_bar(p["current_hp"], p["max_hp"], "")
+                render_battle_card(p, is_active=(i == p_idx))
         with col_mid:
-            st.markdown("<h2 style='text-align:center'>VS</h2>", unsafe_allow_html=True)
+            st.markdown(
+                "<div style='text-align:center;font-size:1.8rem;font-weight:900;"
+                "padding-top:40px;color:#555;'>VS</div>",
+                unsafe_allow_html=True,
+            )
         with col2:
-            st.markdown("### \U0001f534 AI Team")
+            st.markdown("### 🔴 AI Team")
             for i, p in enumerate(ai_team):
-                prefix = "\u25b6 " if i == a_idx else "  "
-                fainted = " (fainted)" if p["current_hp"] <= 0 else ""
-                st.markdown(f"{prefix}**{p['name']}**{fainted}")
-                render_hp_bar(p["current_hp"], p["max_hp"], "")
+                render_battle_card(p, is_active=(i == a_idx))
 
         st.markdown("---")
 
