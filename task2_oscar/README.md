@@ -1,0 +1,49 @@
+# Task 2: Oscar Actor Explorer
+
+## What this task includes
+This app implements Task 2 with SQLAlchemy ORM (no raw SQL for the core modeling/query flow) and Streamlit:
+
+1. SQLite data modeling through ORM entities.
+2. Actor/director profile explorer.
+3. Live Wikipedia enrichment (summary, birth date, photo when available).
+4. Computed insights such as win rate and first nomination to first win gap.
+5. Interesting findings section with ORM-driven analysis.
+6. Bonus: "Did You Know?" fun facts.
+
+## Assignment checklist mapping
+- Task 2.1 Data Modeling with ORM:
+  - Dataset loaded into SQLite using SQLAlchemy models.
+  - Entity fields and constraints defined in model classes.
+  - In-app section explains schema design decisions.
+- Task 2.2 Actor Profile App:
+  - Search by actor/director name.
+  - Shows nominations, wins, categories, years active, and film lists.
+  - Wikipedia API integration for biography and media.
+  - Computed metrics: win rate, category comparison, first nom to first win.
+  - Handles not-found and ambiguous cases gracefully.
+- Task 2.3 Interesting Finds:
+  - Three exploratory findings shown in the app.
+- Bonus:
+  - "Did You Know?" generated facts shown for the selected person.
+
+## How to run
+From the repository root:
+
+```bash
+pip install -r requirements.txt
+streamlit run app.py
+```
+
+Then open page: `Task 2 - Oscar Explorer` (route `/Oscar` in the unified deployment).
+
+## Main files
+- `task2_oscar/app.py` - full Task 2 app logic.
+- `task2_oscar/oscar.db` - SQLite database generated/used by the app.
+- `task2_oscar/full_data.csv` - source dataset.
+
+## Notes for submission
+- One deployment with separate pages is acceptable, as long as the grader can reach this task directly.
+- In your written report, explain in your own words:
+  - why you selected SQLAlchemy,
+  - how ORM entities map to dataset fields,
+  - and why your 3 discoveries are meaningful.

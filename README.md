@@ -1,70 +1,83 @@
 # Big Data Homework 1
 
-**Tal Klein**
-Course: *The Art of Analyzing Big Data: The Data Scientist's Toolbox* — Dr. Michael Fire
-
----
+**Tal Klein**  
+Course: *The Art of Analyzing Big Data: The Data Scientist's Toolbox* - Dr. Michael Fire
 
 ## Overview
+This repository contains one unified Streamlit deployment with separate pages for all homework tasks:
 
-This repository contains 4 interactive data applications built with Streamlit, SQLite, and Python — each demonstrating a different aspect of data engineering and analysis.
+- Task 1: Baby Names Explorer
+- Task 2: Oscar Actor Explorer
+- Task 3: Pokemon Battle Arena
+- Task 4: NBA SQL Trivia (Bonus)
 
-## Tasks
+Each task also has its own dedicated `README.md` inside its folder with requirement mapping and implementation notes.
 
-### Task 1 — Baby Names Explorer
-Explore 5.6 million US baby name records stored in SQLite.
-- Name popularity over time (raw count vs. percentage)
-- Custom SQL query panel with pre-built examples and auto-charting
-- Name diversity trends and regional analysis
+## Unified Deployment Structure
+- Main app entry point: `app.py`
+- Streamlit page wrappers: `pages/`
+- Task implementations:
+  - `task1_baby_names/`
+  - `task2_oscar/`
+  - `task3_pokemon/`
+  - `task4_sql_game/`
 
-**Stack:** `sqlite3` · `pandas` · `Streamlit` · `Plotly`
+## Task Summary
 
----
+### Task 1 - Baby Names Explorer
+- SQLite-backed analysis of US baby names data
+- Name popularity trends (raw and relative)
+- Custom SQL panel (`SELECT`-only safety)
+- Additional visualization and pattern discovery section
 
-### Task 2 — Oscar Actor Explorer
-Browse Oscar Award nominations modeled with SQLAlchemy ORM.
-- Actor profile cards with Wikipedia photo and bio
-- Win statistics, nomination timeline, category percentile
-- Discoveries: longest wait for first win, multi-category nominees
+Task README: [task1_baby_names/README.md](task1_baby_names/README.md)
 
-**Stack:** `SQLAlchemy` · `requests` (Wikipedia REST API) · `Streamlit` · `Plotly`
+### Task 2 - Oscar Actor Explorer
+- ORM-based modeling with SQLAlchemy
+- Actor/director profile cards with live Wikipedia enrichment
+- Insights including wins, nominations, categories, and timeline metrics
+- Interesting finds and bonus fun-fact section
 
----
+Task README: [task2_oscar/README.md](task2_oscar/README.md)
 
-### Task 3 — Pokémon Battle Arena
-Build your team and battle with type-advantage mechanics powered by SQL.
-- Speed-based turn order, Attack vs Defense damage formula
-- Full battle log with turn-by-turn breakdown
-- Cheat codes with real SQL write operations + audit trail
+### Task 3 - Pokemon Battle Arena
+- SQLite-driven battle mechanics (no hardcoded stats)
+- Team selection, turn-by-turn battle log, and win conditions
+- Cheat codes implemented via real SQL write operations
+- Cheat audit and dataset analysis queries
 
-**Stack:** `sqlite3` · `Streamlit` · `Plotly`
+Task README: [task3_pokemon/README.md](task3_pokemon/README.md)
 
----
+### Task 4 - NBA SQL Trivia (Bonus)
+- Interactive SQL learning game with 5 progressive levels
+- Real SQLite backend, query execution, validation, and hints
+- Progress tracking, scoring, timing, and leaderboard
+- README includes explicit design choices and SQL concepts taught
 
-### Task 4 — NBA SQL Trivia ⭐ Bonus
-An interactive SQL learning game with real NBA data and 5 progressive levels.
-- Randomized questions from SELECT → WHERE → ORDER BY → GROUP BY → JOIN
-- Live timer, hint system, persistent leaderboard with podium visualization
-- Practice court (free SQL sandbox) and Quick ID Lookup sidebar widget
+Task README: [task4_sql_game/README.md](task4_sql_game/README.md)
 
-**Stack:** `nba_api` · `sqlite3` · `pandas` · `Streamlit` · `Plotly`
+## Tech Stack
+- Python
+- Streamlit
+- SQLite (`sqlite3`)
+- SQLAlchemy (Task 2)
+- pandas
+- Plotly
+- requests / Wikipedia APIs (Task 2)
+- nba_api (Task 4)
 
----
-
-## Running Locally
-
+## Run Locally
 ```bash
 pip install -r requirements.txt
 streamlit run app.py
 ```
 
-The landing page links to all 4 tasks. Databases are built automatically on first run from the CSV files — no manual setup required.
+Then open the landing page and navigate to each task page from the home screen.
 
 ## Data Sources
-
 | Task | Data | Source |
 |------|------|--------|
-| 1 | US Baby Names (5.6M rows) | Kaggle / SSA |
-| 2 | Oscar Awards | Kaggle dataset |
-| 3 | Pokémon stats | Kaggle dataset |
-| 4 | NBA player/team/game data | `nba_api` (NBA.com) |
+| 1 | US Baby Names | NationalNames / StateNames dataset |
+| 2 | Oscar Awards | Kaggle Oscar dataset |
+| 3 | Pokemon stats | Kaggle Pokemon dataset |
+| 4 | NBA players/teams/games | `nba_api` (NBA.com) + local SQLite cache |

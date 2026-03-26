@@ -2,7 +2,7 @@
 import streamlit as st
 
 st.set_page_config(
-    page_title="Big Data HW1 - Tal Klein",
+    page_title="The Art of Analyzing Big Data HW1 - Tal Klein",
     page_icon="📊",
     layout="wide",
     initial_sidebar_state="collapsed",
