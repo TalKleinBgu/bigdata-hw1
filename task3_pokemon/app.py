@@ -241,6 +241,37 @@ def get_pokemon_by_name(name: str) -> dict | None:
     return dict(zip(cols, row))
 
 
+@st.cache_data(show_spinner=False)
+def get_selection_stat_maxima() -> dict:
+    """Global maxima for each stat, used to normalize preview bars."""
+    conn = get_conn()
+    row = conn.execute(
+        """
+        SELECT
+            MAX(hp),
+            MAX(attack),
+            MAX(defense),
+            MAX(sp_atk),
+            MAX(sp_def),
+            MAX(speed)
+        FROM pokemon_original
+        """
+    ).fetchone()
+    conn.close()
+
+    if not row:
+        return {"hp": 1, "attack": 1, "defense": 1, "sp_atk": 1, "sp_def": 1, "speed": 1}
+
+    return {
+        "hp": max(1, int(row[0] or 1)),
+        "attack": max(1, int(row[1] or 1)),
+        "defense": max(1, int(row[2] or 1)),
+        "sp_atk": max(1, int(row[3] or 1)),
+        "sp_def": max(1, int(row[4] or 1)),
+        "speed": max(1, int(row[5] or 1)),
+    }
+
+
 def get_type_multiplier(atk_type: str, def_type1: str, def_type2: str) -> float:
     """Look up combined type multiplier from DB."""
     conn = get_conn()
@@ -486,50 +517,53 @@ def pokemon_card(p: dict):
         cols[i].metric(stat.upper().replace("_", " "), p.get(stat, 0))
 
 
-def pokemon_preview_card(p: dict, slot_num: int):
-    """Compact preview card used during team selection."""
+def pokemon_preview_card(p: dict, slot_num: int, stat_maxima: dict):
+    """Compact preview card with normalized stat bars for team selection."""
     t1 = type_badge(p.get("type1", ""))
     t2_raw = p.get("type2", "")
     t2 = type_badge(t2_raw) if t2_raw else ""
-    types_str = t1 + (f"&nbsp;&nbsp;{t2}" if t2 else "")
+    types_str = t1 + (f" {t2}" if t2 else "")
 
-    def sc(label, val, color):
-        return (
-            f'<div style="background:{color}18;border:1px solid {color}55;border-radius:6px;'
-            f'padding:3px 4px;text-align:center;">'
-            f'<div style="font-size:0.6rem;color:#777;line-height:1.2">{label}</div>'
-            f'<div style="font-weight:800;font-size:0.85rem;color:{color};">{val}</div></div>'
-        )
+    def stat_bar(label: str, key: str, color: str) -> str:
+        val = int(p.get(key, 0) or 0)
+        max_val = int(stat_maxima.get(key, 1) or 1)
+        pct = max(0.0, min(100.0, (val / max_val) * 100.0))
+        return f"""
+        <div style="margin-bottom:6px;">
+            <div style="display:flex;justify-content:space-between;font-size:0.72rem;color:#444;">
+                <span style="font-weight:700;">{label}</span>
+                <span>{val} / {max_val}</span>
+            </div>
+            <div style="height:7px;background:#dce2ea;border-radius:999px;overflow:hidden;">
+                <div style="height:100%;width:{pct:.1f}%;background:{color};border-radius:999px;"></div>
+            </div>
+        </div>
+        """
 
     stats_html = (
-        '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin-bottom:6px;">'
-        + sc("HP",  p.get("hp", 0),      "#27AE60")
-        + sc("ATK", p.get("attack", 0),   "#FB8C00")
-        + sc("DEF", p.get("defense", 0),  "#F9A825")
-        + sc("SpA", p.get("sp_atk", 0),   "#8E24AA")
-        + sc("SpD", p.get("sp_def", 0),   "#1E88E5")
-        + sc("SPD", p.get("speed", 0),    "#43A047")
-        + '</div>'
+        stat_bar("HP", "hp", "#2E7D32")
+        + stat_bar("ATK", "attack", "#EF6C00")
+        + stat_bar("DEF", "defense", "#F9A825")
+        + stat_bar("SpA", "sp_atk", "#8E24AA")
+        + stat_bar("SpD", "sp_def", "#1E88E5")
+        + stat_bar("SPD", "speed", "#43A047")
     )
 
     st.markdown(
         f"""
         <div style="
             border: 1px solid #d6dde8;
-            border-radius: 12px;
-            padding: 12px 12px 8px 12px;
-            background: linear-gradient(160deg, #f0f6ff 0%, #ffffff 100%);
-            box-shadow: 0 2px 6px rgba(20,40,80,0.09);
+            border-radius: 10px;
+            padding: 10px 10px 8px 10px;
+            background: var(--secondary-background-color, #f2f4f8);
+            margin-top: 6px;
         ">
             <div style="font-size:0.68rem;font-weight:700;color:#1f3a56;
-                background:#deeaf8;border-radius:999px;padding:1px 8px;
+                background:#dbe4f0;border-radius:999px;padding:1px 8px;
                 display:inline-block;margin-bottom:6px;">Slot {slot_num}</div>
             <div style="font-size:0.95rem;font-weight:800;margin-bottom:3px;">{p['name']}</div>
-            <div style="font-size:0.82rem;margin-bottom:8px;color:#444;">{types_str}</div>
+            <div style="font-size:0.80rem;margin-bottom:8px;color:#444;">{types_str}</div>
             {stats_html}
-            <div style="text-align:right;font-size:0.72rem;color:#888;">
-                Total&nbsp;<b style="color:#1f3a56;">{p.get('total', 0)}</b>
-            </div>
         </div>
         """,
         unsafe_allow_html=True,
@@ -604,6 +638,7 @@ def page_battle():
         st.subheader("Choose Your Team")
 
         team_size = st.selectbox("Team size", [1, 2, 3], index=0)
+        stat_maxima = get_selection_stat_maxima()
 
         st.markdown("---")
         st.subheader("Your Team")
@@ -617,7 +652,7 @@ def page_battle():
                 selected.append(name)
                 p = get_pokemon_by_name(name)
                 if p:
-                    st.caption(f"{type_badge(p.get('type1', ''))} {p['name']}")
+                    pokemon_preview_card(p, i + 1, stat_maxima)
 
         if st.button("\u2694\ufe0f Start Battle!", type="primary"):
             # Restore DB before new battle
