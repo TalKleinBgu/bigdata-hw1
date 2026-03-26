@@ -1910,7 +1910,19 @@ def render_welcome(conn):
         st.markdown(f"**Level {lv}:** {skill} — {desc}")
 
     st.markdown("---")
-    nickname = st.text_input("Enter your nickname:", placeholder="Your name for the leaderboard...")
+
+    def _start():
+        nick = st.session_state._welcome_nick.strip()
+        if nick:
+            st.session_state.nickname = nick
+            new_game(conn)
+
+    nickname = st.text_input(
+        "Enter your nickname:",
+        placeholder="Your name for the leaderboard...",
+        key="_welcome_nick",
+        on_change=_start,
+    )
     if st.button("🚀 Start Game!", type="primary", disabled=not nickname.strip()):
         st.session_state.nickname = nickname.strip()
         new_game(conn)
