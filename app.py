@@ -188,6 +188,6 @@ cards_html += '</div>'
 st.markdown(cards_html, unsafe_allow_html=True)
 
 st.markdown(
-    '<div class="hw1-footer">Tal Klein · Big Data HW1 · Built with Streamlit</div>',
+    '<div class="hw1-footer">Tal Klein · The Art of Analyzing Big Data HW1 · Built with Streamlit</div>',
     unsafe_allow_html=True,
 )
