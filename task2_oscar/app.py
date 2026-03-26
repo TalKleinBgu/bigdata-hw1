@@ -507,20 +507,20 @@ def main():
     all_names = get_all_names()
 
     # ----- Sidebar -----
-    st.markdown(“””
+    st.markdown("""
 <style>
-section[data-testid=”stSidebar”] > div:first-child { padding-top: 0.5rem !important; }
-[data-testid=”stSidebarContent”] { padding-top: 0.5rem !important; }
+section[data-testid="stSidebar"] > div:first-child { padding-top: 0.5rem !important; }
+[data-testid="stSidebarContent"] { padding-top: 0.5rem !important; }
 </style>
-“””, unsafe_allow_html=True)
+""", unsafe_allow_html=True)
 
     with st.sidebar:
-        st.header(“About This App”)
+        st.header("About This App")
         st.markdown(
-            “This app loads the [Oscar Award dataset]”
-            “(https://www.kaggle.com/datasets/unanimad/the-oscar-award) “
-            “into a SQLite database via **SQLAlchemy ORM** and provides “
-            “rich actor/director profiles enriched with live Wikipedia data.”
+            "This app loads the [Oscar Award dataset]"
+            "(https://www.kaggle.com/datasets/unanimad/the-oscar-award) "
+            "into a SQLite database via **SQLAlchemy ORM** and provides "
+            "rich actor/director profiles enriched with live Wikipedia data."
         )
 
     # ----- Tabs -----
@@ -925,5 +925,4 @@ class Nomination(Base):
 
 if __name__ == "__main__":
     main()
-
 

@@ -611,15 +611,13 @@ def page_battle():
         # One column per slot — selectbox + preview card together
         slot_cols = st.columns(team_size)
         selected = []
-        player_pokemon = []
         for i in range(team_size):
             with slot_cols[i]:
                 name = st.selectbox(f"Slot {i+1}", all_names, key=f"sel_{i}")
                 selected.append(name)
                 p = get_pokemon_by_name(name)
                 if p:
-                    player_pokemon.append(p)
-                    pokemon_preview_card(p, i + 1)
+                    st.caption(f"{type_badge(p.get('type1', ''))} {p['name']}")
 
         if st.button("\u2694\ufe0f Start Battle!", type="primary"):
             # Restore DB before new battle
@@ -1044,49 +1042,10 @@ def page_schema():
     conn.close()
 
 
-# ---------------------------------------------------------------------------
-# Main
-# ---------------------------------------------------------------------------
-
-def main():
-    st.set_page_config(
-        page_title="Pokemon Battle Arena",
-        page_icon="\u26a1",
-        layout="wide",
-    )
-
-    st.title("\u26a1 Pokemon Battle Arena")
-    st.caption("Big Data Homework 1 -- Task 3")
-
-    # Initialize DB
-    with st.spinner("Initializing database..."):
-        init_database()
-
-    # Navigation
-    tab1, tab2, tab3 = st.tabs([
-        "\u2694\ufe0f Battle Arena",
-        "\U0001f4ca Analysis",
-        "\U0001f5c4\ufe0f Schema & Data",
-    ])
-
-    with tab1:
-        page_battle()
-    with tab2:
-        page_analysis()
-    with tab3:
-        page_schema()
-
-    # --- Damage formula documentation in sidebar ---
-    st.markdown("""
-<style>
-section[data-testid="stSidebar"] > div:first-child { padding-top: 0.5rem !important; }
-[data-testid="stSidebarContent"] { padding-top: 0.5rem !important; }
-</style>
-""", unsafe_allow_html=True)
-
-    with st.sidebar:
-        st.markdown("## \U0001f4d6 Battle Mechanics")
-        st.markdown("""
+def page_battle_mechanics():
+    st.header("📖 Battle Mechanics")
+    st.markdown(
+        """
         **Damage Formula:**
         ```
         base = ((2*50/5 + 2) * 60 * (A/D)) / 50 + 2
@@ -1101,17 +1060,58 @@ section[data-testid="stSidebar"] > div:first-child { padding-top: 0.5rem !import
         **Turn Order:** Higher Speed goes first. Ties broken randomly.
 
         **Type Effectiveness:**
-        - ×2.0 = Super effective!
-        - ×1.0 = Normal
-        - ×0.5 = Not very effective...
-        - ×0.0 = No effect (immune)
-        """)
+        - x2.0 = Super effective!
+        - x1.0 = Normal
+        - x0.5 = Not very effective...
+        - x0.0 = No effect (immune)
+        """
+    )
 
-        st.markdown("---")
-        st.markdown("## \U0001f3ae Cheat Codes")
+# ---------------------------------------------------------------------------
+# Main
+# ---------------------------------------------------------------------------
+
+def main():
+    st.set_page_config(
+        page_title="Pokemon Battle Arena",
+        page_icon="⚡",
+        layout="wide",
+    )
+
+    st.title("⚡ Pokemon Battle Arena")
+    st.caption("Big Data Homework 1 -- Task 3")
+
+    # Initialize DB
+    with st.spinner("Initializing database..."):
+        init_database()
+
+    # Navigation
+    tab1, tab2, tab3, tab4 = st.tabs([
+        "⚔️ Battle Arena",
+        "📊 Analysis",
+        "🗄️ Schema & Data",
+        "📖 Battle Mechanics",
+    ])
+
+    with tab1:
+        page_battle()
+    with tab2:
+        page_analysis()
+    with tab3:
+        page_schema()
+    with tab4:
+        page_battle_mechanics()
+
+    st.markdown("""
+<style>
+section[data-testid="stSidebar"] > div:first-child { padding-top: 0.5rem !important; }
+[data-testid="stSidebarContent"] { padding-top: 0.5rem !important; }
+</style>
+""", unsafe_allow_html=True)
+
+    with st.sidebar:
+        st.markdown("## 🎮 Cheat Codes")
         for code, desc in CHEAT_DESCRIPTIONS.items():
             st.markdown(f"- `{code}`: {desc}")
-
-
 if __name__ == "__main__":
     main()

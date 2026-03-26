@@ -75,7 +75,19 @@ def run_query(sql: str, conn: sqlite3.Connection) -> pd.DataFrame:
     return pd.read_sql_query(sql, conn)
 
 
-@st.cache_data(show_spinner="Running query…")
+@st.cache_data(show_spinner=False)
+def get_dataset_stats(_conn) -> dict:
+    """Cached dataset-level stats used in multiple sections."""
+    row = _conn.execute(
+        """
+        SELECT COUNT(*) AS n, MIN(Year) AS lo, MAX(Year) AS hi
+        FROM national_names
+        """
+    ).fetchone()
+    return {"rows": int(row[0]), "year_lo": int(row[1]), "year_hi": int(row[2])}
+
+
+@st.cache_data(show_spinner="Running query...")
 def cached_query(sql: str, _conn) -> pd.DataFrame:
     """Cache-backed version for heavy/example queries."""
     return pd.read_sql_query(sql, _conn)
@@ -115,10 +127,9 @@ section[data-testid="stSidebar"] > div:first-child { padding-top: 0.5rem !import
 """, unsafe_allow_html=True)
 
 with st.sidebar:
-    row_count = run_query("SELECT COUNT(*) AS n FROM national_names", conn).iloc[0, 0]
-    year_range = run_query("SELECT MIN(Year) AS lo, MAX(Year) AS hi FROM national_names", conn)
-    st.metric("Total rows", f"{row_count:,}")
-    st.metric("Year range", f"{year_range.iloc[0, 0]} – {year_range.iloc[0, 1]}")
+    stats = get_dataset_stats(conn)
+    st.metric("Total rows", f"{stats['rows']:,}")
+    st.metric("Year range", f"{stats['year_lo']} – {stats['year_hi']}")
 
 # ---------------------------------------------------------------------------
 # Main content — organized with tabs
@@ -586,8 +597,7 @@ with tab_schema:
     st.markdown("- `idx_year_gender` on (Year, Gender) — speeds up aggregate queries by year and gender")
     st.markdown("- `idx_state` on (State) — speeds up regional filtering and grouping")
     st.divider()
-    row_count_val = run_query("SELECT COUNT(*) AS n FROM national_names", conn).iloc[0, 0]
-    year_range_val = run_query("SELECT MIN(Year) AS lo, MAX(Year) AS hi FROM national_names", conn)
+    schema_stats = get_dataset_stats(conn)
     c1, c2 = st.columns(2)
-    c1.metric("Total rows", f"{row_count_val:,}")
-    c2.metric("Year range", f"{year_range_val.iloc[0, 0]} – {year_range_val.iloc[0, 1]}")
+    c1.metric("Total rows", f"{schema_stats['rows']:,}")
+    c2.metric("Year range", f"{schema_stats['year_lo']} – {schema_stats['year_hi']}")
