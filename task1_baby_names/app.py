@@ -316,6 +316,8 @@ with tab_sql:
 
                     if numeric_cols and other_cols:
                         x_col = other_cols[0]
+                        # Use second categorical column as color if present
+                        color_col = other_cols[1] if len(other_cols) > 1 else None
                         plot_df = result_df.copy()
 
                         # Always show as % when there are multiple numeric columns
@@ -332,13 +334,15 @@ with tab_sql:
                         )
                         y_label = "Percentage (%)" if use_pct else "Count"
                         title = "Query Result (line chart)" if is_time else "Query Result (bar chart)"
+                        y_col = numeric_cols[0] if (color_col and len(numeric_cols) == 1) else numeric_cols
 
                         if is_time:
-                            chart = px.line(plot_df, x=x_col, y=numeric_cols, title=title)
+                            chart = px.line(plot_df, x=x_col, y=y_col,
+                                            color=color_col, title=title)
                         else:
                             barmode = "stack" if (use_pct and len(numeric_cols) > 1) else "group"
-                            chart = px.bar(plot_df, x=x_col, y=numeric_cols,
-                                           title=title, barmode=barmode)
+                            chart = px.bar(plot_df, x=x_col, y=y_col,
+                                           color=color_col, title=title, barmode=barmode)
 
                         chart.update_layout(
                             template="plotly_white", dragmode=False,
