@@ -1581,7 +1581,7 @@ def render_postgame_analytics():
             skill, _ = LEVEL_NAMES[lv]
             score = level_scores.get(lv, 0)
             used_hint = hints_used.get(lv, False)
-            icon = "✅" if score == 100 else ("💡" if used_hint else "⚡")
+            icon = "✅" if score == 100 else ("💡" if used_hint else "⚔️")
             st.markdown(f"{icon} **Level {lv} — {skill}**: {score}/100 pts"
                         + (" *(hint used)*" if used_hint else ""))
         total = sum(values)

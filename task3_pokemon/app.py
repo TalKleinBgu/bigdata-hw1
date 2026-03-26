@@ -784,7 +784,11 @@ def page_battle():
                 if p:
                     pokemon_preview_card(p, i + 1, stat_maxima)
 
-        if st.button("\u2694\ufe0f Start Battle!", type="primary"):
+        start_l, start_c, start_r = st.columns([1.2, 2.8, 1.2])
+        with start_c:
+            start_clicked = st.button("Start Battle", key="start_battle_btn", type="primary", use_container_width=True)
+
+        if start_clicked:
             # Restore DB before new battle
             restore_pokemon_db()
 
@@ -853,34 +857,6 @@ def page_battle():
                 "padding-top:40px;color:#555;'>VS</div>",
                 unsafe_allow_html=True,
             )
-            st.markdown(
-                """
-                <div style="
-                    margin-top:14px;
-                    border:1px solid #d8e0ec;
-                    border-radius:10px;
-                    padding:10px;
-                    background:linear-gradient(180deg,#f9fbff 0%, #f1f5fb 100%);
-                ">
-                    <div style="font-size:0.74rem;font-weight:800;color:#334155;text-align:center;">
-                        BATTLE CONTROLS
-                    </div>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
-            ctrl_a, ctrl_b = st.columns(2)
-            with ctrl_a:
-                if st.button("Next Turn", key="next_turn_main", type="primary", use_container_width=True):
-                    execute_turn(player_team, ai_team)
-                    st.rerun()
-            with ctrl_b:
-                if st.button("Auto x3", key="auto_turns_3", use_container_width=True):
-                    for _ in range(3):
-                        if st.session_state.battle_state != "battle":
-                            break
-                        execute_turn(player_team, ai_team)
-                    st.rerun()
         with col2:
             st.markdown("### 🔵 AI Team")
             for p in ai_team:
@@ -888,6 +864,40 @@ def page_battle():
 
         st.markdown("---")
 
+        turn_count = len([e for e in st.session_state.battle_log if e.startswith("**Turn")])
+        bar_l, bar_c, bar_r = st.columns([1.2, 2.8, 1.2])
+        with bar_c:
+            st.markdown(
+                f"""
+                <div style="
+                    border:1px solid #d8e0ec;
+                    border-radius:12px;
+                    padding:10px 12px;
+                    background:linear-gradient(180deg,#f9fbff 0%, #f1f5fb 100%);
+                    margin-bottom:10px;
+                ">
+                    <div style="font-size:0.75rem;font-weight:800;color:#334155;text-align:center;margin-bottom:6px;">
+                        Battle Controls · Turn {turn_count}
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+            next_col, auto_col = st.columns(2)
+            with next_col:
+                next_clicked = st.button("Next Turn", key="next_turn_main", type="primary", use_container_width=True)
+            with auto_col:
+                auto_clicked = st.button("Auto x3", key="auto_turns_3", use_container_width=True)
+
+        if next_clicked:
+            execute_turn(player_team, ai_team)
+            st.rerun()
+        if auto_clicked:
+            for _ in range(3):
+                if st.session_state.battle_state != "battle":
+                    break
+                execute_turn(player_team, ai_team)
+            st.rerun()
         # Cheat code input
         with st.expander("\U0001f4dc Enter Cheat Code"):
             st.markdown("Available cheats: `UPUPDOWNDOWN`, `GODMODE`, `STEAL`, `NERF`")
@@ -1259,11 +1269,11 @@ def page_battle_mechanics():
 def main():
     st.set_page_config(
         page_title="Pokemon Battle Arena",
-        page_icon="⚡",
+        page_icon="⚔️",
         layout="wide",
     )
 
-    st.title("⚡ Pokemon Battle Arena")
+    st.title("⚔️ Pokemon Battle Arena")
     st.caption("Big Data Homework 1 -- Task 3")
 
     # Initialize DB

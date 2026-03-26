@@ -6,29 +6,57 @@ import streamlit as st
 
 st.set_page_config(page_title="Baby Names - HW1", page_icon="👶", layout="wide")
 
-st.markdown(
-    """
+st.markdown("""
 <style>
 [data-testid="stSidebarNav"] { display: none; }
+.hw1-nav {
+    background: linear-gradient(135deg, #0d2b5e 0%, #1a5fa8 60%, #4A90D9 100%);
+    border-radius: 14px;
+    padding: 0.6rem 1.2rem;
+    margin-bottom: 1.4rem;
+    display: flex;
+    align-items: center;
+    gap: 0.2rem;
+    box-shadow: 0 4px 20px rgba(26,95,168,0.28);
+}
+.hw1-nav a {
+    color: rgba(255,255,255,0.78) !important;
+    text-decoration: none !important;
+    font-size: 0.87rem;
+    font-weight: 500;
+    padding: 0.38rem 0.85rem;
+    border-radius: 9px;
+    transition: background 0.15s, color 0.15s;
+    white-space: nowrap;
+}
+.hw1-nav a:hover {
+    background: rgba(255,255,255,0.18);
+    color: #fff !important;
+    text-decoration: none !important;
+}
+.hw1-nav .hw1-active {
+    color: #fff !important;
+    font-weight: 700;
+    font-size: 0.9rem;
+    background: rgba(255,255,255,0.2);
+    padding: 0.38rem 0.95rem;
+    border-radius: 9px;
+    white-space: nowrap;
+    border: 1px solid rgba(255,255,255,0.25);
+}
+.hw1-nav .hw1-sep { color: rgba(255,255,255,0.22); margin: 0 0.15rem; font-size: 1.1rem; }
+.hw1-nav .hw1-spacer { flex: 1; }
 </style>
-""",
-    unsafe_allow_html=True,
-)
-
-c0, c1, csep, c2, c3, c4 = st.columns([0.7, 2.2, 0.1, 0.85, 0.85, 0.85])
-with c0:
-    st.page_link("app.py", label="🏠 Home")
-with c1:
-    st.markdown(
-        "<span style='font-weight:700; color:#333; font-size:0.9rem;'>👶 Task 1 - Baby Names</span>",
-        unsafe_allow_html=True,
-    )
-with c2:
-    st.page_link("pages/2_Oscar.py", label="🎬 Task 2")
-with c3:
-    st.page_link("pages/3_Pokemon.py", label="⚔️ Task 3")
-with c4:
-    st.page_link("pages/4_NBA_Trivia.py", label="🏀 Task 4")
+<nav class="hw1-nav">
+  <a href="/" target="_self">🏠 Home</a>
+  <span class="hw1-sep">│</span>
+  <span class="hw1-active">👶 Task 1 · Baby Names</span>
+  <div class="hw1-spacer"></div>
+  <a href="/Oscar" target="_self">🎬 Task 2</a>
+  <a href="/Pokemon" target="_self">⚔️ Task 3</a>
+  <a href="/NBA_Trivia" target="_self">🏀 Task 4</a>
+</nav>
+""", unsafe_allow_html=True)
 
 _task_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "task1_baby_names"))
 _app_file = os.path.join(_task_dir, "app.py")
