@@ -515,7 +515,6 @@ with tab_patterns:
             SELECT State, Name, SUM(Count) AS Total,
                    ROW_NUMBER() OVER (PARTITION BY State ORDER BY SUM(Count) DESC) AS rn
             FROM national_names
-            WHERE Year >= 2010
             GROUP BY State, Name
         )
         SELECT State, Name AS TopName, Total
@@ -528,8 +527,32 @@ with tab_patterns:
 
     p3_top_df = run_query(p3_top_sql, conn)
     if not p3_top_df.empty:
-        st.markdown("**Most popular name per state (2010--present):**")
+        st.markdown("**Most popular name per state (all available years):**")
         st.dataframe(p3_top_df, use_container_width=True)
+
+        topname_states_df = (
+            p3_top_df.groupby("TopName", as_index=False)["State"]
+            .count()
+            .rename(columns={"State": "NumStates"})
+            .sort_values(["NumStates", "TopName"], ascending=[False, True])
+        )
+        fig_p3_topname_states = px.bar(
+            topname_states_df.head(20),
+            x="TopName",
+            y="NumStates",
+            title="How Many States Each Top Name Dominates",
+            labels={"TopName": "Top Name", "NumStates": "Number of States"},
+            color="NumStates",
+            color_continuous_scale="Blues",
+        )
+        fig_p3_topname_states.update_layout(
+            template="plotly_white",
+            dragmode=False,
+            hovermode="x unified",
+            xaxis=dict(showspikes=True, spikemode="across", spikethickness=1),
+            yaxis=dict(showspikes=True, spikemode="across", spikethickness=1, showgrid=False),
+        )
+        st.plotly_chart(fig_p3_topname_states, use_container_width=True)
 
     # Compare a name across selected states
     p3c_sql = """
