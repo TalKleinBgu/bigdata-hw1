@@ -572,6 +572,9 @@ with tab_patterns:
     """
 
     p3c_df = run_query(p3c_sql, conn)
+    with st.expander("Show SQL query"):
+        st.code(p3c_sql, language="sql")
+    
     if not p3c_df.empty:
         fig_p3 = px.line(
             p3c_df, x="Year", y="Total", color="State",
@@ -582,9 +585,6 @@ with tab_patterns:
                               xaxis=dict(showspikes=True, spikemode="across", spikethickness=1),
                               yaxis=dict(showspikes=True, spikemode="across", spikethickness=1, showgrid=False))
         st.plotly_chart(fig_p3, use_container_width=True)
-        
-    with st.expander("Show regional comparison query"):
-        st.code(p3c_sql, language="sql")
 
     st.markdown(
         """
