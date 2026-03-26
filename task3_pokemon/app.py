@@ -486,18 +486,6 @@ def pokemon_card(p: dict):
         cols[i].metric(stat.upper().replace("_", " "), p.get(stat, 0))
 
 
-def _stat_bar_html(label: str, value: int, max_val: int = 255, color: str = "#4A90D9") -> str:
-    pct = min(100, value / max_val * 100)
-    return (
-        f'<div style="margin-bottom:5px;">'
-        f'<div style="display:flex;justify-content:space-between;font-size:0.78rem;margin-bottom:2px;">'
-        f'<span style="color:#555;">{label}</span><span style="font-weight:600;">{value}</span></div>'
-        f'<div style="background:#e0e0e0;border-radius:4px;height:7px;overflow:hidden;">'
-        f'<div style="background:{color};height:100%;width:{pct:.0f}%;border-radius:4px;"></div>'
-        f'</div></div>'
-    )
-
-
 def pokemon_preview_card(p: dict, slot_num: int):
     """Compact preview card used during team selection."""
     t1 = type_badge(p.get("type1", ""))
@@ -505,31 +493,41 @@ def pokemon_preview_card(p: dict, slot_num: int):
     t2 = type_badge(t2_raw) if t2_raw else ""
     types_str = t1 + (f"&nbsp;&nbsp;{t2}" if t2 else "")
 
-    stat_bars = (
-        _stat_bar_html("HP",  p.get("hp", 0),      255, "#E53935")
-        + _stat_bar_html("ATK", p.get("attack", 0),   255, "#FB8C00")
-        + _stat_bar_html("DEF", p.get("defense", 0),  255, "#F9A825")
-        + _stat_bar_html("SpA", p.get("sp_atk", 0),   255, "#8E24AA")
-        + _stat_bar_html("SpD", p.get("sp_def", 0),   255, "#1E88E5")
-        + _stat_bar_html("SPD", p.get("speed", 0),    255, "#43A047")
+    def sc(label, val, color):
+        return (
+            f'<div style="background:{color}18;border:1px solid {color}55;border-radius:6px;'
+            f'padding:3px 4px;text-align:center;">'
+            f'<div style="font-size:0.6rem;color:#777;line-height:1.2">{label}</div>'
+            f'<div style="font-weight:800;font-size:0.85rem;color:{color};">{val}</div></div>'
+        )
+
+    stats_html = (
+        '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin-bottom:6px;">'
+        + sc("HP",  p.get("hp", 0),      "#E53935")
+        + sc("ATK", p.get("attack", 0),   "#FB8C00")
+        + sc("DEF", p.get("defense", 0),  "#F9A825")
+        + sc("SpA", p.get("sp_atk", 0),   "#8E24AA")
+        + sc("SpD", p.get("sp_def", 0),   "#1E88E5")
+        + sc("SPD", p.get("speed", 0),    "#43A047")
+        + '</div>'
     )
 
     st.markdown(
         f"""
         <div style="
             border: 1px solid #d6dde8;
-            border-radius: 14px;
-            padding: 14px 14px 10px 14px;
+            border-radius: 12px;
+            padding: 12px 12px 8px 12px;
             background: linear-gradient(160deg, #f0f6ff 0%, #ffffff 100%);
             box-shadow: 0 2px 6px rgba(20,40,80,0.09);
         ">
-            <div style="font-size:0.72rem;font-weight:700;color:#1f3a56;
-                background:#deeaf8;border-radius:999px;padding:2px 9px;
-                display:inline-block;margin-bottom:8px;">Slot {slot_num}</div>
-            <div style="font-size:1.05rem;font-weight:800;margin-bottom:4px;">{p['name']}</div>
-            <div style="font-size:0.9rem;margin-bottom:12px;color:#444;">{types_str}</div>
-            {stat_bars}
-            <div style="margin-top:8px;text-align:right;font-size:0.78rem;color:#888;">
+            <div style="font-size:0.68rem;font-weight:700;color:#1f3a56;
+                background:#deeaf8;border-radius:999px;padding:1px 8px;
+                display:inline-block;margin-bottom:6px;">Slot {slot_num}</div>
+            <div style="font-size:0.95rem;font-weight:800;margin-bottom:3px;">{p['name']}</div>
+            <div style="font-size:0.82rem;margin-bottom:8px;color:#444;">{types_str}</div>
+            {stats_html}
+            <div style="text-align:right;font-size:0.72rem;color:#888;">
                 Total&nbsp;<b style="color:#1f3a56;">{p.get('total', 0)}</b>
             </div>
         </div>
@@ -538,29 +536,27 @@ def pokemon_preview_card(p: dict, slot_num: int):
     )
 
 
-def render_battle_card(p: dict, is_active: bool):
-    """Render a battle card with the HP bar inside the styled box."""
+def render_battle_card(p: dict):
+    """Render a battle card; all alive Pokémon are active fighters."""
+    fainted = p["current_hp"] <= 0
     pct = max(0, p["current_hp"] / p["max_hp"]) if p["max_hp"] > 0 else 0
     if pct > 0.5:
         bar_color = "#4CAF50"
     elif pct > 0.2:
         bar_color = "#FFC107"
     else:
-        bar_color = "#F44336"
+        bar_color = "#e67e22"
 
-    fainted = p["current_hp"] <= 0
-    border_color = "#4A90D9" if is_active else ("#bbb" if not fainted else "#F44336")
-    bg = "linear-gradient(135deg,#e8f4fd 0%,#f8fbff 100%)" if is_active else ("#f5f5f5" if not fainted else "#fff5f5")
-    opacity = "0.55" if fainted else "1"
+    border_color = "#4A90D9" if not fainted else "#ccc"
+    bg = "linear-gradient(135deg,#e8f4fd 0%,#f8fbff 100%)" if not fainted else "#f0f0f0"
+    opacity = "0.42" if fainted else "1"
+    status_text = "⚔️ Fighting" if not fainted else "💀 Fainted"
+    status_color = "#27ae60" if not fainted else "#aaa"
 
     t1 = type_badge(p.get("type1", ""))
     t2_raw = p.get("type2", "")
     t2 = type_badge(t2_raw) if t2_raw else ""
     types_str = t1 + (f"&nbsp;/&nbsp;{t2}" if t2 else "")
-
-    status_text = "⚔️ Active" if is_active else ("💀 Fainted" if fainted else "⏳ Waiting")
-    status_color = "#4A90D9" if is_active else ("#F44336" if fainted else "#999")
-
     hp_text = f"{max(0, p['current_hp'])} / {p['max_hp']}"
 
     st.markdown(f"""
@@ -571,16 +567,14 @@ def render_battle_card(p: dict, is_active: bool):
         background: {bg};
         opacity: {opacity};
         margin-bottom: 8px;
-        box-shadow: {'0 3px 10px rgba(74,144,217,0.25)' if is_active else '0 1px 4px rgba(0,0,0,0.07)'};
+        box-shadow: {'0 3px 10px rgba(74,144,217,0.20)' if not fainted else 'none'};
     ">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
             <span style="font-weight:800;font-size:1rem;">{p['name']}</span>
             <span style="font-size:0.72rem;font-weight:700;color:{status_color};">{status_text}</span>
         </div>
         <div style="font-size:0.82rem;color:#555;margin-bottom:8px;">{types_str}</div>
-        <div style="font-size:0.78rem;color:#666;margin-bottom:4px;">
-            HP:&nbsp;<b>{hp_text}</b>
-        </div>
+        <div style="font-size:0.78rem;color:#666;margin-bottom:4px;">HP:&nbsp;<b>{hp_text}</b></div>
         <div style="background:#ddd;border-radius:6px;height:14px;width:100%;overflow:hidden;">
             <div style="background:{bar_color};height:100%;width:{pct*100:.1f}%;border-radius:6px;transition:width 0.3s;"></div>
         </div>
@@ -652,8 +646,6 @@ def page_battle():
 
             st.session_state.player_team = player_team
             st.session_state.ai_team = ai_team
-            st.session_state.player_idx = 0
-            st.session_state.ai_idx = 0
             st.session_state.battle_log = []
             st.session_state.cheats_used = []
             st.session_state.battle_state = "battle"
@@ -663,27 +655,31 @@ def page_battle():
     # ---- BATTLE ----
     elif st.session_state.battle_state == "battle":
         if st.session_state.get("scroll_to_top", False):
-            components.html(
-                "<script>window.parent.scrollTo({top: 0, behavior: 'smooth'});</script>",
-                height=1,
-            )
+            components.html("""
+                <script>
+                    (function() {
+                        var tries = [
+                            window.parent.document.querySelector('section[tabindex="0"]'),
+                            window.parent.document.querySelector('.main'),
+                            window.parent.document.querySelector('section.main'),
+                            window.parent.document.body,
+                        ];
+                        tries.forEach(function(el) { if (el) { el.scrollTop = 0; } });
+                        window.parent.scrollTo(0, 0);
+                    })();
+                </script>
+            """, height=1)
             st.session_state.scroll_to_top = False
 
         player_team = st.session_state.player_team
         ai_team = st.session_state.ai_team
-        p_idx = st.session_state.player_idx
-        a_idx = st.session_state.ai_idx
-
-        # Current fighters
-        p_mon = player_team[p_idx]
-        a_mon = ai_team[a_idx]
 
         # Layout: player vs AI
         col1, col_mid, col2 = st.columns([5, 1, 5])
         with col1:
             st.markdown("### 🟢 Your Team")
-            for i, p in enumerate(player_team):
-                render_battle_card(p, is_active=(i == p_idx))
+            for p in player_team:
+                render_battle_card(p)
         with col_mid:
             st.markdown(
                 "<div style='text-align:center;font-size:1.8rem;font-weight:900;"
@@ -691,9 +687,9 @@ def page_battle():
                 unsafe_allow_html=True,
             )
         with col2:
-            st.markdown("### 🔴 AI Team")
-            for i, p in enumerate(ai_team):
-                render_battle_card(p, is_active=(i == a_idx))
+            st.markdown("### 🔵 AI Team")
+            for p in ai_team:
+                render_battle_card(p)
 
         st.markdown("---")
 
@@ -746,9 +742,11 @@ def page_battle():
         winner = st.session_state.get("winner", "player")
         if winner == "player":
             st.balloons()
-            st.success("\U0001f3c6 YOU WIN! Congratulations, Pokemon Master!")
+            st.success("🏆 YOU WIN! Congratulations, Pokemon Master!")
+        elif winner == "draw":
+            st.info("🤝 DRAW! Both teams fainted at the same time!")
         else:
-            st.error("\U0001f61e You lost... Better luck next time!")
+            st.warning("😞 You lost... Better luck next time!")
 
         # Show final battle log
         st.markdown("### \U0001f4dc Full Battle Log")
@@ -815,71 +813,75 @@ def page_battle():
 
 
 def execute_turn(player_team, ai_team):
-    """Execute one turn of battle."""
-    p_idx = st.session_state.player_idx
-    a_idx = st.session_state.ai_idx
-    p_mon = player_team[p_idx]
-    a_mon = ai_team[a_idx]
-
-    # Determine turn order by speed
-    p_speed = p_mon["speed"]
-    a_speed = a_mon["speed"]
-    if p_speed > a_speed:
-        first, second = ("player", p_mon, a_mon), ("ai", a_mon, p_mon)
-    elif a_speed > p_speed:
-        first, second = ("ai", a_mon, p_mon), ("player", p_mon, a_mon)
-    else:
-        if random.random() < 0.5:
-            first, second = ("player", p_mon, a_mon), ("ai", a_mon, p_mon)
-        else:
-            first, second = ("ai", a_mon, p_mon), ("player", p_mon, a_mon)
-
+    """
+    All alive Pokémon act simultaneously in Speed order.
+    Each attacker targets the enemy with the best type-matchup multiplier;
+    ties broken by picking the enemy with the lowest remaining HP (finish off weakest).
+    """
     turn_num = len([l for l in st.session_state.battle_log if l.startswith("**Turn")]) + 1
     st.session_state.battle_log.append(f"**Turn {turn_num}**")
 
-    for side, attacker, defender in [first, second]:
+    # Build combatant list: (side_label, attacker, enemy_list)
+    combatants = []
+    for p in player_team:
+        if p["current_hp"] > 0:
+            combatants.append(("player", p, ai_team))
+    for p in ai_team:
+        if p["current_hp"] > 0:
+            combatants.append(("ai", p, player_team))
+
+    # Sort by Speed descending; shuffle first so equal-speed ties are random
+    random.shuffle(combatants)
+    combatants.sort(key=lambda x: x[1]["speed"], reverse=True)
+
+    for side, attacker, enemies in combatants:
         if attacker["current_hp"] <= 0:
-            continue
-        if defender["current_hp"] <= 0:
+            continue  # was knocked out earlier this turn
+        alive_enemies = [e for e in enemies if e["current_hp"] > 0]
+        if not alive_enemies:
             continue
 
-        dmg, mult, eff_text = calc_damage(attacker, defender)
-        defender["current_hp"] -= dmg
+        # Target: best type-multiplier first; tie → lowest current HP
+        best_target = max(
+            alive_enemies,
+            key=lambda e: (
+                get_type_multiplier(attacker["type1"], e["type1"], e.get("type2", "")),
+                -e["current_hp"],
+            ),
+        )
 
-        side_label = "\U0001f7e2 " if side == "player" else "\U0001f534 "
-        entry = f"{side_label}**{attacker['name']}** ({type_badge(attacker['type1'])}) attacks **{defender['name']}** for **{dmg}** damage!"
+        dmg, mult, eff_text = calc_damage(attacker, best_target)
+        best_target["current_hp"] = max(0, best_target["current_hp"] - dmg)
+
+        side_icon = "🟢" if side == "player" else "🔵"
+        mult_str = f"×{mult:.1f}"
+        entry = (
+            f"{side_icon} **{attacker['name']}** → **{best_target['name']}** : "
+            f"**{dmg}** dmg ({mult_str})"
+        )
         if eff_text:
             entry += f" *{eff_text}*"
         st.session_state.battle_log.append(entry)
 
-        if defender["current_hp"] <= 0:
-            defender["current_hp"] = 0
-            st.session_state.battle_log.append(f"\U0001f4a5 **{defender['name']}** fainted!")
+        if best_target["current_hp"] <= 0:
+            st.session_state.battle_log.append(f"💥 **{best_target['name']}** fainted!")
 
-            # Advance to next pokemon on the losing side
-            if side == "player":
-                # Defender is AI
-                st.session_state.ai_idx += 1
-                if st.session_state.ai_idx >= len(ai_team):
-                    st.session_state.battle_log.append("\U0001f3c6 **PLAYER WINS THE BATTLE!**")
-                    st.session_state.winner = "player"
-                    st.session_state.battle_state = "done"
-                    return
-                else:
-                    next_mon = ai_team[st.session_state.ai_idx]
-                    st.session_state.battle_log.append(f"\U0001f534 AI sends out **{next_mon['name']}**!")
-            else:
-                # Defender is player
-                st.session_state.player_idx += 1
-                if st.session_state.player_idx >= len(player_team):
-                    st.session_state.battle_log.append("\U0001f3c6 **AI WINS THE BATTLE!**")
-                    st.session_state.winner = "ai"
-                    st.session_state.battle_state = "done"
-                    return
-                else:
-                    next_mon = player_team[st.session_state.player_idx]
-                    st.session_state.battle_log.append(f"\U0001f7e2 Go, **{next_mon['name']}**!")
-            break  # Don't let the second attacker attack a fainted target
+    # Win condition check after all attacks resolve
+    player_alive = any(p["current_hp"] > 0 for p in player_team)
+    ai_alive = any(p["current_hp"] > 0 for p in ai_team)
+
+    if not player_alive and not ai_alive:
+        st.session_state.battle_log.append("🤝 **DRAW! Both teams fainted simultaneously!**")
+        st.session_state.winner = "draw"
+        st.session_state.battle_state = "done"
+    elif not ai_alive:
+        st.session_state.battle_log.append("🏆 **PLAYER WINS THE BATTLE!**")
+        st.session_state.winner = "player"
+        st.session_state.battle_state = "done"
+    elif not player_alive:
+        st.session_state.battle_log.append("🏆 **AI WINS THE BATTLE!**")
+        st.session_state.winner = "ai"
+        st.session_state.battle_state = "done"
 
 
 # ---------------------------------------------------------------------------
