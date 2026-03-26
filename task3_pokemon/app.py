@@ -485,6 +485,48 @@ def pokemon_card(p: dict):
         cols[i].metric(stat.upper().replace("_", " "), p.get(stat, 0))
 
 
+def pokemon_preview_card(p: dict, slot_num: int):
+    """Compact, cleaner preview card used during team selection."""
+    t1 = type_badge(p.get("type1", ""))
+    t2_raw = p.get("type2", "")
+    t2 = type_badge(t2_raw) if t2_raw else ""
+    types_str = t1 + (f" / {t2}" if t2 else "")
+    st.markdown(
+        f"""
+        <div style="
+            border: 1px solid #d6dde8;
+            border-radius: 14px;
+            padding: 12px;
+            background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
+            box-shadow: 0 1px 2px rgba(20, 40, 60, 0.08);
+            min-height: 220px;
+        ">
+            <div style="
+                display: inline-block;
+                font-size: 0.78rem;
+                font-weight: 700;
+                color: #1f3a56;
+                background: #e9f1fb;
+                border: 1px solid #cfe0f4;
+                border-radius: 999px;
+                padding: 2px 8px;
+                margin-bottom: 8px;
+            ">Slot {slot_num}</div>
+            <h4 style="margin: 4px 0 6px 0;">{p['name']}</h4>
+            <div style="margin-bottom: 10px; font-size: 0.95rem;">{types_str}</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:0.9rem;">
+                <div><b>HP</b>: {p.get('hp', 0)}</div>
+                <div><b>ATK</b>: {p.get('attack', 0)}</div>
+                <div><b>DEF</b>: {p.get('defense', 0)}</div>
+                <div><b>SPD</b>: {p.get('speed', 0)}</div>
+            </div>
+            <div style="margin-top:10px;font-size:0.9rem;"><b>Total</b>: {p.get('total', 0)}</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
 # ---------------------------------------------------------------------------
 # Page: Battle Arena
 # ---------------------------------------------------------------------------
@@ -517,6 +559,9 @@ def page_battle():
         if selected:
             st.markdown("---")
             st.subheader("Your Team Preview")
+            st.caption(
+                f"Selected {len(selected)} Pokemon. Each card is a separate team slot."
+            )
             cols = st.columns(len(selected))
             player_pokemon = []
             for i, n in enumerate(selected):
@@ -524,7 +569,7 @@ def page_battle():
                 if p:
                     player_pokemon.append(p)
                     with cols[i]:
-                        pokemon_card(p)
+                        pokemon_preview_card(p, i + 1)
 
         if st.button("\u2694\ufe0f Start Battle!", type="primary"):
             # Restore DB before new battle

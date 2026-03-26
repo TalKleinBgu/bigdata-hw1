@@ -1,4 +1,4 @@
-﻿"""
+"""
 Oscar Actor Explorer ג€” Task 2
 Big Data Homework 1
 
