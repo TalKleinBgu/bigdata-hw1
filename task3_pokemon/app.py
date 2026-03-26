@@ -1309,8 +1309,11 @@ section[data-testid="stSidebar"] > div:first-child { padding-top: 0.5rem !import
 """, unsafe_allow_html=True)
 
     with st.sidebar:
-        st.markdown("## 🎮 Cheat Codes")
-        for code, desc in CHEAT_DESCRIPTIONS.items():
-            st.markdown(f"- `{code}`: {desc}")
+        st.header("About This App")
+        st.markdown(
+            "This app loads Pokemon stats into **SQLite** and runs a data-driven "
+            "battle arena with team selection, type effectiveness, cheat-code SQL writes, "
+            "and post-battle analysis."
+        )
 if __name__ == "__main__":
     main()

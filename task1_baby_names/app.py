@@ -167,10 +167,12 @@ section[data-testid="stSidebar"] > div:first-child { padding-top: 0.5rem !import
 """, unsafe_allow_html=True)
 
 with st.sidebar:
-    stats = get_dataset_stats(conn)
-    st.metric("Total rows", f"{stats['rows']:,}")
-    st.metric("Year range", f"{stats['year_lo']} – {stats['year_hi']}")
-
+    st.header("About This App")
+    st.markdown(
+        "This app loads the US Baby Names dataset into **SQLite** and provides "
+        "interactive tools for popularity trends, safe custom SQL queries, "
+        "and pattern discovery."
+    )
 # ---------------------------------------------------------------------------
 # Main content — organized with tabs
 # ---------------------------------------------------------------------------
@@ -658,3 +660,4 @@ with tab_schema:
     c1, c2 = st.columns(2)
     c1.metric("Total rows", f"{schema_stats['rows']:,}")
     c2.metric("Year range", f"{schema_stats['year_lo']} – {schema_stats['year_hi']}")
+
