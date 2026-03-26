@@ -11,21 +11,22 @@ st.markdown(
 <style>
 [data-testid="stSidebarNav"] { display: none; }
 .hw1-nav {
-    background: linear-gradient(135deg, #2f4768 0%, #496b94 60%, #6f91b8 100%);
+    background: linear-gradient(135deg, #425a78 0%, #55759c 55%, #6f8eb4 100%);
+    border: 1px solid rgba(255,255,255,0.26);
     border-radius: 14px;
-    padding: 0.56rem 1.1rem;
+    padding: 0.62rem 1.1rem;
     margin-bottom: 1.2rem;
     display: flex;
     align-items: center;
-    gap: 0.2rem;
-    box-shadow: 0 2px 10px rgba(29, 51, 80, 0.18);
+    gap: 0.22rem;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.15), 0 2px 10px rgba(26, 45, 70, 0.14);
 }
 .hw1-nav a {
-    color: rgba(255,255,255,0.84) !important;
+    color: rgba(255,255,255,0.86) !important;
     text-decoration: none !important;
-    font-size: 0.86rem;
+    font-size: 0.84rem;
     font-weight: 500;
-    padding: 0.34rem 0.78rem;
+    padding: 0.36rem 0.8rem;
     border-radius: 9px;
     transition: background 0.15s, color 0.15s;
     white-space: nowrap;
@@ -38,24 +39,24 @@ st.markdown(
 .hw1-nav .hw1-active {
     color: #fff !important;
     font-weight: 700;
-    font-size: 0.89rem;
-    background: rgba(255,255,255,0.16);
-    padding: 0.34rem 0.88rem;
+    font-size: 0.86rem;
+    background: rgba(255,255,255,0.18);
+    padding: 0.36rem 0.9rem;
     border-radius: 9px;
     white-space: nowrap;
-    border: 1px solid rgba(255,255,255,0.20);
+    border: 1px solid rgba(255,255,255,0.24);
 }
-.hw1-nav .hw1-sep { color: rgba(255,255,255,0.32); margin: 0 0.12rem; font-size: 1.0rem; }
+.hw1-nav .hw1-sep { color: rgba(255,255,255,0.34); margin: 0 0.12rem; font-size: 1.0rem; }
 .hw1-nav .hw1-spacer { flex: 1; }
 </style>
 <nav class="hw1-nav">
   <a href="/" target="_self">&#127968; Home</a>
   <span class="hw1-sep">|</span>
-  <span class="hw1-active">&#127936; Task 4</span>
+  <span class="hw1-active">&#127936; Task 4 - NBA SQL Trivia</span>
   <div class="hw1-spacer"></div>
   <a href="/Baby_Names" target="_self">&#128118; Task 1 - Baby Names</a>
-  <a href="/Oscar" target="_self">&#127916; Task 2</a>
-  <a href="/Pokemon" target="_self">&#9876;&#65039; Task 3</a>
+  <a href="/Oscar" target="_self">&#127916; Task 2 - Oscar Explorer</a>
+  <a href="/Pokemon" target="_self">&#9876;&#65039; Task 3 - Pokemon Arena</a>
 </nav>
 """,
     unsafe_allow_html=True,
