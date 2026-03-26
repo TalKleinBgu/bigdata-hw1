@@ -125,7 +125,6 @@ st.markdown("""
     <span class="hw1-badge">Streamlit</span>
     <span class="hw1-badge">Plotly</span>
     <span class="hw1-badge">pandas</span>
-    <span class="hw1-badge">nba_api</span>
   </div>
 </div>
 """, unsafe_allow_html=True)
