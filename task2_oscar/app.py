@@ -7,6 +7,8 @@ dataset stored in SQLite and enriches actor profiles with live Wikipedia data.
 """
 
 import difflib
+import os
+import tempfile
 import textwrap
 from pathlib import Path
 
@@ -27,12 +29,15 @@ from sqlalchemy import (
     distinct,
 )
 from sqlalchemy.orm import declarative_base, sessionmaker, Session, relationship, joinedload
+from sqlalchemy.exc import OperationalError
 
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
 BASE_DIR = Path(__file__).resolve().parent
-DB_PATH = BASE_DIR / "oscar.db"
+DB_ROOT = Path(os.getenv("OSCAR_DB_DIR", Path(tempfile.gettempdir()) / "oscar_explorer"))
+DB_ROOT.mkdir(parents=True, exist_ok=True)
+DB_PATH = DB_ROOT / "oscar.db"
 CSV_PATH = BASE_DIR / "full_data.csv"
 
 # ---------------------------------------------------------------------------
@@ -144,17 +149,29 @@ def _init_db(engine):
     Base.metadata.create_all(engine)
 
     def has_normalized_schema() -> bool:
-        """Return True when nominations table contains normalized FK columns."""
+        """Return True when all normalized tables/columns exist."""
         with engine.connect() as conn:
-            table_rows = conn.exec_driver_sql(
-                "SELECT name FROM sqlite_master WHERE type='table' AND name='nominations'"
-            ).fetchall()
-            if not table_rows:
+            table_rows = conn.exec_driver_sql("SELECT name FROM sqlite_master WHERE type='table'").fetchall()
+            tables = {r[0] for r in table_rows}
+            required_tables = {"people", "films", "categories", "nominations"}
+            if not required_tables.issubset(tables):
                 return False
-            col_rows = conn.exec_driver_sql("PRAGMA table_info(nominations)").fetchall()
-            cols = {r[1] for r in col_rows}
-            needed = {"person_id", "category_id", "film_id"}
-            return needed.issubset(cols)
+
+            cols_nom = {r[1] for r in conn.exec_driver_sql("PRAGMA table_info(nominations)").fetchall()}
+            cols_people = {r[1] for r in conn.exec_driver_sql("PRAGMA table_info(people)").fetchall()}
+            cols_films = {r[1] for r in conn.exec_driver_sql("PRAGMA table_info(films)").fetchall()}
+            cols_categories = {r[1] for r in conn.exec_driver_sql("PRAGMA table_info(categories)").fetchall()}
+
+            needed_nom = {"id", "person_id", "category_id", "film_id", "winner", "year_film", "year_ceremony", "ceremony"}
+            needed_people = {"id", "name"}
+            needed_films = {"id", "title"}
+            needed_categories = {"id", "name"}
+            return (
+                needed_nom.issubset(cols_nom)
+                and needed_people.issubset(cols_people)
+                and needed_films.issubset(cols_films)
+                and needed_categories.issubset(cols_categories)
+            )
 
     # Migration guard: rebuild if an old flat nominations schema exists.
     if not has_normalized_schema():
@@ -230,7 +247,25 @@ def _init_db(engine):
 def get_engine():
     """Return a cached SQLAlchemy engine and ensure DB is populated."""
     engine = create_engine(f"sqlite:///{DB_PATH}", echo=False)
-    _init_db(engine)
+    try:
+        _init_db(engine)
+        # Health-check a normalized join used by the app.
+        with engine.connect() as conn:
+            conn.exec_driver_sql(
+                """
+                SELECT COUNT(*)
+                FROM nominations n
+                JOIN people p ON n.person_id = p.id
+                JOIN categories c ON n.category_id = c.id
+                """
+            ).scalar_one()
+    except OperationalError:
+        # Self-heal from stale/corrupt schema on cloud deployments.
+        engine.dispose()
+        if DB_PATH.exists():
+            DB_PATH.unlink()
+        engine = create_engine(f"sqlite:///{DB_PATH}", echo=False)
+        _init_db(engine)
     return engine
 
 
@@ -255,18 +290,35 @@ def get_all_names() -> list[str]:
     """Return a sorted list of all distinct nominee names (people only, not studios/countries)."""
     session = get_session()
     from sqlalchemy import or_
-    filters = [Category.name.like(pat) for pat in PERSON_CATEGORIES_PATTERN]
-    names = [
-        r[0] for r in session.query(distinct(Person.name))
-        .join(Nomination, Nomination.person_id == Person.id)
-        .join(Category, Nomination.category_id == Category.id)
-        .filter(or_(*filters))
-        .order_by(Person.name)
-        .all()
-        if r[0]
-    ]
-    session.close()
-    return names
+    try:
+        filters = [Category.name.like(pat) for pat in PERSON_CATEGORIES_PATTERN]
+        names = [
+            r[0] for r in session.query(distinct(Person.name))
+            .join(Nomination, Nomination.person_id == Person.id)
+            .join(Category, Nomination.category_id == Category.id)
+            .filter(or_(*filters))
+            .order_by(Person.name)
+            .all()
+            if r[0]
+        ]
+        return names
+    except OperationalError:
+        # Cached engine may point to a bad DB from a previous run.
+        session.close()
+        get_engine.clear()
+        session = get_session()
+        filters = [Category.name.like(pat) for pat in PERSON_CATEGORIES_PATTERN]
+        return [
+            r[0] for r in session.query(distinct(Person.name))
+            .join(Nomination, Nomination.person_id == Person.id)
+            .join(Category, Nomination.category_id == Category.id)
+            .filter(or_(*filters))
+            .order_by(Person.name)
+            .all()
+            if r[0]
+        ]
+    finally:
+        session.close()
 
 
 # ---------------------------------------------------------------------------
