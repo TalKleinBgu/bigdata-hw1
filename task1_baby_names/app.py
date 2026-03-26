@@ -456,6 +456,7 @@ with tab_patterns:
     st.plotly_chart(fig_p1, use_container_width=True)
     with st.expander("Show SQL query"):
         st.code(p1_sql, language="sql")
+    st.markdown("**Finding:** Name diversity increased sharply after the mid-20th century, with far more unique names used per year than in earlier decades.")
 
     st.markdown(
         """
@@ -497,6 +498,7 @@ with tab_patterns:
     st.plotly_chart(fig_p2, use_container_width=True)
     with st.expander("Show SQL query"):
         st.code(p2_sql, language="sql")
+    st.markdown("**Finding:** The name *Arya* surged after 2011, indicating a strong pop-culture effect on naming choices.")
 
     st.markdown(
         """
@@ -581,6 +583,7 @@ with tab_patterns:
         st.plotly_chart(fig_p3, use_container_width=True)
         with st.expander("Show SQL query"):
             st.code(p3c_sql, language="sql")
+    st.markdown("**Finding:** Name popularity is strongly regional, and the same name can be dominant in some states while uncommon in others.")
 
     st.markdown(
         """
