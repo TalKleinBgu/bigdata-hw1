@@ -1,5 +1,5 @@
-"""
-Oscar Actor Explorer — Task 2
+﻿"""
+Oscar Actor Explorer ג€” Task 2
 Big Data Homework 1
 
 A Streamlit application that uses SQLAlchemy ORM to query an Oscar Award
@@ -34,7 +34,7 @@ DB_PATH = BASE_DIR / "oscar.db"
 CSV_PATH = BASE_DIR / "full_data.csv"
 
 # ---------------------------------------------------------------------------
-# Task 2.1 — SQLAlchemy ORM Model
+# Task 2.1 ג€” SQLAlchemy ORM Model
 # ---------------------------------------------------------------------------
 Base = declarative_base()
 
@@ -55,7 +55,7 @@ class Nomination(Base):
 
     def __repr__(self):
         tag = "W" if self.winner else "N"
-        return f"<Nomination({self.year_ceremony} {self.category} | {self.name} – {self.film} [{tag}])>"
+        return f"<Nomination({self.year_ceremony} {self.category} | {self.name} ג€“ {self.film} [{tag}])>"
 
 
 # ---------------------------------------------------------------------------
@@ -81,11 +81,11 @@ def _load_csv() -> pd.DataFrame:
         "Winner": "winner",
     }
     df = df.rename(columns=rename)
-    # year_film might be "1927/28" — take the first 4 chars
+    # year_film might be "1927/28" ג€” take the first 4 chars
     df["year_film"] = df["year_film"].astype(str).str[:4].astype(int)
     # Create year_ceremony from ceremony number + 1927
     df["year_ceremony"] = df["ceremony"].astype(int) + 1928
-    # Winner: True/NaN → bool
+    # Winner: True/NaN ג†’ bool
     df["winner"] = df["winner"].fillna(False).astype(bool)
     # Keep only the columns we need
     df = df[["year_film", "year_ceremony", "ceremony", "category", "name", "film", "winner"]]
@@ -538,7 +538,7 @@ def main():
                 clear benefit for this read-heavy analytical workload.
                 Indexes on `name`, `category`, `year_ceremony`, and
                 `year_film` speed up the profile and discovery queries.
-                All queries use the **SQLAlchemy ORM** — no raw SQL.
+                All queries use the **SQLAlchemy ORM** ג€” no raw SQL.
                 """)
             )
 
@@ -565,7 +565,7 @@ def main():
     )
 
     # ===================================================================
-    # Task 2.2 — Actor Profile
+    # Task 2.2 ג€” Actor Profile
     # ===================================================================
     with tab_profile:
         st.subheader("Search for an Actor or Director")
@@ -637,7 +637,7 @@ def main():
                     m3.metric("Win Rate", f"{profile['win_rate']:.1f}%")
                     m4.metric(
                         "Years Active",
-                        f"{profile['first_year']} – {profile['last_year']}"
+                        f"{profile['first_year']} ג€“ {profile['last_year']}"
                         if profile["first_year"]
                         else "N/A",
                     )
@@ -687,7 +687,7 @@ def main():
                 session.close()
 
     # ===================================================================
-    # Task 2.3 — Discoveries
+    # Task 2.3 ג€” Discoveries
     # ===================================================================
     with tab_discoveries:
         st.subheader("Interesting Findings from the Oscar Dataset")
@@ -717,11 +717,14 @@ def main():
                 fig1.update_layout(yaxis={"categoryorder": "total ascending"}, height=500)
                 st.plotly_chart(fig1, use_container_width=True)
 
+                top_name = df1.iloc[0]["Name"]
+                top_noms = int(df1.iloc[0]["Nominations"])
                 st.markdown(
-                    "**Interpretation:** These individuals represent some of the most "
-                    "talented and consistently recognized artists who, despite repeated "
-                    "acknowledgment by the Academy, have not yet taken home a statuette. "
-                    "This highlights how competitive the Oscars truly are."
+                    f"**Finding:** {top_name} leads this list with {top_noms} nominations and no wins.\n\n"
+                    "**How found:** Filtered to acting/directing categories, grouped by person, "
+                    "counted nominations and wins, kept only people with zero wins, then sorted descending.\n\n"
+                    "**Why interesting:** It shows that repeated Oscar recognition does not guarantee a win, "
+                    "which highlights how competitive and context-dependent award outcomes can be."
                 )
 
                 with st.expander("Show ORM Query Code"):
@@ -765,7 +768,6 @@ def main():
                     wait, columns=["Name", "First Nomination", "First Win", "Wait (years)"]
                 )
 
-                # Timeline visualization
                 fig2 = go.Figure()
                 for _, row in df2.iterrows():
                     fig2.add_trace(
@@ -788,13 +790,19 @@ def main():
                     height=550,
                 )
                 st.plotly_chart(fig2, use_container_width=True)
-
                 st.dataframe(df2, use_container_width=True, hide_index=True)
 
+                top_wait_name = df2.iloc[0]["Name"]
+                top_wait_years = int(df2.iloc[0]["Wait (years)"])
+                top_first_nom = int(df2.iloc[0]["First Nomination"])
+                top_first_win = int(df2.iloc[0]["First Win"])
                 st.markdown(
-                    "**Interpretation:** The gap between first nomination and first win "
-                    "can span decades, showing that perseverance and a long career in the "
-                    "industry sometimes eventually pay off with Oscar gold."
+                    f"**Finding:** {top_wait_name} has the longest wait here: {top_wait_years} years "
+                    f"({top_first_nom} to {top_first_win}).\n\n"
+                    "**How found:** For each person, computed first nomination year and first win year, "
+                    "joined both results, calculated the year gap, filtered positive gaps, and sorted descending.\n\n"
+                    "**Why interesting:** It shows that Oscar success can take decades, so longevity and persistence "
+                    "often matter as much as early-career momentum."
                 )
 
                 with st.expander("Show ORM Query Code"):
@@ -866,7 +874,6 @@ def main():
                 fig3.update_layout(xaxis_tickangle=-45, height=500)
                 st.plotly_chart(fig3, use_container_width=True)
 
-                # Show the actual categories for top 5
                 st.markdown("**Categories per person (top 5):**")
                 for row in multi[:5]:
                     person_cats = (
@@ -877,12 +884,15 @@ def main():
                     cats = [c[0] for c in person_cats]
                     st.markdown(f"- **{row[0]}**: {', '.join(cats)}")
 
+                top_multi_name = df3.iloc[0]["Name"]
+                top_multi_cats = int(df3.iloc[0]["Distinct Categories"])
                 st.markdown(
-                    "**Interpretation:** Multi-category nominees are rare "
-                    "Renaissance figures of cinema — often writer-directors "
-                    "or actor-producers who contribute to films in multiple "
-                    "creative capacities. Their breadth of talent sets them "
-                    "apart in Oscar history."
+                    f"**Finding:** {top_multi_name} has the broadest category footprint in this result set "
+                    f"({top_multi_cats} distinct categories).\n\n"
+                    "**How found:** Filtered to acting/directing categories, grouped by person, counted distinct "
+                    "categories and total nominations, kept only people with more than one category, then sorted by breadth.\n\n"
+                    "**Why interesting:** Recognition across multiple categories is a strong signal of versatility, "
+                    "showing who succeeded in more than one creative lane."
                 )
 
                 with st.expander("Show ORM Query Code"):
@@ -915,3 +925,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
