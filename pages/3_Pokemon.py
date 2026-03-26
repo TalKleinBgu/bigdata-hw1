@@ -5,6 +5,7 @@ st.set_page_config(page_title="Pokémon Arena — HW1", page_icon="⚔️", layo
 
 _NAV = """
 <style>
+[data-testid="stSidebarNav"] { display: none; }
 .hw1-topnav {
     display: flex; align-items: center; gap: 0; margin-bottom: 1.2rem;
     background: #fff5f5; border: 1px solid #f5c0c0;

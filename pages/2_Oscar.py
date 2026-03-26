@@ -5,6 +5,7 @@ st.set_page_config(page_title="Oscar Explorer — HW1", page_icon="🎬", layout
 
 _NAV = """
 <style>
+[data-testid="stSidebarNav"] { display: none; }
 .hw1-topnav {
     display: flex; align-items: center; gap: 0; margin-bottom: 1.2rem;
     background: #fffbf2; border: 1px solid #f0dfa0;
