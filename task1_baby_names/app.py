@@ -496,48 +496,6 @@ with tab_patterns:
     # --- Pattern 3: Regional Naming — The State Divide ----------------------
     st.subheader("3. Regional Naming: The State Divide")
 
-    p3_sql = """
-        SELECT State,
-               Name,
-               SUM(Count) AS Total
-        FROM national_names
-        WHERE Year >= 2000
-          AND Name IN ('Mason', 'Jose', 'Hunter', 'Santiago', 'Wyatt')
-        GROUP BY State, Name
-        ORDER BY State, Total DESC;
-    """
-    with st.expander("Show SQL query"):
-        st.code(p3_sql, language="sql")
-
-    p3_df = run_query(p3_sql, conn)
-    if not p3_df.empty:
-        st.markdown("**Query result (2000-present, selected names):**")
-        st.dataframe(p3_df, use_container_width=True)
-
-        # Visual summary of the same query: total births by name across all states.
-        p3_totals = (
-            p3_df.groupby("Name", as_index=False)["Total"]
-            .sum()
-            .sort_values("Total", ascending=False)
-        )
-        fig_p3_names = px.bar(
-            p3_totals,
-            x="Name",
-            y="Total",
-            title="Selected Names: Total Births Across All States (2000-present)",
-            labels={"Total": "Births"},
-            color="Name",
-        )
-        fig_p3_names.update_layout(
-            template="plotly_white",
-            dragmode=False,
-            hovermode="x unified",
-            showlegend=False,
-            xaxis=dict(showspikes=True, spikemode="across", spikethickness=1),
-            yaxis=dict(showspikes=True, spikemode="across", spikethickness=1, showgrid=False),
-        )
-        st.plotly_chart(fig_p3_names, use_container_width=True)
-
     # Show top name per state as a table
     p3_top_sql = """
         WITH ranked AS (
