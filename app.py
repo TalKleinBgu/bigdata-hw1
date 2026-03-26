@@ -114,10 +114,10 @@ st.markdown("""
 st.markdown("""
 <div class="hw1-hero">
   <div style="font-size:3.2rem; margin-bottom:0.5rem;">📊</div>
-  <h1>Big Data Homework 1</h1>
-  <div class="sub"><b>Tal Klein</b> &nbsp;·&nbsp; Student ID: <i>209234103</i></div>
+  <h1>Homework 1</h1>
+  <div class="sub">The Art of Analyzing Big Data</div>
   <div class="meta">
-    The Art of Analyzing Big Data: The Data Scientist's Toolbox &nbsp;·&nbsp; Dr. Michael Fire
+    <b>Tal Klein</b> &nbsp;·&nbsp; Student ID: <i>209234103</i> &nbsp;·&nbsp; Dr. Michael Fire
   </div>
   <div style="margin-top:1rem;">
     <span class="hw1-badge">SQLite</span>
