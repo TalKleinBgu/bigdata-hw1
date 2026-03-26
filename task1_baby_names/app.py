@@ -460,13 +460,11 @@ with tab_patterns:
 
     st.markdown(
         """
-        **Interpretation:** The number of unique baby names used each year remained
-        relatively low from 1910 through the mid-20th century. Beginning in the
-        late 1950s and accelerating through the 1970s--2000s, the count exploded
-        dramatically. This reflects a broader cultural shift toward individualism
-        and personal expression in naming. Parents increasingly moved away from a
-        small set of traditional names and embraced diverse, creative, and
-        multicultural options.
+        **Interpretation:** The data shows a clear long-term rise in naming diversity.
+        Unique names increase from about **1,693 (1910)** to **3,595 (1950)**, then to
+        **4,689 (1970)**, **8,699 (2000)**, and **9,585 (2014)**. The increase is not a
+        short spike but a sustained expansion over decades, consistent with parents
+        using a broader and more varied set of names over time.
         """
     )
 
@@ -502,12 +500,11 @@ with tab_patterns:
 
     st.markdown(
         """
-        **Interpretation:** The name *Arya* was extremely rare in the United States
-        before 2011. After the premiere of HBO's *Game of Thrones* in April 2011,
-        featuring the beloved character Arya Stark, the name saw a dramatic and
-        sustained surge across virtually every state. This is a textbook example of
-        pop-culture influence on baby naming -- a single fictional character can
-        propel an obscure name into the mainstream within just a few years.
+        **Interpretation:** In this dataset, *Arya* is nearly absent for many years
+        (first appears at **5 births in 1982**) and then rises sharply around the early
+        2010s (**249 in 2010**, **422 in 2011**), reaching a peak of **1,574 in 2014**.
+        This timing supports a strong pop-culture effect, where media exposure can
+        rapidly increase adoption of a previously uncommon name.
         """
     )
 
@@ -588,12 +585,12 @@ with tab_patterns:
     st.markdown(
         """
         **Interpretation:** Name popularity varies dramatically by state, reflecting
-        regional demographics and cultural influences. The chart above shows that
-        *Jose* is one of the most popular names in California and Texas -- states
-        with large Hispanic populations -- but barely registers in Montana. The
-        top-name-per-state table further reveals that different states favor very
-        different names. This pattern shows that baby naming in America is not a
-        single national trend but a patchwork of regional cultures, each with
-        distinct preferences shaped by local demographics and heritage.
+        regional demographics and cultural influences. In the all-years top-name
+        results, only a few names dominate many states (for example, **Robert: 16
+        states**, **James: 14**, **John: 10**, **Michael: 10**), while *Jose* shows strong
+        concentration in specific states rather than uniform popularity
+        (**2014: TX 1,540; CA 1,318; NY 196; FL 300; MT 5 in its latest year, 2004**).
+        This indicates that U.S. naming is a regional mosaic, not a single national
+        pattern.
         """
     )
