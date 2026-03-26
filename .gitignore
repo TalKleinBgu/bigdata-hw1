@@ -7,6 +7,10 @@ __pycache__/
 # SQLite databases — rebuilt automatically on first run
 *.db
 
+# Claude Code internal files
+.claude/
+CLAUDE.md
+
 # OS
 .DS_Store
 Thumbs.db
