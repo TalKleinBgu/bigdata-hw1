@@ -509,6 +509,7 @@ def main():
     # ----- Sidebar -----
     st.markdown(“””
 <style>
+section[data-testid=”stSidebar”] > div:first-child { padding-top: 0.5rem !important; }
 [data-testid=”stSidebarContent”] { padding-top: 0.5rem !important; }
 </style>
 “””, unsafe_allow_html=True)
@@ -523,8 +524,8 @@ def main():
         )
 
     # ----- Tabs -----
-    tab_profile, tab_discoveries = st.tabs(
-        ["\U0001F464 Actor Profile (Task 2.2)", "\U0001F50D Discoveries (Task 2.3)"]
+    tab_profile, tab_discoveries, tab_schema = st.tabs(
+        ["\U0001F464 Actor Profile (Task 2.2)", "\U0001F50D Discoveries (Task 2.3)", "\U0001F4CB Schema (Task 2.1)"]
     )
 
     # ===================================================================
@@ -654,50 +655,6 @@ def main():
     # ===================================================================
     with tab_discoveries:
         st.subheader("Interesting Findings from the Oscar Dataset")
-
-        with st.expander("📋 Schema Design (Task 2.1)", expanded=False):
-            st.markdown(
-                textwrap.dedent("""\
-                **Table: `nominations`**
-
-                | Column | Type | Description |
-                |---|---|---|
-                | `id` | Integer (PK) | Auto-increment primary key |
-                | `year_film` | Integer | Release year of the film |
-                | `year_ceremony` | Integer | Year the ceremony took place |
-                | `ceremony` | Integer | Ceremony number |
-                | `category` | String | Award category |
-                | `name` | String | Nominee name |
-                | `film` | String | Film title |
-                | `winner` | Boolean | Whether the nomination won |
-
-                **Design Rationale:**
-                A single *Nomination* table faithfully mirrors the flat CSV
-                structure. Further normalization (separate Person / Film /
-                Category tables) was considered but adds complexity without
-                clear benefit for this read-heavy analytical workload.
-                Indexes on `name`, `category`, `year_ceremony`, and
-                `year_film` speed up the profile and discovery queries.
-                All queries use the **SQLAlchemy ORM** — no raw SQL.
-                """)
-            )
-
-        with st.expander("🐍 ORM Model Code (Task 2.1)", expanded=False):
-            st.code(
-                textwrap.dedent("""\
-                class Nomination(Base):
-                    __tablename__ = "nominations"
-                    id = Column(Integer, primary_key=True, autoincrement=True)
-                    year_film = Column(Integer, index=True)
-                    year_ceremony = Column(Integer, index=True)
-                    ceremony = Column(Integer)
-                    category = Column(String, index=True)
-                    name = Column(String, index=True)
-                    film = Column(String)
-                    winner = Column(Boolean, default=False)
-                """),
-                language="python",
-            )
 
         session = get_session()
         try:
@@ -928,6 +885,42 @@ def main():
 
         finally:
             session.close()
+
+    with tab_schema:
+        st.header("Database Schema & ORM Design (Task 2.1)")
+        st.markdown("""\
+**Table: `nominations`**
+
+| Column | Type | Description |
+|---|---|---|
+| `id` | Integer (PK) | Auto-increment primary key |
+| `year_film` | Integer | Release year of the film |
+| `year_ceremony` | Integer | Year the ceremony took place |
+| `ceremony` | Integer | Ceremony number |
+| `category` | String | Award category |
+| `name` | String | Nominee name |
+| `film` | String | Film title |
+| `winner` | Boolean | Whether the nomination won |
+
+**Design Rationale:** A single *Nomination* table faithfully mirrors the flat CSV
+structure. Further normalization (separate Person / Film / Category tables) was considered
+but adds complexity without clear benefit for this read-heavy analytical workload.
+Indexes on `name`, `category`, `year_ceremony`, and `year_film` speed up the profile
+and discovery queries. All queries use the **SQLAlchemy ORM** — no raw SQL.
+""")
+        st.subheader("ORM Model Code")
+        st.code("""\
+class Nomination(Base):
+    __tablename__ = "nominations"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    year_film = Column(Integer, index=True)
+    year_ceremony = Column(Integer, index=True)
+    ceremony = Column(Integer)
+    category = Column(String, index=True)
+    name = Column(String, index=True)
+    film = Column(String)
+    winner = Column(Boolean, default=False)
+""", language="python")
 
 
 if __name__ == "__main__":

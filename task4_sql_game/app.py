@@ -1653,6 +1653,7 @@ _updateTimer();
 def render_sidebar(conn):
     st.markdown("""
 <style>
+section[data-testid="stSidebar"] > div:first-child { padding-top: 0.5rem !important; }
 [data-testid="stSidebarContent"] { padding-top: 0.5rem !important; }
 </style>
 """, unsafe_allow_html=True)

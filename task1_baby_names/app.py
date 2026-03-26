@@ -109,6 +109,7 @@ ensure_extra_indexes(conn)
 # ---------------------------------------------------------------------------
 st.markdown("""
 <style>
+section[data-testid="stSidebar"] > div:first-child { padding-top: 0.5rem !important; }
 [data-testid="stSidebarContent"] { padding-top: 0.5rem !important; }
 </style>
 """, unsafe_allow_html=True)
@@ -122,12 +123,13 @@ with st.sidebar:
 # ---------------------------------------------------------------------------
 # Main content — organized with tabs
 # ---------------------------------------------------------------------------
-tab_explore, tab_sql, tab_diversity, tab_patterns = st.tabs(
+tab_explore, tab_sql, tab_diversity, tab_patterns, tab_schema = st.tabs(
     [
         "Name Popularity",
         "Custom SQL",
         "Name Diversity",
         "Pattern Discovery",
+        "📋 Schema",
     ]
 )
 
@@ -205,23 +207,6 @@ with tab_sql:
         "Run any **SELECT** query against the `national_names` table. "
         "Non-SELECT statements are blocked for safety."
     )
-
-    with st.expander("📋 Database Schema & Indexes (Task 1.1)", expanded=False):
-        st.code(
-            """CREATE TABLE national_names (
-    Id     INTEGER PRIMARY KEY AUTOINCREMENT,
-    Name   TEXT    NOT NULL,
-    Year   INTEGER NOT NULL,
-    Gender TEXT    NOT NULL,
-    State  TEXT    NOT NULL,
-    Count  INTEGER NOT NULL
-);""",
-            language="sql",
-        )
-        st.markdown("**Indexes:**")
-        st.markdown("- `idx_name_year` on (Name, Year) — name popularity lookups")
-        st.markdown("- `idx_year_gender` on (Year, Gender) — aggregate queries by year/gender")
-        st.markdown("- `idx_state` on (State) — regional filtering and grouping")
 
     # Pre-built example queries
     example_queries = {
@@ -581,3 +566,28 @@ with tab_patterns:
         pattern.
         """
     )
+
+# ===== TAB E: Schema =======================================================
+with tab_schema:
+    st.header("Database Schema (Task 1.1)")
+    st.code(
+        """CREATE TABLE national_names (
+    Id     INTEGER PRIMARY KEY AUTOINCREMENT,
+    Name   TEXT    NOT NULL,
+    Year   INTEGER NOT NULL,
+    Gender TEXT    NOT NULL,
+    State  TEXT    NOT NULL,
+    Count  INTEGER NOT NULL
+);""",
+        language="sql",
+    )
+    st.subheader("Indexes")
+    st.markdown("- `idx_name_year` on (Name, Year) — speeds up name popularity lookups across years")
+    st.markdown("- `idx_year_gender` on (Year, Gender) — speeds up aggregate queries by year and gender")
+    st.markdown("- `idx_state` on (State) — speeds up regional filtering and grouping")
+    st.divider()
+    row_count_val = run_query("SELECT COUNT(*) AS n FROM national_names", conn).iloc[0, 0]
+    year_range_val = run_query("SELECT MIN(Year) AS lo, MAX(Year) AS hi FROM national_names", conn)
+    c1, c2 = st.columns(2)
+    c1.metric("Total rows", f"{row_count_val:,}")
+    c2.metric("Year range", f"{year_range_val.iloc[0, 0]} – {year_range_val.iloc[0, 1]}")

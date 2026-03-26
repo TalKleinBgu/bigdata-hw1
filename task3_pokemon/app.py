@@ -503,7 +503,7 @@ def pokemon_preview_card(p: dict, slot_num: int):
 
     stats_html = (
         '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin-bottom:6px;">'
-        + sc("HP",  p.get("hp", 0),      "#E53935")
+        + sc("HP",  p.get("hp", 0),      "#27AE60")
         + sc("ATK", p.get("attack", 0),   "#FB8C00")
         + sc("DEF", p.get("defense", 0),  "#F9A825")
         + sc("SpA", p.get("sp_atk", 0),   "#8E24AA")
@@ -658,13 +658,17 @@ def page_battle():
             components.html("""
                 <script>
                     (function() {
-                        var tries = [
-                            window.parent.document.querySelector('section[tabindex="0"]'),
-                            window.parent.document.querySelector('.main'),
-                            window.parent.document.querySelector('section.main'),
-                            window.parent.document.body,
+                        var selectors = [
+                            '[data-testid="stAppViewContainer"]',
+                            '[data-testid="stMain"]',
+                            'section[tabindex="0"]',
+                            '.main',
+                            'section.main',
                         ];
-                        tries.forEach(function(el) { if (el) { el.scrollTop = 0; } });
+                        for (var i = 0; i < selectors.length; i++) {
+                            var el = window.parent.document.querySelector(selectors[i]);
+                            if (el) { el.scrollTop = 0; }
+                        }
                         window.parent.scrollTo(0, 0);
                     })();
                 </script>
@@ -746,7 +750,11 @@ def page_battle():
         elif winner == "draw":
             st.info("🤝 DRAW! Both teams fainted at the same time!")
         else:
-            st.warning("😞 You lost... Better luck next time!")
+            st.markdown(
+                '<div style="padding:12px 16px;border-radius:8px;background:#f0f0f0;'
+                'border:1px solid #ccc;font-size:1.05rem;">😞 You lost... Better luck next time!</div>',
+                unsafe_allow_html=True,
+            )
 
         # Show final battle log
         st.markdown("### \U0001f4dc Full Battle Log")
@@ -1071,6 +1079,7 @@ def main():
     # --- Damage formula documentation in sidebar ---
     st.markdown("""
 <style>
+section[data-testid="stSidebar"] > div:first-child { padding-top: 0.5rem !important; }
 [data-testid="stSidebarContent"] { padding-top: 0.5rem !important; }
 </style>
 """, unsafe_allow_html=True)
@@ -1092,9 +1101,10 @@ def main():
         **Turn Order:** Higher Speed goes first. Ties broken randomly.
 
         **Type Effectiveness:**
-        - 2x = Super effective!
-        - 0.5x = Not very effective...
-        - 0x = No effect!
+        - ×2.0 = Super effective!
+        - ×1.0 = Normal
+        - ×0.5 = Not very effective...
+        - ×0.0 = No effect (immune)
         """)
 
         st.markdown("---")
