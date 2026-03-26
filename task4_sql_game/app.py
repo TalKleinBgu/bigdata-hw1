@@ -1794,7 +1794,7 @@ def render_game_tab(conn):
         answer = "df_match_submit"
         submit_label = "✅ Submit Query"
     else:
-        col_ans, col_sub, col_new = st.columns([3, 1.5, 1.2])
+        col_ans, col_sub, col_new, col_quit = st.columns([3, 1.5, 1.1, 1.0])
         with col_ans:
             ans_key = f"answer_{level}"
             answer = st.text_input("Answer", key=ans_key, label_visibility="collapsed",
@@ -1804,8 +1804,13 @@ def render_game_tab(conn):
     with col_sub:
         submit_clicked = st.button(submit_label, type="primary", use_container_width=True)
     with col_new:
-        if st.button("🔄 New Game", use_container_width=True, help="Start over"):
+        if st.button("🔄 New Game", use_container_width=True, help="Start a fresh game"):
             new_game(conn)
+            st.rerun()
+    with col_quit:
+        if st.button("🚪 Quit", use_container_width=True, help="Return to start screen"):
+            st.session_state.game_started = False
+            st.session_state.game_finished = False
             st.rerun()
 
     if submit_clicked:
