@@ -17,14 +17,16 @@ import streamlit as st
 from sqlalchemy import (
     Boolean,
     Column,
+    ForeignKey,
     Integer,
     String,
+    UniqueConstraint,
     create_engine,
     func,
     case,
     distinct,
 )
-from sqlalchemy.orm import declarative_base, sessionmaker, Session
+from sqlalchemy.orm import declarative_base, sessionmaker, Session, relationship, joinedload
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -39,8 +41,35 @@ CSV_PATH = BASE_DIR / "full_data.csv"
 Base = declarative_base()
 
 
+class Person(Base):
+    __tablename__ = "people"
+    __table_args__ = (UniqueConstraint("name", name="uq_people_name"),)
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String, nullable=False, index=True)
+    nominations = relationship("Nomination", back_populates="person", cascade="all, delete-orphan")
+
+
+class Film(Base):
+    __tablename__ = "films"
+    __table_args__ = (UniqueConstraint("title", name="uq_films_title"),)
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    title = Column(String, nullable=False, index=True)
+    nominations = relationship("Nomination", back_populates="film_ref")
+
+
+class Category(Base):
+    __tablename__ = "categories"
+    __table_args__ = (UniqueConstraint("name", name="uq_categories_name"),)
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String, nullable=False, index=True)
+    nominations = relationship("Nomination", back_populates="category_ref")
+
+
 class Nomination(Base):
-    """ORM model representing a single Oscar nomination row."""
+    """Normalized nomination fact table linked to Person / Film / Category."""
 
     __tablename__ = "nominations"
 
@@ -48,10 +77,27 @@ class Nomination(Base):
     year_film = Column(Integer, index=True)
     year_ceremony = Column(Integer, index=True)
     ceremony = Column(Integer)
-    category = Column(String, index=True)
-    name = Column(String, index=True)
-    film = Column(String)
-    winner = Column(Boolean, default=False)
+    winner = Column(Boolean, default=False, index=True)
+
+    person_id = Column(Integer, ForeignKey("people.id"), nullable=False, index=True)
+    category_id = Column(Integer, ForeignKey("categories.id"), nullable=False, index=True)
+    film_id = Column(Integer, ForeignKey("films.id"), nullable=True, index=True)
+
+    person = relationship("Person", back_populates="nominations")
+    category_ref = relationship("Category", back_populates="nominations")
+    film_ref = relationship("Film", back_populates="nominations")
+
+    @property
+    def name(self) -> str:
+        return self.person.name if self.person else ""
+
+    @property
+    def category(self) -> str:
+        return self.category_ref.name if self.category_ref else ""
+
+    @property
+    def film(self) -> str:
+        return self.film_ref.title if self.film_ref else ""
 
     def __repr__(self):
         tag = "W" if self.winner else "N"
@@ -96,31 +142,87 @@ def _load_csv() -> pd.DataFrame:
 def _init_db(engine):
     """Create tables and populate from CSV if the DB is empty."""
     Base.metadata.create_all(engine)
+
+    def has_normalized_schema() -> bool:
+        """Return True when nominations table contains normalized FK columns."""
+        with engine.connect() as conn:
+            table_rows = conn.exec_driver_sql(
+                "SELECT name FROM sqlite_master WHERE type='table' AND name='nominations'"
+            ).fetchall()
+            if not table_rows:
+                return False
+            col_rows = conn.exec_driver_sql("PRAGMA table_info(nominations)").fetchall()
+            cols = {r[1] for r in col_rows}
+            needed = {"person_id", "category_id", "film_id"}
+            return needed.issubset(cols)
+
+    # Migration guard: rebuild if an old flat nominations schema exists.
+    if not has_normalized_schema():
+        Base.metadata.drop_all(engine)
+        Base.metadata.create_all(engine)
+
     session_cls = sessionmaker(bind=engine)
     session = session_cls()
     count = session.query(func.count(Nomination.id)).scalar()
     if count == 0:
         df = _load_csv()
-        # Normalise column names to lower-case snake_case (in case of Kaggle format)
         df.columns = [c.strip().lower().replace(" ", "_") for c in df.columns]
-        records = []
+
+        def clean_text(v):
+            if pd.isna(v):
+                return None
+            s = str(v).strip()
+            return s if s else None
+
+        unique_people = sorted({clean_text(v) for v in df["name"].tolist() if clean_text(v)})
+        unique_categories = sorted({clean_text(v) for v in df["category"].tolist() if clean_text(v)})
+        unique_films = sorted({clean_text(v) for v in df["film"].tolist() if clean_text(v)})
+
+        person_objs = {name: Person(name=name) for name in unique_people}
+        category_objs = {name: Category(name=name) for name in unique_categories}
+        film_objs = {title: Film(title=title) for title in unique_films}
+
+        session.add_all(person_objs.values())
+        session.add_all(category_objs.values())
+        session.add_all(film_objs.values())
+        session.flush()
+
+        person_id_by_name = {name: obj.id for name, obj in person_objs.items()}
+        category_id_by_name = {name: obj.id for name, obj in category_objs.items()}
+        film_id_by_title = {title: obj.id for title, obj in film_objs.items()}
+
+        batch = []
         for _, row in df.iterrows():
+            person_name = clean_text(row.get("name"))
+            category_name = clean_text(row.get("category"))
+            if not person_name or not category_name:
+                continue
+
             winner_val = row.get("winner", False)
             if isinstance(winner_val, str):
                 winner_val = winner_val.strip().lower() in ("true", "1", "yes")
-            records.append(
-                Nomination(
-                    year_film=int(row["year_film"]) if pd.notna(row.get("year_film")) else None,
-                    year_ceremony=int(row["year_ceremony"]) if pd.notna(row.get("year_ceremony")) else None,
-                    ceremony=int(row["ceremony"]) if pd.notna(row.get("ceremony")) else None,
-                    category=str(row["category"]).strip() if pd.notna(row.get("category")) else None,
-                    name=str(row["name"]).strip() if pd.notna(row.get("name")) else None,
-                    film=str(row["film"]).strip() if pd.notna(row.get("film")) else None,
-                    winner=bool(winner_val),
-                )
+
+            film_title = clean_text(row.get("film"))
+            batch.append(
+                {
+                    "year_film": int(row["year_film"]) if pd.notna(row.get("year_film")) else None,
+                    "year_ceremony": int(row["year_ceremony"]) if pd.notna(row.get("year_ceremony")) else None,
+                    "ceremony": int(row["ceremony"]) if pd.notna(row.get("ceremony")) else None,
+                    "winner": bool(winner_val),
+                    "person_id": person_id_by_name[person_name],
+                    "category_id": category_id_by_name[category_name],
+                    "film_id": film_id_by_title.get(film_title),
+                }
             )
-        session.bulk_save_objects(records)
-        session.commit()
+
+            if len(batch) >= 15000:
+                session.bulk_insert_mappings(Nomination, batch)
+                session.commit()
+                batch.clear()
+
+        if batch:
+            session.bulk_insert_mappings(Nomination, batch)
+            session.commit()
     session.close()
 
 
@@ -153,11 +255,13 @@ def get_all_names() -> list[str]:
     """Return a sorted list of all distinct nominee names (people only, not studios/countries)."""
     session = get_session()
     from sqlalchemy import or_
-    filters = [Nomination.category.like(pat) for pat in PERSON_CATEGORIES_PATTERN]
+    filters = [Category.name.like(pat) for pat in PERSON_CATEGORIES_PATTERN]
     names = [
-        r[0] for r in session.query(distinct(Nomination.name))
+        r[0] for r in session.query(distinct(Person.name))
+        .join(Nomination, Nomination.person_id == Person.id)
+        .join(Category, Nomination.category_id == Category.id)
         .filter(or_(*filters))
-        .order_by(Nomination.name)
+        .order_by(Person.name)
         .all()
         if r[0]
     ]
@@ -169,8 +273,26 @@ def get_all_names() -> list[str]:
 # Wikipedia helper
 # ---------------------------------------------------------------------------
 
-def fetch_wikipedia_info(name: str) -> dict:
-    """Fetch summary, image, and birth date using the Wikipedia REST API."""
+def search_wikipedia_titles(name: str, limit: int = 5) -> list[str]:
+    """Return candidate Wikipedia page titles for a person name."""
+    import requests
+
+    try:
+        resp = requests.get(
+            "https://en.wikipedia.org/w/api.php",
+            params={"action": "opensearch", "search": name, "limit": limit, "format": "json"},
+            headers={"User-Agent": "OscarExplorerApp/1.0"},
+            timeout=8,
+        )
+        data = resp.json()
+        titles = data[1] if isinstance(data, list) and len(data) > 1 else []
+        return [t for t in titles if isinstance(t, str) and t.strip()]
+    except Exception:
+        return []
+
+
+def fetch_wikipedia_info_from_title(page_title: str) -> dict:
+    """Fetch summary, image, and birth date for a concrete Wikipedia page title."""
     import requests
     import re
     from urllib.parse import quote
@@ -180,19 +302,7 @@ def fetch_wikipedia_info(name: str) -> dict:
     info: dict = {"summary": None, "image": None, "birth_date": None, "page_url": None}
 
     try:
-        # Step 1: Search for the page title via the Action API (search endpoint)
-        search_resp = requests.get(
-            "https://en.wikipedia.org/w/api.php",
-            params={"action": "opensearch", "search": name, "limit": 3, "format": "json"},
-            headers=HEADERS,
-            timeout=8,
-        )
-        search_data = search_resp.json()
-        titles = search_data[1] if len(search_data) > 1 else []
-        if not titles:
-            return info
-
-        api_title = titles[0].replace(" ", "_")
+        api_title = page_title.replace(" ", "_")
         info["page_url"] = f"https://en.wikipedia.org/wiki/{quote(api_title)}"
 
         # Step 2: Get summary via REST API /page/summary/{title}
@@ -260,14 +370,20 @@ def query_person_profile(session: Session, name: str) -> dict:
     """Query the DB for a person's complete Oscar profile."""
     noms = (
         session.query(Nomination)
-        .filter(Nomination.name == name)
+        .join(Person, Nomination.person_id == Person.id)
+        .options(
+            joinedload(Nomination.person),
+            joinedload(Nomination.category_ref),
+            joinedload(Nomination.film_ref),
+        )
+        .filter(Person.name == name)
         .order_by(Nomination.year_ceremony)
         .all()
     )
     if not noms:
         return {}
     wins = [n for n in noms if n.winner]
-    categories = sorted({n.category for n in noms})
+    categories = sorted({n.category for n in noms if n.category})
     years = [n.year_ceremony for n in noms if n.year_ceremony]
     first_year = min(years) if years else None
     last_year = max(years) if years else None
@@ -299,15 +415,17 @@ def compute_category_percentile(session: Session, name: str, category: str) -> f
     # Count of nominations per person in this category
     sub = (
         session.query(
-            Nomination.name,
+            Person.name.label("person_name"),
             func.count(Nomination.id).label("cnt"),
         )
-        .filter(Nomination.category == category)
-        .group_by(Nomination.name)
+        .join(Person, Nomination.person_id == Person.id)
+        .join(Category, Nomination.category_id == Category.id)
+        .filter(Category.name == category)
+        .group_by(Person.id, Person.name)
         .subquery()
     )
     person_count = (
-        session.query(sub.c.cnt).filter(sub.c.name == name).scalar()
+        session.query(sub.c.cnt).filter(sub.c.person_name == name).scalar()
     )
     if person_count is None:
         return None
@@ -318,6 +436,45 @@ def compute_category_percentile(session: Session, name: str, category: str) -> f
     return below / total * 100
 
 
+def compute_category_average_comparison(session: Session, name: str, category: str) -> dict | None:
+    """Compare the person to average nominees in the same category."""
+    sub = (
+        session.query(
+            Person.name.label("person_name"),
+            func.count(Nomination.id).label("noms"),
+            (
+                func.sum(case((Nomination.winner == True, 1), else_=0)) * 100.0
+                / func.count(Nomination.id)
+            ).label("win_rate"),
+        )
+        .join(Nomination, Nomination.person_id == Person.id)
+        .join(Category, Nomination.category_id == Category.id)
+        .filter(Category.name == category)
+        .group_by(Person.id, Person.name)
+        .subquery()
+    )
+
+    person_row = (
+        session.query(sub.c.noms, sub.c.win_rate)
+        .filter(sub.c.person_name == name)
+        .first()
+    )
+    if not person_row:
+        return None
+
+    avg_noms, avg_win_rate = session.query(
+        func.avg(sub.c.noms),
+        func.avg(sub.c.win_rate),
+    ).one()
+
+    return {
+        "person_noms": float(person_row.noms or 0),
+        "person_win_rate": float(person_row.win_rate or 0),
+        "avg_noms": float(avg_noms or 0),
+        "avg_win_rate": float(avg_win_rate or 0),
+    }
+
+
 # ---------------------------------------------------------------------------
 # Discovery queries (Task 2.3)
 # ---------------------------------------------------------------------------
@@ -325,19 +482,21 @@ def compute_category_percentile(session: Session, name: str, category: str) -> f
 def _actor_director_filter():
     """Return an OR filter that restricts to acting/directing categories."""
     from sqlalchemy import or_
-    return or_(*[Nomination.category.like(pat) for pat in PERSON_CATEGORIES_PATTERN])
+    return or_(*[Category.name.like(pat) for pat in PERSON_CATEGORIES_PATTERN])
 
 
 def discovery_most_nominated_no_win(session: Session, top_n: int = 15):
     """Actors/directors with the most nominations but zero wins."""
     sub = (
         session.query(
-            Nomination.name,
+            Person.name.label("name"),
             func.count(Nomination.id).label("total_noms"),
             func.sum(case((Nomination.winner == True, 1), else_=0)).label("total_wins"),
         )
+        .join(Person, Nomination.person_id == Person.id)
+        .join(Category, Nomination.category_id == Category.id)
         .filter(_actor_director_filter())
-        .group_by(Nomination.name)
+        .group_by(Person.id, Person.name)
         .subquery()
     )
     results = (
@@ -355,21 +514,25 @@ def discovery_longest_wait_for_win(session: Session, top_n: int = 15):
     cat_filter = _actor_director_filter()
     first_nom = (
         session.query(
-            Nomination.name,
+            Person.name.label("name"),
             func.min(Nomination.year_ceremony).label("first_nom_year"),
         )
+        .join(Person, Nomination.person_id == Person.id)
+        .join(Category, Nomination.category_id == Category.id)
         .filter(cat_filter)
-        .group_by(Nomination.name)
+        .group_by(Person.id, Person.name)
         .subquery()
     )
     first_win = (
         session.query(
-            Nomination.name,
+            Person.name.label("name"),
             func.min(Nomination.year_ceremony).label("first_win_year"),
         )
+        .join(Person, Nomination.person_id == Person.id)
+        .join(Category, Nomination.category_id == Category.id)
         .filter(Nomination.winner == True)
-        .filter(_actor_director_filter())
-        .group_by(Nomination.name)
+        .filter(cat_filter)
+        .group_by(Person.id, Person.name)
         .subquery()
     )
     results = (
@@ -392,14 +555,16 @@ def discovery_multi_category(session: Session, top_n: int = 15):
     """Actors/directors nominated in the most different acting/directing categories."""
     results = (
         session.query(
-            Nomination.name,
-            func.count(distinct(Nomination.category)).label("num_categories"),
+            Person.name.label("name"),
+            func.count(distinct(Category.name)).label("num_categories"),
             func.count(Nomination.id).label("total_noms"),
         )
+        .join(Person, Nomination.person_id == Person.id)
+        .join(Category, Nomination.category_id == Category.id)
         .filter(_actor_director_filter())
-        .group_by(Nomination.name)
-        .having(func.count(distinct(Nomination.category)) > 1)
-        .order_by(func.count(distinct(Nomination.category)).desc(), func.count(Nomination.id).desc())
+        .group_by(Person.id, Person.name)
+        .having(func.count(distinct(Category.name)) > 1)
+        .order_by(func.count(distinct(Category.name)).desc(), func.count(Nomination.id).desc())
         .limit(top_n)
         .all()
     )
@@ -417,13 +582,14 @@ def generate_fun_facts(session: Session, profile: dict, wiki_info: dict) -> list
     num_noms = profile["num_nominations"]
 
     # Fact 1: Percentile among all nominees
-    total_nominees = session.query(func.count(distinct(Nomination.name))).scalar()
+    total_nominees = session.query(func.count(distinct(Person.id))).scalar()
     sub_counts = (
         session.query(
-            Nomination.name,
+            Person.name.label("person_name"),
             func.count(Nomination.id).label("cnt"),
         )
-        .group_by(Nomination.name)
+        .join(Nomination, Nomination.person_id == Person.id)
+        .group_by(Person.id, Person.name)
         .subquery()
     )
     below = session.query(func.count()).select_from(sub_counts).filter(sub_counts.c.cnt < num_noms).scalar()
@@ -434,13 +600,17 @@ def generate_fun_facts(session: Session, profile: dict, wiki_info: dict) -> list
     if profile["categories"]:
         cat = profile["categories"][0]
         cat_total = (
-            session.query(func.count(distinct(Nomination.name)))
-            .filter(Nomination.category == cat)
+            session.query(func.count(distinct(Person.id)))
+            .join(Nomination, Nomination.person_id == Person.id)
+            .join(Category, Nomination.category_id == Category.id)
+            .filter(Category.name == cat)
             .scalar()
         )
         cat_winners = (
-            session.query(func.count(distinct(Nomination.name)))
-            .filter(Nomination.category == cat, Nomination.winner == True)
+            session.query(func.count(distinct(Person.id)))
+            .join(Nomination, Nomination.person_id == Person.id)
+            .join(Category, Nomination.category_id == Category.id)
+            .filter(Category.name == cat, Nomination.winner == True)
             .scalar()
         )
         if cat_total:
@@ -568,9 +738,23 @@ section[data-testid="stSidebar"] > div:first-child { padding-top: 0.5rem !import
                     if suggestions:
                         st.info("Suggestions: " + ", ".join(suggestions))
                 else:
-                    # --- Fetch Wikipedia info ---
-                    with st.spinner("Fetching Wikipedia data..."):
-                        wiki = fetch_wikipedia_info(target_name)
+                    # --- Fetch Wikipedia info (with disambiguation) ---
+                    with st.spinner("Searching Wikipedia..."):
+                        wiki_titles = search_wikipedia_titles(target_name, limit=6)
+
+                    wiki_choice = None
+                    if wiki_titles:
+                        if len(wiki_titles) > 1:
+                            st.caption("Multiple Wikipedia matches found. Choose the correct profile:")
+                        wiki_choice = st.selectbox(
+                            "Wikipedia article",
+                            wiki_titles,
+                            key=f"wiki_article_{target_name}",
+                        )
+                        with st.spinner("Fetching Wikipedia data..."):
+                            wiki = fetch_wikipedia_info_from_title(wiki_choice)
+                    else:
+                        wiki = {"summary": None, "image": None, "birth_date": None, "page_url": None}
 
                     # --- Profile Card ---
                     col_img, col_info = st.columns([1, 3])
@@ -579,18 +763,25 @@ section[data-testid="stSidebar"] > div:first-child { padding-top: 0.5rem !import
                         if wiki.get("image"):
                             st.image(wiki["image"], width=250, caption=target_name)
                         else:
-                            st.markdown("*No photo available*")
+                            st.caption("Wikipedia photo unavailable.")
 
                     with col_info:
                         st.markdown(f"## {target_name}")
                         if wiki.get("birth_date"):
                             st.markdown(f"**Born:** {wiki['birth_date']}")
+                        else:
+                            st.caption("Birth date unavailable from Wikipedia.")
                         if wiki.get("summary"):
                             st.markdown(wiki["summary"])
                         elif wiki.get("page_url"):
-                            st.markdown(f"[Wikipedia page]({wiki['page_url']})")
+                            st.markdown(f"[Open Wikipedia page]({wiki['page_url']})")
+                            st.caption("Biography summary unavailable from Wikipedia API.")
                         else:
-                            st.info("No Wikipedia info found for this person.")
+                            st.info("No Wikipedia profile found. Showing dataset-only profile.")
+
+                    has_wiki_data = any([wiki.get("summary"), wiki.get("image"), wiki.get("birth_date")])
+                    source_label = "Dataset + Wikipedia" if has_wiki_data else "Dataset only"
+                    st.caption(f"Profile source: {source_label}")
 
                     st.divider()
 
@@ -622,6 +813,19 @@ section[data-testid="stSidebar"] > div:first-child { padding-top: 0.5rem !import
                                 f"of nominees in *{primary_cat}*."
                             )
 
+                        avg_cmp = compute_category_average_comparison(session, target_name, primary_cat)
+                        if avg_cmp is not None:
+                            delta_noms = avg_cmp["person_noms"] - avg_cmp["avg_noms"]
+                            delta_wr = avg_cmp["person_win_rate"] - avg_cmp["avg_win_rate"]
+                            st.info(
+                                f"Category average comparison (*{primary_cat}*): "
+                                f"Avg nominee = **{avg_cmp['avg_noms']:.2f} nominations**, "
+                                f"**{avg_cmp['avg_win_rate']:.1f}% win rate**. "
+                                f"{target_name} = **{int(avg_cmp['person_noms'])} nominations** "
+                                f"({delta_noms:+.2f} vs avg), **{avg_cmp['person_win_rate']:.1f}% win rate** "
+                                f"({delta_wr:+.1f} pp vs avg)."
+                            )
+
                     # --- Categories ---
                     st.markdown("**Categories Nominated In:** " + ", ".join(profile["categories"]))
 
@@ -632,8 +836,8 @@ section[data-testid="stSidebar"] > div:first-child { padding-top: 0.5rem !import
                         rows.append(
                             {
                                 "Year": n.year_ceremony,
-                                "Category": n.category,
-                                "Film": n.film,
+                                "Category": n.category if n.category else "N/A",
+                                "Film": n.film if n.film else "N/A",
                                 "Result": "\U0001F3C6 Won" if n.winner else "Nominated",
                             }
                         )
@@ -696,12 +900,18 @@ section[data-testid="stSidebar"] > div:first-child { padding-top: 0.5rem !import
                         textwrap.dedent("""\
                         sub = (
                             session.query(
-                                Nomination.name,
+                                Person.name.label("name"),
                                 func.count(Nomination.id).label("total_noms"),
                                 func.sum(case((Nomination.winner == True, 1), else_=0)).label("total_wins"),
                             )
-                            .filter(Nomination.category.like("ACTOR%") | Nomination.category.like("ACTRESS%") | Nomination.category.like("DIRECTING%"))
-                            .group_by(Nomination.name)
+                            .join(Person, Nomination.person_id == Person.id)
+                            .join(Category, Nomination.category_id == Category.id)
+                            .filter(
+                                Category.name.like("ACTOR%")
+                                | Category.name.like("ACTRESS%")
+                                | Category.name.like("DIRECTING%")
+                            )
+                            .group_by(Person.id, Person.name)
                             .subquery()
                         )
                         results = (
@@ -773,23 +983,27 @@ section[data-testid="stSidebar"] > div:first-child { padding-top: 0.5rem !import
                     st.code(
                         textwrap.dedent("""\
                         # Filter for actors and directors only
-                        cat_filter = Nomination.category.like("ACTOR%") | Nomination.category.like("ACTRESS%") | Nomination.category.like("DIRECTING%")
+                        cat_filter = Category.name.like("ACTOR%") | Category.name.like("ACTRESS%") | Category.name.like("DIRECTING%")
                         first_nom = (
                             session.query(
-                                Nomination.name,
+                                Person.name.label("name"),
                                 func.min(Nomination.year_ceremony).label("first_nom_year"),
                             )
+                            .join(Person, Nomination.person_id == Person.id)
+                            .join(Category, Nomination.category_id == Category.id)
                             .filter(cat_filter)
-                            .group_by(Nomination.name)
+                            .group_by(Person.id, Person.name)
                             .subquery()
                         )
                         first_win = (
                             session.query(
-                                Nomination.name,
+                                Person.name.label("name"),
                                 func.min(Nomination.year_ceremony).label("first_win_year"),
                             )
+                            .join(Person, Nomination.person_id == Person.id)
+                            .join(Category, Nomination.category_id == Category.id)
                             .filter(Nomination.winner == True, cat_filter)
-                            .group_by(Nomination.name)
+                            .group_by(Person.id, Person.name)
                             .subquery()
                         )
                         results = (
@@ -841,8 +1055,10 @@ section[data-testid="stSidebar"] > div:first-child { padding-top: 0.5rem !import
                 st.markdown("**Categories per person (top 5):**")
                 for row in multi[:5]:
                     person_cats = (
-                        session.query(distinct(Nomination.category))
-                        .filter(Nomination.name == row[0])
+                        session.query(distinct(Category.name))
+                        .join(Nomination, Nomination.category_id == Category.id)
+                        .join(Person, Nomination.person_id == Person.id)
+                        .filter(Person.name == row[0])
                         .all()
                     )
                     cats = [c[0] for c in person_cats]
@@ -862,18 +1078,20 @@ section[data-testid="stSidebar"] > div:first-child { padding-top: 0.5rem !import
                 with st.expander("Show ORM Query Code"):
                     st.code(
                         textwrap.dedent("""\
-                        cat_filter = Nomination.category.like("ACTOR%") | Nomination.category.like("ACTRESS%") | Nomination.category.like("DIRECTING%")
+                        cat_filter = Category.name.like("ACTOR%") | Category.name.like("ACTRESS%") | Category.name.like("DIRECTING%")
                         results = (
                             session.query(
-                                Nomination.name,
-                                func.count(distinct(Nomination.category)).label("num_categories"),
+                                Person.name.label("name"),
+                                func.count(distinct(Category.name)).label("num_categories"),
                                 func.count(Nomination.id).label("total_noms"),
                             )
+                            .join(Person, Nomination.person_id == Person.id)
+                            .join(Category, Nomination.category_id == Category.id)
                             .filter(cat_filter)
-                            .group_by(Nomination.name)
-                            .having(func.count(distinct(Nomination.category)) > 1)
+                            .group_by(Person.id, Person.name)
+                            .having(func.count(distinct(Category.name)) > 1)
                             .order_by(
-                                func.count(distinct(Nomination.category)).desc(),
+                                func.count(distinct(Category.name)).desc(),
                                 func.count(Nomination.id).desc(),
                             )
                             .limit(15)
@@ -889,40 +1107,62 @@ section[data-testid="stSidebar"] > div:first-child { padding-top: 0.5rem !import
     with tab_schema:
         st.header("Database Schema & ORM Design (Task 2.1)")
         st.markdown("""\
-**Table: `nominations`**
+**Tables (normalized ORM schema):**
 
 | Column | Type | Description |
 |---|---|---|
+| `people.id` | Integer (PK) | Person identifier |
+| `people.name` | String (UNIQUE) | Actor/director name |
+| `categories.id` | Integer (PK) | Category identifier |
+| `categories.name` | String (UNIQUE) | Oscar category |
+| `films.id` | Integer (PK) | Film identifier |
+| `films.title` | String (UNIQUE) | Film title |
 | `id` | Integer (PK) | Auto-increment primary key |
 | `year_film` | Integer | Release year of the film |
 | `year_ceremony` | Integer | Year the ceremony took place |
 | `ceremony` | Integer | Ceremony number |
-| `category` | String | Award category |
-| `name` | String | Nominee name |
-| `film` | String | Film title |
+| `person_id` | Integer (FK) | Link to `people.id` |
+| `category_id` | Integer (FK) | Link to `categories.id` |
+| `film_id` | Integer (FK) | Link to `films.id` |
 | `winner` | Boolean | Whether the nomination won |
 
-**Design Rationale:** A single *Nomination* table faithfully mirrors the flat CSV
-structure. Further normalization (separate Person / Film / Category tables) was considered
-but adds complexity without clear benefit for this read-heavy analytical workload.
-Indexes on `name`, `category`, `year_ceremony`, and `year_film` speed up the profile
-and discovery queries. All queries use the **SQLAlchemy ORM** — no raw SQL.
+**Design Rationale:** I normalized the flat CSV into `people`, `categories`, `films`,
+and `nominations` to remove duplication and make joins/aggregations cleaner.
+This is especially useful for profile and discovery queries that repeatedly group
+by person/category. I chose **SQLAlchemy ORM** because it has strong ecosystem support,
+clear relationship modeling (`relationship`, `joinedload`), and smooth integration
+with Streamlit for cached sessions and query composition. All data access is via ORM
+queries (no raw SQL for Task 2 logic).
 """)
         st.subheader("ORM Model Code")
         st.code("""\
+class Person(Base):
+    __tablename__ = "people"
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False, unique=True, index=True)
+
+class Category(Base):
+    __tablename__ = "categories"
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False, unique=True, index=True)
+
+class Film(Base):
+    __tablename__ = "films"
+    id = Column(Integer, primary_key=True)
+    title = Column(String, nullable=False, unique=True, index=True)
+
 class Nomination(Base):
     __tablename__ = "nominations"
-    id = Column(Integer, primary_key=True, autoincrement=True)
+    id = Column(Integer, primary_key=True)
     year_film = Column(Integer, index=True)
     year_ceremony = Column(Integer, index=True)
     ceremony = Column(Integer)
-    category = Column(String, index=True)
-    name = Column(String, index=True)
-    film = Column(String)
-    winner = Column(Boolean, default=False)
+    winner = Column(Boolean, default=False, index=True)
+    person_id = Column(Integer, ForeignKey("people.id"), nullable=False, index=True)
+    category_id = Column(Integer, ForeignKey("categories.id"), nullable=False, index=True)
+    film_id = Column(Integer, ForeignKey("films.id"), nullable=True, index=True)
 """, language="python")
 
 
 if __name__ == "__main__":
     main()
-

@@ -52,6 +52,15 @@ def build_db_from_csv() -> None:
     cur.execute("CREATE INDEX idx_year_gender ON national_names (Year, Gender)")
     cur.execute("CREATE INDEX idx_state ON national_names (State)")
 
+    # Persist lightweight stats so schema tab can load instantly without full-table scan.
+    cur.execute("CREATE TABLE IF NOT EXISTS app_metadata (key TEXT PRIMARY KEY, value TEXT NOT NULL)")
+    metadata_rows = [
+        ("row_count", str(int(len(df)))),
+        ("year_lo", str(int(df["Year"].min()))),
+        ("year_hi", str(int(df["Year"].max()))),
+    ]
+    cur.executemany("INSERT OR REPLACE INTO app_metadata (key, value) VALUES (?, ?)", metadata_rows)
+
     conn.commit()
     conn.close()
 
@@ -85,11 +94,18 @@ def cached_static_query(sql: str) -> pd.DataFrame:
 @st.cache_data(show_spinner=False)
 def get_dataset_stats(_conn) -> dict:
     """Cached dataset-level stats used in multiple sections."""
+    rows = _conn.execute("SELECT key, value FROM app_metadata WHERE key IN ('row_count', 'year_lo', 'year_hi')").fetchall()
+    if len(rows) == 3:
+        meta = {k: v for k, v in rows}
+        return {
+            "rows": int(meta["row_count"]),
+            "year_lo": int(meta["year_lo"]),
+            "year_hi": int(meta["year_hi"]),
+        }
+
+    # Fallback for old DB versions without metadata table.
     row = _conn.execute(
-        """
-        SELECT COUNT(*) AS n, MIN(Year) AS lo, MAX(Year) AS hi
-        FROM national_names
-        """
+        "SELECT COUNT(*) AS n, MIN(Year) AS lo, MAX(Year) AS hi FROM national_names"
     ).fetchone()
     return {"rows": int(row[0]), "year_lo": int(row[1]), "year_hi": int(row[2])}
 
@@ -106,6 +122,22 @@ def ensure_extra_indexes(conn: sqlite3.Connection) -> None:
     conn.execute("CREATE INDEX IF NOT EXISTS idx_year_name ON national_names (Year, Name)")
     conn.execute("CREATE INDEX IF NOT EXISTS idx_state_name ON national_names (State, Name)")
     conn.execute("CREATE INDEX IF NOT EXISTS idx_name_state_year ON national_names (Name, State, Year)")
+    conn.execute("CREATE TABLE IF NOT EXISTS app_metadata (key TEXT PRIMARY KEY, value TEXT NOT NULL)")
+    needed = conn.execute(
+        "SELECT COUNT(*) FROM app_metadata WHERE key IN ('row_count', 'year_lo', 'year_hi')"
+    ).fetchone()[0]
+    if needed < 3:
+        row = conn.execute(
+            "SELECT COUNT(*) AS n, MIN(Year) AS lo, MAX(Year) AS hi FROM national_names"
+        ).fetchone()
+        conn.executemany(
+            "INSERT OR REPLACE INTO app_metadata (key, value) VALUES (?, ?)",
+            [
+                ("row_count", str(int(row[0]))),
+                ("year_lo", str(int(row[1]))),
+                ("year_hi", str(int(row[2]))),
+            ],
+        )
     conn.commit()
 
 
@@ -604,6 +636,23 @@ with tab_schema:
     st.markdown("- `idx_name_year` on (Name, Year) — speeds up name popularity lookups across years")
     st.markdown("- `idx_year_gender` on (Year, Gender) — speeds up aggregate queries by year and gender")
     st.markdown("- `idx_state` on (State) — speeds up regional filtering and grouping")
+    st.markdown("- `idx_year_name` on (Year, Name) — speeds up top names per year and yearly ranking queries")
+    st.markdown("- `idx_name_state_year` on (Name, State, Year) — speeds up state-by-state timeline comparisons")
+    st.subheader("Why These Indexes")
+    st.markdown(
+        "- `Name + Year` is used by Task 1.2A time-series queries (`WHERE Name IN (...) GROUP BY Name, Year`)."
+    )
+    st.markdown(
+        "- `Year + Gender` supports aggregation queries by year/gender (for diversity and custom SQL examples)."
+    )
+    st.markdown(
+        "- `State` and composite state/name indexes support regional analyses and state filtering in Task 1.3."
+    )
+    st.subheader("SQL Safety")
+    st.markdown(
+        "The custom SQL panel accepts only `SELECT`/`WITH` queries. "
+        "Write operations (`INSERT`, `UPDATE`, `DELETE`, `DROP`, etc.) are blocked with a friendly error."
+    )
     st.divider()
     schema_stats = get_dataset_stats(conn)
     c1, c2 = st.columns(2)
