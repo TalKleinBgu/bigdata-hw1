@@ -4,6 +4,7 @@ A Streamlit app with SQLite-backed Pokemon battles, cheat codes, and analysis.
 """
 
 import streamlit as st
+import streamlit.components.v1 as components
 import sqlite3
 import pandas as pd
 import plotly.express as px
@@ -601,10 +602,18 @@ def page_battle():
             st.session_state.battle_log = []
             st.session_state.cheats_used = []
             st.session_state.battle_state = "battle"
+            st.session_state.scroll_to_top = True
             st.rerun()
 
     # ---- BATTLE ----
     elif st.session_state.battle_state == "battle":
+        if st.session_state.get("scroll_to_top", False):
+            components.html(
+                "<script>window.parent.scrollTo({top: 0, behavior: 'smooth'});</script>",
+                height=0,
+            )
+            st.session_state.scroll_to_top = False
+
         player_team = st.session_state.player_team
         ai_team = st.session_state.ai_team
         p_idx = st.session_state.player_idx

@@ -55,7 +55,7 @@ class Nomination(Base):
 
     def __repr__(self):
         tag = "W" if self.winner else "N"
-        return f"<Nomination({self.year_ceremony} {self.category} | {self.name} ג€“ {self.film} [{tag}])>"
+        return f"<Nomination({self.year_ceremony} {self.category} | {self.name}“ {self.film} [{tag}])>"
 
 
 # ---------------------------------------------------------------------------
@@ -538,7 +538,7 @@ def main():
                 clear benefit for this read-heavy analytical workload.
                 Indexes on `name`, `category`, `year_ceremony`, and
                 `year_film` speed up the profile and discovery queries.
-                All queries use the **SQLAlchemy ORM** ג€” no raw SQL.
+                All queries use the **SQLAlchemy ORM** ” no raw SQL.
                 """)
             )
 
@@ -637,7 +637,7 @@ def main():
                     m3.metric("Win Rate", f"{profile['win_rate']:.1f}%")
                     m4.metric(
                         "Years Active",
-                        f"{profile['first_year']} ג€“ {profile['last_year']}"
+                        f"{profile['first_year']}“ {profile['last_year']}"
                         if profile["first_year"]
                         else "N/A",
                     )
