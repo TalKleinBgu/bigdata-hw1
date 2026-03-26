@@ -176,7 +176,7 @@ cards_html = '<div class="hw1-grid">'
 for t in TASKS:
     tags_html = "".join(f'<span class="hw1-tag">{tag}</span>' for tag in t["tags"])
     cards_html += f"""
-<a class="hw1-card" href="{t['url']}" style="--accent:{t['accent']}">
+<a class="hw1-card" href="{t['url']}" target="_self" style="--accent:{t['accent']}">
   <div class="hw1-card-label">{t['label']}</div>
   <div class="hw1-card-icon">{t['icon']}</div>
   <div class="hw1-card-title">{t['title']}</div>
@@ -187,22 +187,6 @@ for t in TASKS:
 cards_html += '</div>'
 
 st.markdown(cards_html, unsafe_allow_html=True)
-
-# ── About ─────────────────────────────────────────────────────────────────────
-st.markdown('<hr class="hw1-divider">', unsafe_allow_html=True)
-with st.expander("📖 About this assignment"):
-    st.markdown("""
-**Homework Assignment 1** for *The Art of Analyzing Big Data: The Data Scientist's Toolbox* — Dr. Michael Fire.
-
-| Task | Topic | Stack |
-|------|-------|-------|
-| 1 | Baby Names Explorer | `sqlite3` · `pandas` · `Plotly` |
-| 2 | Oscar Actor Explorer | `SQLAlchemy` · Wikipedia REST API · `Plotly` |
-| 3 | Pokémon Battle Arena | `sqlite3` · Streamlit |
-| 4 ⭐ | NBA SQL Trivia *(Bonus)* | `nba_api` · `sqlite3` · `Plotly` |
-
-Databases are built automatically on first run — no setup needed.
-""")
 
 st.markdown(
     '<div class="hw1-footer">Tal Klein · Big Data HW1 · Built with Streamlit</div>',
