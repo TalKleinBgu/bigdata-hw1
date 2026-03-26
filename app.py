@@ -1,7 +1,4 @@
-"""
-Landing page — Big Data HW1
-Tal Klein
-"""
+"""Landing page — Big Data HW1 · Tal Klein"""
 import streamlit as st
 
 st.set_page_config(
@@ -11,216 +8,203 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
-# ── styles ──────────────────────────────────────────────────────────────────
 st.markdown("""
 <style>
-/* hide default sidebar nav labels on landing */
-[data-testid="stSidebarNav"] { display: none; }
+[data-testid="stSidebarNav"]   { display: none; }
+[data-testid="stSidebar"]      { display: none; }
+#MainMenu, footer, header      { visibility: hidden; }
 
-.hero {
+/* ── reset streamlit padding ── */
+.block-container { padding: 2rem 3rem 3rem !important; max-width: 1200px; }
+
+/* ── hero ── */
+.hw1-hero {
     text-align: center;
-    padding: 2.5rem 1rem 1.5rem;
-}
-.hero h1 {
-    font-size: 3rem;
-    font-weight: 800;
-    color: #1E1E1E;
-    margin-bottom: 0.2rem;
-}
-.hero .subtitle {
-    font-size: 1.15rem;
-    color: #555;
-    margin-bottom: 0.4rem;
-}
-.hero .meta {
-    font-size: 0.95rem;
-    color: #888;
-}
-.badge {
-    display: inline-block;
-    background: #4A90D9;
-    color: white;
+    padding: 2.8rem 1rem 1.8rem;
+    background: linear-gradient(135deg, #f8faff 0%, #eef3fb 100%);
     border-radius: 20px;
-    padding: 3px 14px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    margin: 2px;
+    margin-bottom: 2.2rem;
+    border: 1px solid #dde8f5;
 }
-
-.task-card {
-    background: #FFFFFF;
-    border: 1.5px solid #E0E7EF;
-    border-radius: 16px;
-    padding: 1.6rem 1.4rem 1.2rem;
-    height: 100%;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
-    transition: box-shadow 0.2s;
-    position: relative;
-}
-.task-card:hover { box-shadow: 0 6px 20px rgba(0,0,0,0.12); }
-.task-num {
-    font-size: 0.78rem;
-    font-weight: 700;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    color: #999;
+.hw1-hero h1 {
+    font-size: 2.8rem; font-weight: 800;
+    background: linear-gradient(90deg, #1a5fa8, #4A90D9);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
     margin-bottom: 0.3rem;
 }
-.task-icon { font-size: 2.4rem; margin-bottom: 0.5rem; }
-.task-title {
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: #1E1E1E;
+.hw1-hero .sub { font-size: 1.1rem; color: #444; margin-bottom: 0.25rem; }
+.hw1-hero .meta { font-size: 0.9rem; color: #888; }
+.hw1-badge {
+    display: inline-block; background: #4A90D9; color: white;
+    border-radius: 20px; padding: 3px 13px; font-size: 0.8rem;
+    font-weight: 600; margin: 3px 2px;
+}
+
+/* ── section title ── */
+.hw1-section-title {
+    text-align: center; font-size: 1.4rem; font-weight: 700;
+    color: #222; margin: 0 0 1.4rem;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+
+/* ── cards grid ── */
+.hw1-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.4rem;
+    margin-bottom: 2.5rem;
+}
+
+/* ── single card as full <a> ── */
+.hw1-card {
+    display: flex; flex-direction: column;
+    background: #fff;
+    border: 2px solid #e8edf5;
+    border-radius: 18px;
+    padding: 1.7rem 1.4rem 1.4rem;
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+    position: relative;
+    overflow: hidden;
+}
+.hw1-card::before {               /* coloured top bar */
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 5px;
+    background: var(--accent, #4A90D9);
+    border-radius: 18px 18px 0 0;
+}
+.hw1-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 14px 36px rgba(0,0,0,0.13);
+    border-color: var(--accent, #4A90D9);
+    text-decoration: none;
+    color: inherit;
+}
+.hw1-card-label {
+    font-size: 0.72rem; font-weight: 700; letter-spacing: 1.2px;
+    text-transform: uppercase; color: var(--accent, #4A90D9);
     margin-bottom: 0.6rem;
 }
-.task-desc {
-    font-size: 0.9rem;
-    color: #555;
-    line-height: 1.55;
-    margin-bottom: 1rem;
+.hw1-card-icon  { font-size: 2.6rem; margin-bottom: 0.5rem; }
+.hw1-card-title { font-size: 1.15rem; font-weight: 700; color: #1a1a1a; margin-bottom: 0.6rem; }
+.hw1-card-desc  { font-size: 0.87rem; color: #555; line-height: 1.6; flex: 1; }
+.hw1-card-tags  { margin-top: 1rem; }
+.hw1-tag {
+    display: inline-block; background: #f2f5fb;
+    color: var(--accent, #4A90D9);
+    border-radius: 10px; padding: 2px 9px;
+    font-size: 0.72rem; font-weight: 600; margin: 2px 2px 0 0;
 }
-.pill {
-    display: inline-block;
-    background: #F0F4F8;
-    color: #4A90D9;
-    border-radius: 12px;
-    padding: 2px 10px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    margin: 2px 2px 0 0;
+.hw1-card-arrow {
+    margin-top: 1.1rem; text-align: right;
+    font-size: 1.1rem; color: var(--accent, #4A90D9);
+    opacity: 0; transition: opacity 0.18s;
 }
-.divider { border: none; border-top: 1.5px solid #E0E7EF; margin: 2rem 0; }
-.footer {
-    text-align: center;
-    color: #aaa;
-    font-size: 0.82rem;
-    padding: 1.5rem 0 0.5rem;
-}
+.hw1-card:hover .hw1-card-arrow { opacity: 1; }
+
+/* ── about expander ── */
+.hw1-divider { border: none; border-top: 1.5px solid #e8edf5; margin: 0.5rem 0 1.8rem; }
+.hw1-footer  { text-align: center; color: #bbb; font-size: 0.8rem; padding: 1.2rem 0 0; }
 </style>
 """, unsafe_allow_html=True)
 
 # ── Hero ─────────────────────────────────────────────────────────────────────
 st.markdown("""
-<div class="hero">
-  <div style="font-size:3.5rem; margin-bottom:0.4rem;">📊</div>
+<div class="hw1-hero">
+  <div style="font-size:3.2rem; margin-bottom:0.5rem;">📊</div>
   <h1>Big Data Homework 1</h1>
-  <div class="subtitle">
-    <b>Tal Klein</b> &nbsp;·&nbsp; Student ID: <i>[YOUR_ID]</i>
-  </div>
+  <div class="sub"><b>Tal Klein</b> &nbsp;·&nbsp; Student ID: <i>[YOUR_ID]</i></div>
   <div class="meta">
-    The Art of Analyzing Big Data: The Data Scientist's Toolbox
-    &nbsp;·&nbsp; Dr. Michael Fire
+    The Art of Analyzing Big Data: The Data Scientist's Toolbox &nbsp;·&nbsp; Dr. Michael Fire
   </div>
-  <br/>
-  <span class="badge">SQLite</span>
-  <span class="badge">SQLAlchemy</span>
-  <span class="badge">Streamlit</span>
-  <span class="badge">Plotly</span>
-  <span class="badge">pandas</span>
-  <span class="badge">nba_api</span>
+  <div style="margin-top:1rem;">
+    <span class="hw1-badge">SQLite</span>
+    <span class="hw1-badge">SQLAlchemy</span>
+    <span class="hw1-badge">Streamlit</span>
+    <span class="hw1-badge">Plotly</span>
+    <span class="hw1-badge">pandas</span>
+    <span class="hw1-badge">nba_api</span>
+  </div>
 </div>
 """, unsafe_allow_html=True)
 
-st.markdown('<hr class="divider">', unsafe_allow_html=True)
+# ── Task grid (single HTML block → CSS Grid → equal heights) ─────────────────
+st.markdown('<div class="hw1-section-title">🚀 Choose a Task</div>', unsafe_allow_html=True)
 
-st.markdown(
-    "<h3 style='text-align:center; color:#333; margin-bottom:1.5rem;'>🚀 Choose a Task</h3>",
-    unsafe_allow_html=True
-)
-
-# ── Task cards ───────────────────────────────────────────────────────────────
 TASKS = [
     {
-        "num": "Task 1",
+        "label": "Task 1",
         "icon": "👶",
         "title": "Baby Names Explorer",
-        "desc": (
-            "Explore 5.6 million US baby name records stored in SQLite. "
-            "Track name popularity over time, run custom SQL queries, "
-            "and discover data-driven insights about naming trends."
-        ),
-        "pills": ["SQLite", "5.6M rows", "Interactive charts"],
-        "color": "#4A90D9",
-        "page": "pages/1_Baby_Names.py",
+        "desc": "Explore 5.6 million US baby name records in SQLite. Track popularity over time, run custom SQL, and uncover data-driven insights about naming trends across decades and states.",
+        "tags": ["SQLite", "5.6M rows", "Charts"],
+        "accent": "#4A90D9",
+        "url": "/Baby_Names",
     },
     {
-        "num": "Task 2",
+        "label": "Task 2",
         "icon": "🎬",
         "title": "Oscar Actor Explorer",
-        "desc": (
-            "Browse Oscar Award nominations modeled with SQLAlchemy ORM. "
-            "Look up any actor's career profile, Wikipedia bio, win stats, "
-            "and discover who waited longest for their first Oscar."
-        ),
-        "pills": ["SQLAlchemy ORM", "Wikipedia API", "Actor profiles"],
-        "color": "#E8A838",
-        "page": "pages/2_Oscar.py",
+        "desc": "Browse Oscar nominations modeled with SQLAlchemy ORM. Get actor profiles with Wikipedia photos, win statistics, and discover who waited longest for their first Academy Award.",
+        "tags": ["SQLAlchemy ORM", "Wikipedia API", "Profiles"],
+        "accent": "#E8A838",
+        "url": "/Oscar",
     },
     {
-        "num": "Task 3",
+        "label": "Task 3",
         "icon": "⚔️",
         "title": "Pokémon Battle Arena",
-        "desc": (
-            "Build your team and battle! Type advantages, speed-based turn "
-            "order, and a full battle log are all powered by SQLite queries. "
-            "Includes cheat codes and post-game Pokémon analysis."
-        ),
-        "pills": ["SQLite", "Battle mechanics", "Cheat codes"],
-        "color": "#E53935",
-        "page": "pages/3_Pokemon.py",
+        "desc": "Build your team and battle! Type advantages, speed-based turn order, and attack damage are all powered by SQLite queries. Includes cheat codes and post-game Pokémon analysis.",
+        "tags": ["SQLite", "Battle logic", "Cheats"],
+        "accent": "#E53935",
+        "url": "/Pokemon",
     },
     {
-        "num": "Task 4 ⭐ Bonus",
+        "label": "Task 4 ⭐ Bonus",
         "icon": "🏀",
         "title": "NBA SQL Trivia",
-        "desc": (
-            "Test your SQL skills with real NBA data across 5 progressive "
-            "levels — from basic SELECT to complex JOINs. Randomized "
-            "questions, live timer, leaderboard podium, and a practice court."
-        ),
-        "pills": ["nba_api", "5 levels", "Leaderboard", "Real-time timer"],
-        "color": "#F57C00",
-        "page": "pages/4_NBA_Trivia.py",
+        "desc": "Test your SQL skills with real NBA data across 5 progressive levels — SELECT to JOINs. Randomized questions, live timer, hint system, and a leaderboard podium for top players.",
+        "tags": ["nba_api", "5 levels", "Leaderboard"],
+        "accent": "#F57C00",
+        "url": "/NBA_Trivia",
     },
 ]
 
-cols = st.columns(4, gap="medium")
-for col, task in zip(cols, TASKS):
-    with col:
-        pills_html = "".join(f'<span class="pill">{p}</span>' for p in task["pills"])
-        st.markdown(f"""
-<div class="task-card">
-  <div class="task-num">{task["num"]}</div>
-  <div class="task-icon">{task["icon"]}</div>
-  <div class="task-title">{task["title"]}</div>
-  <div class="task-desc">{task["desc"]}</div>
-  <div>{pills_html}</div>
-</div>
-""", unsafe_allow_html=True)
-        st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)
-        st.page_link(task["page"], label=f"Open {task['icon']} {task['title']}", use_container_width=True)
+cards_html = '<div class="hw1-grid">'
+for t in TASKS:
+    tags_html = "".join(f'<span class="hw1-tag">{tag}</span>' for tag in t["tags"])
+    cards_html += f"""
+<a class="hw1-card" href="{t['url']}" style="--accent:{t['accent']}">
+  <div class="hw1-card-label">{t['label']}</div>
+  <div class="hw1-card-icon">{t['icon']}</div>
+  <div class="hw1-card-title">{t['title']}</div>
+  <div class="hw1-card-desc">{t['desc']}</div>
+  <div class="hw1-card-tags">{tags_html}</div>
+  <div class="hw1-card-arrow">→</div>
+</a>"""
+cards_html += '</div>'
 
-# ── About section ─────────────────────────────────────────────────────────────
-st.markdown('<hr class="divider">', unsafe_allow_html=True)
+st.markdown(cards_html, unsafe_allow_html=True)
 
+# ── About ─────────────────────────────────────────────────────────────────────
+st.markdown('<hr class="hw1-divider">', unsafe_allow_html=True)
 with st.expander("📖 About this assignment"):
     st.markdown("""
-This is **Homework Assignment 1** for the course
-*"The Art of Analyzing Big Data: The Data Scientist's Toolbox"* — Dr. Michael Fire.
+**Homework Assignment 1** for *The Art of Analyzing Big Data: The Data Scientist's Toolbox* — Dr. Michael Fire.
 
-The assignment covers 4 tasks (25 pts each, 100 pts total + 5 pts bonus):
+| Task | Topic | Stack |
+|------|-------|-------|
+| 1 | Baby Names Explorer | `sqlite3` · `pandas` · `Plotly` |
+| 2 | Oscar Actor Explorer | `SQLAlchemy` · Wikipedia REST API · `Plotly` |
+| 3 | Pokémon Battle Arena | `sqlite3` · Streamlit |
+| 4 ⭐ | NBA SQL Trivia *(Bonus)* | `nba_api` · `sqlite3` · `Plotly` |
 
-| Task | Topic | Key Technologies |
-|------|-------|-----------------|
-| 1 | Baby Names Explorer | SQLite, pandas, Plotly |
-| 2 | Oscar Actor Explorer | SQLAlchemy ORM, Wikipedia REST API |
-| 3 | Pokémon Battle Arena | SQLite, battle mechanics |
-| 4 ⭐ | NBA SQL Trivia *(Bonus)* | nba_api, SQLite, interactive game |
-
-All databases are built automatically on first run from local CSV files or APIs — no manual setup required.
+Databases are built automatically on first run — no setup needed.
 """)
 
 st.markdown(
-    '<div class="footer">Tal Klein · Big Data HW1 · Built with Streamlit</div>',
-    unsafe_allow_html=True
+    '<div class="hw1-footer">Tal Klein · Big Data HW1 · Built with Streamlit</div>',
+    unsafe_allow_html=True,
 )
