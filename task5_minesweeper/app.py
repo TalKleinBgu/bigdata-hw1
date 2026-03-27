@@ -1311,7 +1311,7 @@ def inject_css():
     st.markdown("""
 <style>
 #MainMenu, footer, header { visibility: hidden; }
-.block-container { padding: 0.8rem 1.5rem 2rem !important; }
+.block-container { padding-left: 1.8rem !important; padding-right: 1.8rem !important; }
 [data-testid="stSidebarNav"] { display: none; }
 
 /* Hide click bridge input */
