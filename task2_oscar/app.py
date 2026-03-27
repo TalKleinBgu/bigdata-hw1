@@ -745,13 +745,14 @@ def main():
     z-index: 1000;
     background: rgba(255, 255, 255, 0.97);
     border: 1px solid #e5e7eb;
-    border-radius: 12px;
-    padding: 0.65rem 0.9rem;
-    margin-bottom: 0.85rem;
+    border-radius: 14px;
+    padding: 0.9rem 1.2rem;
+    margin: 0 auto 1rem auto;
+    max-width: 980px;
 }
-.sticky-page-title { font-size: 1.7rem; font-weight: 800; line-height: 1.2; }
-.sticky-page-subtitle { font-size: 0.95rem; color: #4b5563; margin-top: 0.2rem; }
-.sticky-page-section { font-size: 0.85rem; color: #111827; margin-top: 0.3rem; font-weight: 600; }
+.sticky-page-title { font-size: 2rem; font-weight: 800; line-height: 1.15; }
+.sticky-page-subtitle { font-size: 1.05rem; color: #4b5563; margin-top: 0.3rem; }
+.sticky-page-section { font-size: 0.95rem; color: #111827; margin-top: 0.4rem; font-weight: 600; }
 .main .block-container { text-align: center; }
 h1, h2, h3, h4, h5, h6, p, label, li { text-align: center; }
 [data-testid="stHorizontalBlock"] { justify-content: center; }
