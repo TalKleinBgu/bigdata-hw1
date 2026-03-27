@@ -67,7 +67,7 @@ section[data-testid="stSidebar"] { display: none !important; }
     unsafe_allow_html=True,
 )
 
-_task_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "task5_minesweeper"))
+_task_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "task4_minesweeper"))
 _app_file = os.path.join(_task_dir, "app.py")
 os.chdir(_task_dir)
 if _task_dir not in sys.path:

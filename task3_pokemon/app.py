@@ -701,7 +701,7 @@ def render_battle_log(log_entries: list[str], title: str, key_prefix: str, heigh
 
 
 def render_battle_card(p: dict):
-    """Render a battle card; all alive Pokémon are active fighters."""
+    """Render a battle card; all alive Pokֳ©mon are active fighters."""
     fainted = p["current_hp"] <= 0
     pct = max(0, p["current_hp"] / p["max_hp"]) if p["max_hp"] > 0 else 0
     if pct > 0.5:
@@ -714,7 +714,7 @@ def render_battle_card(p: dict):
     border_color = "#4A90D9" if not fainted else "#ccc"
     bg = "linear-gradient(135deg,#e8f4fd 0%,#f8fbff 100%)" if not fainted else "#f0f0f0"
     opacity = "0.42" if fainted else "1"
-    status_text = "⚔️ Fighting" if not fainted else "💀 Fainted"
+    status_text = "ג”ן¸ Fighting" if not fainted else "נ’€ Fainted"
     status_color = "#27ae60" if not fainted else "#aaa"
 
     t1 = type_badge(p.get("type1", ""))
@@ -773,7 +773,7 @@ def page_battle():
         st.markdown("---")
         st.subheader("Your Team")
 
-        # One column per slot — selectbox + preview card together
+        # One column per slot ג€” selectbox + preview card together
         slot_cols = st.columns(team_size)
         selected = []
         for i in range(team_size):
@@ -849,7 +849,7 @@ def page_battle():
         # Layout: player vs AI
         col1, col_mid, col2 = st.columns([5, 1, 5])
         with col1:
-            st.markdown("### 🟢 Your Team")
+            st.markdown("### נ¢ Your Team")
             for p in player_team:
                 render_battle_card(p)
         with col_mid:
@@ -859,7 +859,7 @@ def page_battle():
                 unsafe_allow_html=True,
             )
         with col2:
-            st.markdown("### 🔵 AI Team")
+            st.markdown("### נ”µ AI Team")
             for p in ai_team:
                 render_battle_card(p)
 
@@ -878,7 +878,7 @@ def page_battle():
                     margin-bottom:10px;
                 ">
                     <div style="font-size:0.75rem;font-weight:800;color:#334155;text-align:center;margin-bottom:6px;">
-                        Battle Controls · Turn {turn_count}
+                        Battle Controls ֲ· Turn {turn_count}
                     </div>
                 </div>
                 """,
@@ -942,13 +942,13 @@ def page_battle():
         winner = st.session_state.get("winner", "player")
         if winner == "player":
             st.balloons()
-            st.success("🏆 YOU WIN! Congratulations, Pokemon Master!")
+            st.success("נ† YOU WIN! Congratulations, Pokemon Master!")
         elif winner == "draw":
-            st.info("🤝 DRAW! Both teams fainted at the same time!")
+            st.info("נ₪ DRAW! Both teams fainted at the same time!")
         else:
             st.markdown(
                 '<div style="padding:12px 16px;border-radius:8px;background:#f0f0f0;'
-                'border:1px solid #ccc;font-size:1.05rem;">😞 You lost... Better luck next time!</div>',
+                'border:1px solid #ccc;font-size:1.05rem;">נ˜ You lost... Better luck next time!</div>',
                 unsafe_allow_html=True,
             )
         pa_l, pa_c, pa_r = st.columns([1.4, 2.2, 1.4])
@@ -1019,7 +1019,7 @@ def page_battle():
 
 def execute_turn(player_team, ai_team):
     """
-    All alive Pokémon act simultaneously in Speed order.
+    All alive Pokֳ©mon act simultaneously in Speed order.
     Each attacker targets the enemy with the best type-matchup multiplier;
     ties broken by picking the enemy with the lowest remaining HP (finish off weakest).
     """
@@ -1046,7 +1046,7 @@ def execute_turn(player_team, ai_team):
         if not alive_enemies:
             continue
 
-        # Target: best type-multiplier first; tie → lowest current HP
+        # Target: best type-multiplier first; tie ג†’ lowest current HP
         best_target = max(
             alive_enemies,
             key=lambda e: (
@@ -1058,10 +1058,10 @@ def execute_turn(player_team, ai_team):
         dmg, mult, eff_text = calc_damage(attacker, best_target)
         best_target["current_hp"] = max(0, best_target["current_hp"] - dmg)
 
-        side_icon = "🟢" if side == "player" else "🔵"
-        mult_str = f"×{mult:.1f}"
+        side_icon = "נ¢" if side == "player" else "נ”µ"
+        mult_str = f"ֳ—{mult:.1f}"
         entry = (
-            f"{side_icon} **{attacker['name']}** → **{best_target['name']}** : "
+            f"{side_icon} **{attacker['name']}** ג†’ **{best_target['name']}** : "
             f"**{dmg}** dmg ({mult_str})"
         )
         if eff_text:
@@ -1069,22 +1069,22 @@ def execute_turn(player_team, ai_team):
         st.session_state.battle_log.append(entry)
 
         if best_target["current_hp"] <= 0:
-            st.session_state.battle_log.append(f"💥 **{best_target['name']}** fainted!")
+            st.session_state.battle_log.append(f"נ’¥ **{best_target['name']}** fainted!")
 
     # Win condition check after all attacks resolve
     player_alive = any(p["current_hp"] > 0 for p in player_team)
     ai_alive = any(p["current_hp"] > 0 for p in ai_team)
 
     if not player_alive and not ai_alive:
-        st.session_state.battle_log.append("🤝 **DRAW! Both teams fainted simultaneously!**")
+        st.session_state.battle_log.append("נ₪ **DRAW! Both teams fainted simultaneously!**")
         st.session_state.winner = "draw"
         st.session_state.battle_state = "done"
     elif not ai_alive:
-        st.session_state.battle_log.append("🏆 **PLAYER WINS THE BATTLE!**")
+        st.session_state.battle_log.append("נ† **PLAYER WINS THE BATTLE!**")
         st.session_state.winner = "player"
         st.session_state.battle_state = "done"
     elif not player_alive:
-        st.session_state.battle_log.append("🏆 **AI WINS THE BATTLE!**")
+        st.session_state.battle_log.append("נ† **AI WINS THE BATTLE!**")
         st.session_state.winner = "ai"
         st.session_state.battle_state = "done"
 
@@ -1243,29 +1243,30 @@ def page_schema():
 
 def page_battle_mechanics():
     st.header("📖 Battle Mechanics")
-    st.markdown(
-        """
-        **Damage Formula:**
-        ```
-        base = ((2*50/5 + 2) * 60 * (A/D)) / 50 + 2
-        damage = base * type_mult * rand(0.85, 1.0)
-        ```
-
-        Where:
-        - **A** = max(Attack, Sp.Atk) of attacker
-        - **D** = Defense or Sp.Def of defender (matching A)
-        - **type_mult** = product of type effectiveness for attacker's Type1 vs defender's Type1 and Type2
-
-        **Turn Order:** Higher Speed goes first. Ties broken randomly.
-
-        **Type Effectiveness:**
-        - x2.0 = Super effective!
-        - x1.0 = Normal
-        - x0.5 = Not very effective...
-        - x0.0 = No effect (immune)
-        """
-    )
-
+    _, center, _ = st.columns([1, 3, 1])
+    with center:
+        st.markdown(
+            """
+            <div style="text-align:center;">
+              <h4 style="margin-bottom:0.4rem;">Damage Formula:</h4>
+              <pre style="display:inline-block;text-align:left;background:#f6f8fa;border:1px solid #e5e7eb;border-radius:10px;padding:0.75rem 1rem;margin:0.2rem auto 0.8rem auto;">
+base = ((2*50/5 + 2) * 60 * (A/D)) / 50 + 2
+damage = base * type_mult * rand(0.85, 1.0)
+              </pre>
+              <p><b>Where:</b></p>
+              <p><b>A</b> = max(Attack, Sp.Atk) of attacker</p>
+              <p><b>D</b> = Defense or Sp.Def of defender (matching A)</p>
+              <p><b>type_mult</b> = product of type effectiveness for attacker's Type1 vs defender's Type1 and Type2</p>
+              <p><b>Turn Order:</b> Higher Speed goes first. Ties broken randomly.</p>
+              <h4 style="margin:0.8rem 0 0.35rem 0;">Type Effectiveness:</h4>
+              <p>x2.0 = Super effective!</p>
+              <p>x1.0 = Normal</p>
+              <p>x0.5 = Not very effective...</p>
+              <p>x0.0 = No effect (immune)</p>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
@@ -1273,14 +1274,14 @@ def page_battle_mechanics():
 def main():
     st.set_page_config(
         page_title="Pokemon Battle Arena",
-        page_icon="⚔️",
+        page_icon="ג”ן¸",
         layout="wide",
     )
 
     st.markdown(
         """
 <div class="sticky-page-header">
-  <div class="sticky-page-title">⚔️ Pokemon Battle Arena</div>
+  <div class="sticky-page-title">ג”ן¸ Pokemon Battle Arena</div>
   <div class="sticky-page-subtitle">Battle, analyze, and explore Pokemon data with SQL.</div>
 </div>
 """,
@@ -1293,10 +1294,10 @@ def main():
 
     # Navigation
     tab1, tab2, tab3, tab4 = st.tabs([
-        "⚔️ Battle Arena",
-        "📊 Analysis",
-        "🗂️ Schema & Data",
-        "📖 Battle Mechanics",
+        "ג”ן¸ Battle Arena",
+        "נ“ Analysis",
+        "נ—‚ן¸ Schema & Data",
+        "נ“– Battle Mechanics",
     ])
 
     with tab1:

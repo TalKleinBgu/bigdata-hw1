@@ -233,7 +233,11 @@ with tab_explore:
             placeholder="e.g. David, Sarah, Michael",
             help="Comma-separated list of names (case-insensitive)",
         )
-        mode = st.radio("Metric", ["Raw Count", "Percentage"], horizontal=True)
+        mode = st.select_slider(
+            "Metric",
+            options=["Raw Count", "Percentage"],
+            value="Raw Count",
+        )
 
     names = [n.strip().capitalize() for n in name_input.split(",") if n.strip()]
 
