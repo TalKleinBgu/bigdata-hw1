@@ -57,6 +57,7 @@ st.markdown(
   <a href="/Baby_Names" target="_self">&#128118; Task 1 - Baby Names</a>
   <a href="/Oscar" target="_self">&#127916; Task 2 - Oscar Explorer</a>
   <a href="/NBA_Trivia" target="_self">&#127936; Task 4 - NBA SQL Trivia</a>
+  <a href="/Minesweeper" target="_self">&#128163; Task 5 - SQL Minesweeper</a>
 </nav>
 """,
     unsafe_allow_html=True,

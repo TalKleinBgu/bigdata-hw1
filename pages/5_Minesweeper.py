@@ -4,7 +4,7 @@ import sys
 
 import streamlit as st
 
-st.set_page_config(page_title="NBA SQL Trivia - HW1", page_icon="🏀", layout="wide")
+st.set_page_config(page_title="SQL Minesweeper - HW1", page_icon="💣", layout="wide")
 
 st.markdown(
     """
@@ -52,18 +52,18 @@ st.markdown(
 <nav class="hw1-nav">
   <a href="/" target="_self">&#127968; Home</a>
   <span class="hw1-sep">|</span>
-  <span class="hw1-active">&#127936; Task 4 - NBA SQL Trivia</span>
+  <span class="hw1-active">&#128163; Task 5 - SQL Minesweeper</span>
   <div class="hw1-spacer"></div>
   <a href="/Baby_Names" target="_self">&#128118; Task 1 - Baby Names</a>
   <a href="/Oscar" target="_self">&#127916; Task 2 - Oscar Explorer</a>
   <a href="/Pokemon" target="_self">&#9876;&#65039; Task 3 - Pokemon Arena</a>
-  <a href="/Minesweeper" target="_self">&#128163; Task 5 - SQL Minesweeper</a>
+  <a href="/NBA_Trivia" target="_self">&#127936; Task 4 - NBA SQL Trivia</a>
 </nav>
 """,
     unsafe_allow_html=True,
 )
 
-_task_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "task4_sql_game"))
+_task_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "task5_minesweeper"))
 _app_file = os.path.join(_task_dir, "app.py")
 os.chdir(_task_dir)
 if _task_dir not in sys.path:
