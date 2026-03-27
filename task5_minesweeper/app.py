@@ -1408,25 +1408,10 @@ div[data-testid="stTextInput"], div[data-testid="stTextArea"], div[data-testid="
     box-shadow: 0 14px 32px rgba(0, 0, 0, 0.24);
 }
 .ms-popup-backdrop {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.35);
-    z-index: 1200;
+    display: none;
 }
 .ms-popup-panel {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: min(760px, 92vw);
-    max-height: 86vh;
-    overflow: auto;
-    background: #ffffff;
-    border: 2px solid #ff8f00;
-    border-radius: 14px;
-    padding: 1rem 1.1rem;
-    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.30);
-    z-index: 1201;
+    display: none;
 }
 </style>""", unsafe_allow_html=True)
 
@@ -1505,21 +1490,58 @@ def render_board_component(conn):
     st.components.v1.html(board_html, height=height, scrolling=False)
 
 
-def render_sql_rescue(conn, show_header=True):
+@st.dialog("\U0001F4A3 SQL Rescue - Defuse the Mine!", width="large")
+def sql_rescue_dialog(conn):
     ss = st.session_state
     q = ss.ms_sql_question
+    if q is None:
+        st.rerun()
+        return
     level = min(ss.ms_mine_hit_count, 5)
     level_name, level_desc = LEVEL_NAMES[level]
     accent = LEVEL_ACCENT[level]
 
-    if show_header:
-        st.markdown(f"""<div class="ms-rescue-box">
+    # Header
+    st.markdown(f"""<div class="ms-rescue-box">
 <h3 style="margin:0 0 0.3rem">\U0001F4A3 Mine #{ss.ms_mine_hit_count} - Defuse it with SQL!</h3>
 <span class="ms-level-badge" style="background:{accent}">Level {level}: {level_name}</span>
 <p style="margin:0.3rem 0 0; font-size:0.85rem; color:#5d4037;">{level_desc} - answer correctly to continue playing.</p>
 </div>""", unsafe_allow_html=True)
 
-    if st.button("\u2716 Exit Rescue (Give Up)", type="secondary", use_container_width=True, key=f"ms_exit_rescue_{ss.ms_mine_hit_count}"):
+    # Question
+    st.markdown(f"**Question:** {q['text']}")
+    st.divider()
+
+    # SQL editor
+    sql_key = f"ms_sql_editor_{ss.ms_mine_hit_count}"
+    sql_input = st.text_area("Write your SQL query here:", value=ss.ms_sql_input, height=110, key=sql_key, placeholder="SELECT ...")
+    ss.ms_sql_input = sql_input
+
+    # Action buttons
+    col_run, col_hint, col_giveup = st.columns([1, 1, 1])
+    with col_run:
+        run_clicked = st.button("\u25B6 Run Query", use_container_width=True)
+    with col_hint:
+        hint_label = "\U0001F4A1 Hint" + (" (used)" if ss.ms_sql_hint_shown else "")
+        hint_clicked = st.button(hint_label, use_container_width=True)
+    with col_giveup:
+        giveup_clicked = st.button("\U0001F480 Give Up", use_container_width=True, type="secondary")
+
+    # Process button clicks before rendering results
+    if run_clicked and sql_input.strip():
+        result = run_sql(sql_input, conn)
+        if isinstance(result, pd.DataFrame):
+            ss.ms_last_query_result = result
+            ss.ms_last_query_error = None
+        else:
+            ss.ms_last_query_error = result
+            ss.ms_last_query_result = None
+
+    if hint_clicked:
+        ss.ms_sql_hint_shown = True
+        ss.ms_hints_used_total += 1
+
+    if giveup_clicked:
         reveal_all_mines()
         ss.ms_game_over = True
         ss.ms_won = False
@@ -1528,43 +1550,7 @@ def render_sql_rescue(conn, show_header=True):
             ss.ms_elapsed_final = time.time() - ss.ms_start_time
         st.rerun()
 
-    st.markdown(f"**Question:** {q['text']}")
-    st.divider()
-
-    sql_key = f"ms_sql_editor_{ss.ms_mine_hit_count}"
-    sql_input = st.text_area("Write your SQL query here:", value=ss.ms_sql_input, height=110, key=sql_key, placeholder="SELECT ...")
-    ss.ms_sql_input = sql_input
-
-    col_run, col_hint, col_giveup = st.columns([1, 1, 1])
-    with col_run:
-        if st.button("\u25B6 Run Query", use_container_width=True):
-            if sql_input.strip():
-                result = run_sql(sql_input, conn)
-                if isinstance(result, pd.DataFrame):
-                    ss.ms_last_query_result = result
-                    ss.ms_last_query_error = None
-                else:
-                    ss.ms_last_query_error = result
-                    ss.ms_last_query_result = None
-            st.rerun()
-
-    with col_hint:
-        hint_label = "\U0001F4A1 Hint" + (" (used)" if ss.ms_sql_hint_shown else "")
-        if st.button(hint_label, use_container_width=True):
-            ss.ms_sql_hint_shown = True
-            ss.ms_hints_used_total += 1
-            st.rerun()
-
-    with col_giveup:
-        if st.button("\U0001F480 Give Up", use_container_width=True, type="secondary"):
-            reveal_all_mines()
-            ss.ms_game_over = True
-            ss.ms_won = False
-            ss.ms_sql_rescue = False
-            if ss.ms_start_time:
-                ss.ms_elapsed_final = time.time() - ss.ms_start_time
-            st.rerun()
-
+    # Display query results
     if ss.ms_last_query_error:
         st.error(ss.ms_last_query_error)
     elif ss.ms_last_query_result is not None:
@@ -1574,9 +1560,7 @@ def render_sql_rescue(conn, show_header=True):
         hint_text = build_hint(q, sql_input if sql_input.strip() else ss.ms_sql_input, conn)
         st.info(hint_text)
 
-    if ss.ms_feedback:
-        st.warning(ss.ms_feedback)
-
+    # Answer section
     st.divider()
     ans_key = f"ms_answer_{ss.ms_mine_hit_count}_{ss.ms_sql_wrong_attempts}"
     if q["validator_type"] == "dataframe_match":
@@ -1585,7 +1569,13 @@ def render_sql_rescue(conn, show_header=True):
     else:
         answer_input = st.text_input("Your answer:", key=ans_key, placeholder="Type your answer here...")
 
-    if st.button("\u2705 Submit Answer", type="primary", use_container_width=True):
+    col_submit, col_exit = st.columns([2, 1])
+    with col_submit:
+        submit_clicked = st.button("\u2705 Submit Answer", type="primary", use_container_width=True)
+    with col_exit:
+        exit_clicked = st.button("\u2716 Exit Rescue (Give Up)", type="secondary", use_container_width=True, key=f"ms_exit_rescue_{ss.ms_mine_hit_count}")
+
+    if submit_clicked:
         last_df = ss.ms_last_query_result
         correct = validate_answer(answer_input, q, conn, last_df)
         if correct:
@@ -1597,14 +1587,19 @@ def render_sql_rescue(conn, show_header=True):
         else:
             ss.ms_sql_wrong_attempts += 1
             ss.ms_feedback = f"Not quite! Attempt #{ss.ms_sql_wrong_attempts}. Try refining your query or check the hint."
-            st.rerun()
 
+    if exit_clicked:
+        reveal_all_mines()
+        ss.ms_game_over = True
+        ss.ms_won = False
+        ss.ms_sql_rescue = False
+        if ss.ms_start_time:
+            ss.ms_elapsed_final = time.time() - ss.ms_start_time
+        st.rerun()
 
-def render_sql_rescue_popup(conn):
-    st.markdown('<div class="ms-popup-backdrop"></div>', unsafe_allow_html=True)
-    st.markdown('<div class="ms-popup-panel">', unsafe_allow_html=True)
-    render_sql_rescue(conn, show_header=True)
-    st.markdown('</div>', unsafe_allow_html=True)
+    # Display feedback after submit processing so it shows immediately
+    if ss.ms_feedback:
+        st.warning(ss.ms_feedback)
 
 
 def render_end_screen(conn):
@@ -1785,8 +1780,7 @@ def main():
         st.divider()
 
         if ss.ms_sql_rescue and not ss.ms_game_over:
-            render_sql_rescue_popup(conn)
-            return
+            sql_rescue_dialog(conn)
 
         if ss.ms_game_over:
             render_end_screen(conn)
