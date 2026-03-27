@@ -3,7 +3,7 @@ import streamlit as st
 
 st.set_page_config(
     page_title="The Art of Analyzing Big Data HW1 - Tal Klein",
-    page_icon="📊",
+    page_icon="",
     layout="wide",
     initial_sidebar_state="collapsed",
 )
@@ -201,10 +201,10 @@ st.markdown(
 st.markdown(
     """
 <div class="hw1-hero">
-  <div class="hw1-hero-icon">📊</div>
+  <div class="hw1-hero-icon"></div>
   <div>
-    <h1>Homework 1 · The Art of Analyzing Big Data</h1>
-    <div class="sub">Tal Klein · Student ID: 209234103 · Dr. Michael Fire</div>
+    <h1>Homework 1 - The Art of Analyzing Big Data</h1>
+    <div class="sub">Tal Klein - Student ID: 209234103 - Dr. Michael Fire</div>
     <div class="hw1-badges">
       <span class="hw1-badge">SQLite</span>
       <span class="hw1-badge">SQLAlchemy</span>
@@ -223,7 +223,7 @@ st.markdown('<div class="hw1-section-title">Choose a Task</div>', unsafe_allow_h
 TASKS = [
     {
         "label": "Task 1",
-        "icon": "👶",
+        "icon": "",
         "title": "Baby Names Explorer",
         "desc": "5.6M baby-name rows in SQLite with trend charts, SQL panel, and pattern discovery.",
         "tags": ["SQLite", "5.6M rows", "Charts"],
@@ -232,7 +232,7 @@ TASKS = [
     },
     {
         "label": "Task 2",
-        "icon": "🎬",
+        "icon": "",
         "title": "Oscar Actor Explorer",
         "desc": "SQLAlchemy ORM profiles with live Wikipedia enrichment, wins stats, and discoveries.",
         "tags": ["SQLAlchemy", "Wiki API", "Profiles"],
@@ -241,7 +241,7 @@ TASKS = [
     },
     {
         "label": "Task 3",
-        "icon": "⚔️",
+        "icon": "",
         "title": "Pokemon Battle Arena",
         "desc": "Data-driven team battle with type advantages, speed turns, cheat codes, and logs.",
         "tags": ["SQLite", "Battle logic", "Cheats"],
@@ -250,9 +250,9 @@ TASKS = [
     },
     {
         "label": "Task 4 - Bonus",
-        "icon": "💣",
+        "icon": "",
         "title": "SQL Minesweeper",
-        "desc": "Classic Minesweeper with a twist — defuse mines by solving NBA SQL queries. Difficulty escalates with every hit.",
+        "desc": "Classic Minesweeper with a twist - defuse mines by solving NBA SQL queries. Difficulty escalates with every hit.",
         "tags": ["Minesweeper", "SQL", "NBA", "Game"],
         "accent": "#388E3C",
         "url": "/Minesweeper",
@@ -269,12 +269,12 @@ for task in TASKS:
   <div class="hw1-card-title">{task['title']}</div>
   <div class="hw1-card-desc">{task['desc']}</div>
   <div class="hw1-card-tags">{tags_html}</div>
-  <div class="hw1-card-arrow">→</div>
+  <div class="hw1-card-arrow">-></div>
 </a>"""
 cards_html += "</div>"
 
 st.markdown(cards_html, unsafe_allow_html=True)
 st.markdown(
-    '<div class="hw1-footer">Tal Klein · The Art of Analyzing Big Data HW1 · Built with Streamlit</div>',
+    '<div class="hw1-footer">Tal Klein - The Art of Analyzing Big Data HW1 - Built with Streamlit</div>',
     unsafe_allow_html=True,
 )

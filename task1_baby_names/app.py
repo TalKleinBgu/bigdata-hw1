@@ -1,5 +1,5 @@
 """
-Baby Names Explorer — Big Data Homework 1, Task 1
+Baby Names Explorer - Big Data Homework 1, Task 1
 ===================================================
 A Streamlit app that explores US baby name trends using SSA data stored in SQLite.
 """
@@ -153,7 +153,7 @@ st.set_page_config(
 st.markdown(
     """
 <div class="sticky-page-header">
-  <div class="sticky-page-title">👶 Baby Names Explorer</div>
+  <div class="sticky-page-title"> Baby Names Explorer</div>
   <div class="sticky-page-subtitle">Exploring US baby-name trends by state from the Social Security Administration (1910 -- present)</div>
 </div>
 """,
@@ -164,7 +164,7 @@ st.markdown(
 conn = get_connection()
 ensure_extra_indexes(conn)
 
-# Sidebar — stats only  (Task 1.1)
+# Sidebar - stats only  (Task 1.1)
 # ---------------------------------------------------------------------------
 st.markdown("""
 <style>
@@ -208,15 +208,15 @@ with st.sidebar:
         "safe custom SQL queries, and pattern discovery."
     )
 # ---------------------------------------------------------------------------
-# Main content — organized with tabs
+# Main content - organized with tabs
 # ---------------------------------------------------------------------------
 tab_explore, tab_sql, tab_diversity, tab_patterns, tab_schema = st.tabs(
     [
-        "🧭 Name Popularity",
-        "💻 Custom SQL",
-        "📈 Name Diversity",
-        "🔍 Pattern Discovery",
-        "📋 Schema",
+        " Name Popularity",
+        " Custom SQL",
+        " Name Diversity",
+        " Pattern Discovery",
+        " Schema",
     ]
 )
 
@@ -569,7 +569,7 @@ with tab_patterns:
 
     st.divider()
 
-    # --- Pattern 3: Regional Naming — The State Divide ----------------------
+    # --- Pattern 3: Regional Naming - The State Divide ----------------------
     st.subheader("3. Regional Naming: The State Divide")
 
     # Show top name per state as a table
@@ -669,11 +669,11 @@ with tab_schema:
         language="sql",
     )
     st.subheader("Indexes")
-    st.markdown("- `idx_name_year` on (Name, Year) — speeds up name popularity lookups across years")
-    st.markdown("- `idx_year_gender` on (Year, Gender) — speeds up aggregate queries by year and gender")
-    st.markdown("- `idx_state` on (State) — speeds up regional filtering and grouping")
-    st.markdown("- `idx_year_name` on (Year, Name) — speeds up top names per year and yearly ranking queries")
-    st.markdown("- `idx_name_state_year` on (Name, State, Year) — speeds up state-by-state timeline comparisons")
+    st.markdown("- `idx_name_year` on (Name, Year) - speeds up name popularity lookups across years")
+    st.markdown("- `idx_year_gender` on (Year, Gender) - speeds up aggregate queries by year and gender")
+    st.markdown("- `idx_state` on (State) - speeds up regional filtering and grouping")
+    st.markdown("- `idx_year_name` on (Year, Name) - speeds up top names per year and yearly ranking queries")
+    st.markdown("- `idx_name_state_year` on (Name, State, Year) - speeds up state-by-state timeline comparisons")
     st.subheader("Why These Indexes")
     st.markdown(
         "- `Name + Year` is used by Task 1.2A time-series queries (`WHERE Name IN (...) GROUP BY Name, Year`)."
@@ -693,5 +693,5 @@ with tab_schema:
     schema_stats = get_dataset_stats(conn)
     c1, c2 = st.columns(2)
     c1.metric("Total rows", f"{schema_stats['rows']:,}")
-    c2.metric("Year range", f"{schema_stats['year_lo']} – {schema_stats['year_hi']}")
+    c2.metric("Year range", f"{schema_stats['year_lo']} - {schema_stats['year_hi']}")
 

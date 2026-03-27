@@ -1,5 +1,5 @@
 """
-Oscar Actor Explorer ג€” Task 2
+Oscar Actor Explorer - Task 2
 Big Data Homework 1
 
 A Streamlit application that uses SQLAlchemy ORM to query an Oscar Award
@@ -41,7 +41,7 @@ DB_PATH = DB_ROOT / "oscar.db"
 CSV_PATH = BASE_DIR / "full_data.csv"
 
 # ---------------------------------------------------------------------------
-# Task 2.1 ג€” SQLAlchemy ORM Model
+# Task 2.1 - SQLAlchemy ORM Model
 # ---------------------------------------------------------------------------
 Base = declarative_base()
 
@@ -132,11 +132,11 @@ def _load_csv() -> pd.DataFrame:
         "Winner": "winner",
     }
     df = df.rename(columns=rename)
-    # year_film might be "1927/28" ג€” take the first 4 chars
+    # year_film might be "1927/28" - take the first 4 chars
     df["year_film"] = df["year_film"].astype(str).str[:4].astype(int)
     # Create year_ceremony from ceremony number + 1927
     df["year_ceremony"] = df["ceremony"].astype(int) + 1928
-    # Winner: True/NaN ג†’ bool
+    # Winner: True/NaN -> bool
     df["winner"] = df["winner"].fillna(False).astype(bool)
     # Keep only the columns we need
     df = df[["year_film", "year_ceremony", "ceremony", "category", "name", "film", "winner"]]
@@ -724,7 +724,7 @@ def main():
     st.markdown(
         """
 <div class="sticky-page-header">
-  <div class="sticky-page-title">🎬 Oscar Actor Explorer</div>
+  <div class="sticky-page-title"> Oscar Actor Explorer</div>
   <div class="sticky-page-subtitle">Explore Oscar nomination history, actor profiles, and interesting discoveries.</div>
 </div>
 """,
@@ -781,7 +781,7 @@ section[data-testid="stSidebar"] > div:first-child { padding-top: 0.5rem !import
     )
 
     # ===================================================================
-    # Task 2.2 ג€” Actor Profile
+    # Task 2.2 - Actor Profile
     # ===================================================================
     with tab_profile:
         st.subheader("Search for an Actor or Director")
@@ -937,7 +937,7 @@ section[data-testid="stSidebar"] > div:first-child { padding-top: 0.5rem !import
                 session.close()
 
     # ===================================================================
-    # Task 2.3 ג€” Discoveries
+    # Task 2.3 - Discoveries
     # ===================================================================
     with tab_discoveries:
         st.subheader("Interesting Findings from the Oscar Dataset")
