@@ -87,7 +87,7 @@ st.markdown(
 
 .hw1-grid {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 0.8rem;
     margin-bottom: 0.6rem;
 }
@@ -250,15 +250,6 @@ TASKS = [
     },
     {
         "label": "Task 4 - Bonus",
-        "icon": "🏀",
-        "title": "NBA SQL Trivia",
-        "desc": "SQL learning game on NBA data with 5 levels, timer, hints, and leaderboard.",
-        "tags": ["nba_api", "5 levels", "Leaderboard"],
-        "accent": "#F57C00",
-        "url": "/NBA_Trivia",
-    },
-    {
-        "label": "Task 5 - Bonus",
         "icon": "💣",
         "title": "SQL Minesweeper",
         "desc": "Classic Minesweeper with a twist — defuse mines by solving NBA SQL queries. Difficulty escalates with every hit.",
