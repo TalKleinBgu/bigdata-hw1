@@ -1516,6 +1516,31 @@ def sql_rescue_dialog(conn):
     # Prominent question
     st.markdown(f"<p style='font-size:1.15rem; font-weight:600; margin:0.5rem 0 0.3rem;'>{q['text']}</p>", unsafe_allow_html=True)
 
+    # Database reference
+    _tables_info = {
+        "teams": ("NBA teams", "id, full_name, abbreviation, city, conference, division, wins, losses"),
+        "players": ("Player stats", "id, name, team_id, position, age, ppg, rpg, apg, spg, bpg, fg_pct, fg3_pct, ft_pct, gp"),
+        "games": ("Game results", "id, home_team_id, away_team_id, home_score, away_score, game_date"),
+    }
+    with st.expander("\U0001F4CB Database Schema & Preview"):
+        for tbl, (desc, cols) in _tables_info.items():
+            st.markdown(
+                f"**{tbl}** \u2014 *{desc}*",
+                unsafe_allow_html=True,
+            )
+            st.caption(f"Columns: `{cols}`")
+            try:
+                sample = pd.read_sql(f"SELECT * FROM {tbl} LIMIT 3", conn)
+                st.dataframe(sample, use_container_width=True, hide_index=True)
+            except Exception:
+                pass
+        st.markdown(
+            "<div style='font-size:0.78rem; color:#6b7280; margin-top:0.4rem;'>"
+            "<b>Relationships:</b> players.team_id \u2192 teams.id &nbsp;\u00B7&nbsp; "
+            "games.home_team_id / away_team_id \u2192 teams.id</div>",
+            unsafe_allow_html=True,
+        )
+
     # SQL editor
     sql_key = f"ms_sql_editor_{ss.ms_mine_hit_count}"
     sql_input = st.text_area("Write your SQL query here:", value=ss.ms_sql_input, height=110, key=sql_key, placeholder="SELECT ...")
