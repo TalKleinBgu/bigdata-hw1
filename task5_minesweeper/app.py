@@ -1323,6 +1323,11 @@ def inject_css():
 <style>
 #MainMenu, footer, header { visibility: hidden; }
 .block-container { padding: 0.8rem 1.5rem 2rem !important; }
+.main .block-container { text-align: center; }
+h1, h2, h3, h4, h5, h6, p, label, li { text-align: center; }
+[data-testid="stHorizontalBlock"] { justify-content: center; }
+div.stButton > button { display: block; margin-left: auto; margin-right: auto; }
+div[data-testid="stTextInput"], div[data-testid="stTextArea"], div[data-testid="stSelectbox"], div[data-testid="stRadio"] { margin-left: auto; margin-right: auto; }
 
 /* Hide click bridge input */
 [data-testid="stTextInput"]:has(input[placeholder="MS_CLICK_BRIDGE"]) {
