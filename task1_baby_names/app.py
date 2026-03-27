@@ -190,6 +190,9 @@ div[data-testid="stTabs"] [data-baseweb="tab-list"] { justify-content: center; }
 div[data-testid="stTabs"] [data-baseweb="tab"] { margin: 0 0.2rem; }
 div.stButton > button { display: block; margin-left: auto; margin-right: auto; }
 div[data-testid="stTextInput"], div[data-testid="stTextArea"], div[data-testid="stSelectbox"], div[data-testid="stRadio"] { margin-left: auto; margin-right: auto; }
+div[data-testid="stTextInput"] label, div[data-testid="stRadio"] label { width: 100%; text-align: center; }
+div[data-testid="stTextInput"] input { text-align: center; }
+div[data-testid="stRadio"] [role="radiogroup"] { justify-content: center; }
 section[data-testid="stSidebar"] > div:first-child { padding-top: 0.5rem !important; }
 [data-testid="stSidebarContent"] { padding-top: 0.5rem !important; }
 </style>
@@ -221,15 +224,14 @@ with tab_explore:
     st.header("A. Name Popularity Over Time")
     st.markdown("Enter one or more names (comma-separated) to see how their popularity changed across the years.")
 
-    col_input, col_mode = st.columns([3, 1])
-    with col_input:
+    outer_l, center_col, outer_r = st.columns([1, 4, 1])
+    with center_col:
         name_input = st.text_input(
             "Names",
             value="",
             placeholder="e.g. David, Sarah, Michael",
             help="Comma-separated list of names (case-insensitive)",
         )
-    with col_mode:
         mode = st.radio("Metric", ["Raw Count", "Percentage"], horizontal=True)
 
     names = [n.strip().capitalize() for n in name_input.split(",") if n.strip()]

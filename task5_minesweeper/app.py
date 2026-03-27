@@ -1216,18 +1216,18 @@ def format_time(seconds):
 def _cell_style_content(cell, game_over):
     """Return (css_class, display_content) for a cell."""
     if cell["defused"]:
-        return "defused", "ðŸ’£"
+        return "defused", "✅"
     if game_over and cell["is_mine"]:
-        return "mine-shown", "ðŸ’£"
+        return "mine-shown", "💣"
     if cell["is_mine"] and cell["revealed"] and not cell["defused"]:
-        return "mine-shown", "\U0001F4A3"
+        return "mine-shown", "💣"
     if cell["revealed"]:
         n = cell["adjacent"]
         if n == 0:
             return "revealed empty", ""
         return f"revealed n{n}", str(n)
     if cell["flagged"]:
-        return "flagged", "ðŸš©"
+        return "flagged", "🚩"
     return "unrevealed", ""
 
 
@@ -1350,12 +1350,13 @@ def inject_css():
     background: rgba(255, 255, 255, 0.97);
     border: 1px solid #e5e7eb;
     border-radius: 14px;
-    padding: 0.9rem 1.2rem;
+    padding: 1.1rem 1.35rem;
     margin: 0 auto 1rem auto;
     max-width: 980px;
+    text-align: center;
 }
-.sticky-page-title { font-size: 2rem; font-weight: 800; line-height: 1.15; }
-.sticky-page-subtitle { font-size: 1.05rem; color: #4b5563; margin-top: 0.3rem; }
+.sticky-page-title { font-size: 2.25rem; font-weight: 800; line-height: 1.12; }
+.sticky-page-subtitle { font-size: 1.18rem; color: #4b5563; margin-top: 0.35rem; text-align: center; }
 .sticky-page-section { font-size: 0.95rem; color: #111827; margin-top: 0.4rem; font-weight: 600; }
 .main .block-container { text-align: center; }
 h1, h2, h3, h4, h5, h6, p, label, li { text-align: center; }
@@ -1413,15 +1414,22 @@ div[data-testid="stTextInput"], div[data-testid="stTextArea"], div[data-testid="
 def render_timer():
     ss = st.session_state
     if not ss.ms_started or ss.ms_start_time is None:
+        elapsed_txt = "00:00"
+    elif ss.ms_game_over:
+        elapsed_txt = format_time(getattr(ss, "ms_elapsed_final", time.time() - ss.ms_start_time))
+    else:
+        elapsed_txt = None
+
+    if elapsed_txt is not None:
+        st.markdown(
+            f"""<div class="ms-stat-box">
+                <div class="ms-stat-label">⏱ Time</div>
+                <div class="ms-stat-value">{elapsed_txt}</div>
+            </div>""",
+            unsafe_allow_html=True,
+        )
         return
-    if ss.ms_game_over:
-        elapsed = getattr(ss, "ms_elapsed_final", time.time() - ss.ms_start_time)
-        st.components.v1.html(f"""
-<div style='text-align:center'>
-  <div style='font-size:0.75rem;color:#888;'>⏱ Time</div>
-  <div style='font-size:2rem;font-weight:800;color:#E65100;font-family:monospace;'>{format_time(elapsed)}</div>
-</div>""", height=60)
-        return
+
     start = ss.ms_start_time
     st.components.v1.html(f"""
 <script>
@@ -1434,10 +1442,10 @@ function _tick(){{
 }}
 setInterval(_tick,1000); _tick();
 </script>
-<div style='text-align:center'>
-  <div style='font-size:0.75rem;color:#888;'>⏱ Time</div>
-  <div id='ms-timer' style='font-size:2rem;font-weight:800;color:#E65100;font-family:monospace;'>00:00</div>
-</div>""", height=60)
+<div class='ms-stat-box' style='text-align:center'>
+  <div class='ms-stat-label'>⏱ Time</div>
+  <div id='ms-timer' class='ms-stat-value'>00:00</div>
+</div>""", height=92)
 
 
 def render_stats():
@@ -1445,21 +1453,15 @@ def render_stats():
     flags = count_flags(ss.ms_board, ss.ms_rows, ss.ms_cols)
     remaining = ss.ms_mines - flags
 
-    spacer_l, center, spacer_r = st.columns([1, 6, 1])
+    left, center, right = st.columns([1, 6, 1])
     with center:
         c1, c2, c3, c4 = st.columns(4)
         with c1:
-            st.markdown(f"""<div class="ms-stat-box">
-                <div class="ms-stat-label">💣 Mines Left</div>
-                <div class="ms-stat-value">{remaining}</div></div>""", unsafe_allow_html=True)
+            st.markdown(f"""<div class="ms-stat-box"><div class="ms-stat-label">💣 Mines Left</div><div class="ms-stat-value">{remaining}</div></div>""", unsafe_allow_html=True)
         with c2:
-            st.markdown(f"""<div class="ms-stat-box">
-                <div class="ms-stat-label">🚩 Flags</div>
-                <div class="ms-stat-value">{flags}</div></div>""", unsafe_allow_html=True)
+            st.markdown(f"""<div class="ms-stat-box"><div class="ms-stat-label">🚩 Flags</div><div class="ms-stat-value">{flags}</div></div>""", unsafe_allow_html=True)
         with c3:
-            st.markdown(f"""<div class="ms-stat-box">
-                <div class="ms-stat-label">💥 Rescues</div>
-                <div class="ms-stat-value">{ss.ms_mine_hit_count}</div></div>""", unsafe_allow_html=True)
+            st.markdown(f"""<div class="ms-stat-box"><div class="ms-stat-label">💥 Rescues</div><div class="ms-stat-value">{ss.ms_mine_hit_count}</div></div>""", unsafe_allow_html=True)
         with c4:
             render_timer()
 
@@ -1503,6 +1505,16 @@ def render_sql_rescue(conn, show_header=True):
 <span class="ms-level-badge" style="background:{accent}">Level {level}: {level_name}</span>
 <p style="margin:0.3rem 0 0; font-size:0.85rem; color:#5d4037;">{level_desc} - answer correctly to continue playing.</p>
 </div>""", unsafe_allow_html=True)
+
+    # Explicit close behavior requested by user
+    if st.button("✖ Exit Rescue (Give Up)", type="secondary", use_container_width=True, key=f"ms_exit_rescue_{ss.ms_mine_hit_count}"):
+        reveal_all_mines()
+        ss.ms_game_over = True
+        ss.ms_won = False
+        ss.ms_sql_rescue = False
+        if ss.ms_start_time:
+            ss.ms_elapsed_final = time.time() - ss.ms_start_time
+        st.rerun()
 
     st.markdown(f"**Question:** {q['text']}")
     st.divider()
@@ -1577,19 +1589,12 @@ def render_sql_rescue(conn, show_header=True):
 
 
 def render_sql_rescue_popup(conn):
-    ss = st.session_state
-    title = f"💣 Mine #{ss.ms_mine_hit_count} - Defuse it with SQL!"
-    if hasattr(st, "dialog"):
-        @st.dialog(title)
-        def _rescue_dialog():
-            render_sql_rescue(conn, show_header=False)
-        _rescue_dialog()
-    else:
-        left, center, right = st.columns([1, 2, 1])
-        with center:
-            st.markdown('<div class="ms-modal-window">', unsafe_allow_html=True)
-            render_sql_rescue(conn, show_header=True)
-            st.markdown('</div>', unsafe_allow_html=True)
+    # centered popup-like window (stable behavior)
+    left, center, right = st.columns([1, 2, 1])
+    with center:
+        st.markdown('<div class="ms-modal-window">', unsafe_allow_html=True)
+        render_sql_rescue(conn, show_header=True)
+        st.markdown('</div>', unsafe_allow_html=True)
 
 
 def render_end_screen(conn):
@@ -1608,24 +1613,26 @@ def render_end_screen(conn):
 
     if ss.ms_won:
         st.markdown(f"""<div class="ms-win-box">
-<h2 style="margin:0;color:#2e7d32;">\U0001F389 Board Cleared!</h2>
+<h2 style="margin:0;color:#2e7d32;">🎉 Board Cleared!</h2>
 <p style="margin:0.3rem 0 0;color:#1b5e20;">You defused all mines and cleared the {ss.ms_difficulty} board!</p>
 </div>""", unsafe_allow_html=True)
     else:
         st.markdown(f"""<div class="ms-lose-box">
-<h2 style="margin:0;color:#c62828;">\U0001F4A5 Game Over</h2>
-<p style="margin:0.3rem 0 0;color:#b71c1c;">You gave up on mine #{ss.ms_mine_hit_count}.</p>
+<h2 style="margin:0;color:#c62828;">💣 Game Over</h2>
+<p style="margin:0.3rem 0 0;color:#b71c1c;">You hit a bomb and gave up on mine #{ss.ms_mine_hit_count}.</p>
 </div>""", unsafe_allow_html=True)
 
-    c1, c2, c3, c4 = st.columns(4)
-    with c1:
-        st.metric("\u23F1 Time", format_time(elapsed))
-    with c2:
-        st.metric("\U0001F4A3 Rescues", ss.ms_mine_hit_count)
-    with c3:
-        st.metric("\U0001F9E0 Max SQL Level", max_sql_level)
-    with c4:
-        st.metric("\u2B50 Score", score)
+    left_pad, center_wrap, right_pad = st.columns([1, 6, 1])
+    with center_wrap:
+        c1, c2, c3, c4 = st.columns(4)
+        with c1:
+            st.markdown(f"""<div class="ms-stat-box"><div class="ms-stat-label">⏱ Time</div><div class="ms-stat-value">{format_time(elapsed)}</div></div>""", unsafe_allow_html=True)
+        with c2:
+            st.markdown(f"""<div class="ms-stat-box"><div class="ms-stat-label">💣 Rescues</div><div class="ms-stat-value">{ss.ms_mine_hit_count}</div></div>""", unsafe_allow_html=True)
+        with c3:
+            st.markdown(f"""<div class="ms-stat-box"><div class="ms-stat-label">🧠 Max SQL Level</div><div class="ms-stat-value">{max_sql_level}</div></div>""", unsafe_allow_html=True)
+        with c4:
+            st.markdown(f"""<div class="ms-stat-box"><div class="ms-stat-label">⭐ Score</div><div class="ms-stat-value">{score}</div></div>""", unsafe_allow_html=True)
 
     if ss.ms_won and not ss.ms_saved and ss.ms_nickname:
         save_to_leaderboard(conn, ss.ms_nickname, ss.ms_difficulty, elapsed,
@@ -1643,7 +1650,7 @@ def render_end_screen(conn):
 
 
 def render_leaderboard(conn):
-    st.subheader("\U0001F3C6 Leaderboard")
+    st.subheader("🏆 Leaderboard")
     tabs = st.tabs(["Easy", "Medium", "Expert"])
     for i, diff in enumerate(["Easy", "Medium", "Expert"]):
         with tabs[i]:
@@ -1652,9 +1659,8 @@ def render_leaderboard(conn):
                 st.info(f"No {diff} completions yet. Be the first!")
                 continue
 
-            # Podium
             top3 = lb.head(3)
-            medals = ["\U0001F947", "\U0001F948", "\U0001F949"]
+            medals = ["🥇", "🥈", "🥉"]
             cols = st.columns(len(top3))
             for j, (_, row) in enumerate(top3.iterrows()):
                 with cols[j]:
@@ -1668,7 +1674,6 @@ def render_leaderboard(conn):
                     </div>""", unsafe_allow_html=True)
 
             st.divider()
-            # Full table
             display = lb.copy()
             display.insert(0, "Rank", range(1, len(display) + 1))
             display["Time"] = display["completion_time_seconds"].apply(format_time)
@@ -1678,15 +1683,11 @@ def render_leaderboard(conn):
             display["Score"] = display["score"].astype(int)
             display["Date"] = pd.to_datetime(display["played_at"]).dt.strftime("%Y-%m-%d")
             st.dataframe(
-                display[["Rank", "nickname", "Score", "Time", "Rescues", "SQL Level", "Hints", "Date"]].rename(
-                    columns={"nickname": "Player"}),
-                use_container_width=True, hide_index=True,
+                display[["Rank", "nickname", "Score", "Time", "Rescues", "SQL Level", "Hints", "Date"]].rename(columns={"nickname": "Player"}),
+                use_container_width=True,
+                hide_index=True,
             )
 
-
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-# Main
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 def main():
     inject_css()
@@ -1697,33 +1698,27 @@ def main():
     st.markdown(
         """
 <div class="sticky-page-header">
-  <div class="sticky-page-title">\U0001F4A3 SQL Minesweeper</div>
+  <div class="sticky-page-title">💣 SQL Minesweeper</div>
   <div class="sticky-page-subtitle">Classic Minesweeper + NBA SQL rescue challenges.</div>
-  <div class="sticky-page-section">\U0001F4A3 Play | \U0001F3C6 Leaderboard</div>
+  <div class="sticky-page-section">💣 Play | 🏆 Leaderboard</div>
 </div>
 """,
         unsafe_allow_html=True,
     )
-    game_tab, lb_tab = st.tabs(["\U0001F4A3 Play", "\U0001F3C6 Leaderboard"])
+
+    game_tab, lb_tab = st.tabs(["💣 Play", "🏆 Leaderboard"])
 
     with lb_tab:
         render_leaderboard(conn)
-
+
     with game_tab:
         if not ss.ms_started:
-            st.markdown("## \U0001F4A3 SQL Minesweeper")
-            st.markdown(
-                "Classic Minesweeper - when you hit a mine, solve an **NBA SQL query** to defuse it and continue."
-            )
+            st.markdown("## 💣 SQL Minesweeper")
+            st.markdown("Classic Minesweeper - when you hit a mine, solve an **NBA SQL query** to defuse it and continue.")
             st.divider()
             c1, c2 = st.columns([1, 1])
             with c1:
-                difficulty = st.radio(
-                    "Difficulty",
-                    ["Easy", "Medium", "Expert"],
-                    captions=["9×9, 10 mines", "16×16, 40 mines", "16×30, 99 mines"],
-                    horizontal=False,
-                )
+                difficulty = st.radio("Difficulty", ["Easy", "Medium", "Expert"], captions=["9×9, 10 mines", "16×16, 40 mines", "16×30, 99 mines"], horizontal=False)
             with c2:
                 st.markdown("**SQL Rescue Levels**")
                 for lvl, (name, desc) in LEVEL_NAMES.items():
@@ -1737,14 +1732,9 @@ def main():
                         st.markdown("")
 
             st.divider()
-            st.text_input(
-                "Your nickname (for leaderboard):",
-                key="ms_nickname_draft",
-                max_chars=24,
-                placeholder="Enter nickname...",
-            )
+            st.text_input("Your nickname (for leaderboard):", key="ms_nickname_draft", max_chars=24, placeholder="Enter nickname...")
             nickname = st.session_state.get("ms_nickname_draft", "").strip()
-            if st.button("\U0001F680 Start Game", type="primary"):
+            if st.button("🚀 Start Game", type="primary"):
                 if nickname:
                     start_game(difficulty, nickname)
                     st.rerun()
@@ -1752,20 +1742,18 @@ def main():
                     st.warning("Please enter a nickname before starting.")
             return
 
-        st.markdown(
-            f"**\U0001F4A3 SQL Minesweeper** · {ss.ms_difficulty} ({ss.ms_rows}×{ss.ms_cols}, {ss.ms_mines} mines) · Player: **{ss.ms_nickname}**"
-        )
+        st.markdown(f"**💣 SQL Minesweeper** · {ss.ms_difficulty} ({ss.ms_rows}×{ss.ms_cols}, {ss.ms_mines} mines) · Player: **{ss.ms_nickname}**")
 
         render_stats()
         end_c1, end_c2, end_c3, end_c4 = st.columns([1, 1, 1, 1])
         with end_c2:
-            if st.button("\U0001F501 Restart", type="primary", use_container_width=True, key="ms_restart"):
+            if st.button("🔁 Restart", type="primary", use_container_width=True, key="ms_restart"):
                 reset_to_setup(keep_nickname=True)
         with end_c3:
-            if st.button("\u2B05 Back", type="secondary", use_container_width=True, key="ms_back"):
+            if st.button("⬅ Back", type="secondary", use_container_width=True, key="ms_back"):
                 reset_to_setup(keep_nickname=False)
 
-        st.info("\U0001F7E2 Left-click: Reveal a cell    |    \U0001F6A9 Right-click: Flag / unflag")
+        st.info("🟢 Left-click: Reveal a cell    |    🚩 Right-click: Flag / unflag")
         st.divider()
 
         if ss.ms_game_over:
