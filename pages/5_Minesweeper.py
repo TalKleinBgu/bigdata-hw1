@@ -12,6 +12,7 @@ st.markdown(
 [data-testid="stSidebarNav"] { display: none; }
 section[data-testid="stSidebar"] { display: none !important; }
 [data-testid="collapsedControl"] { display: none !important; }
+.block-container { max-width: 100% !important; padding-left: 2rem !important; padding-right: 2rem !important; padding-top: 1rem !important; }
 .hw1-nav {
     background: linear-gradient(135deg, #425a78 0%, #55759c 55%, #6f8eb4 100%);
     border: 1px solid rgba(255,255,255,0.26);
