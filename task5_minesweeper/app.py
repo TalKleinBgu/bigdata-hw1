@@ -1055,6 +1055,7 @@ def init_session_state():
         "ms_last_query_error": None,
         "ms_hints_used_total": 0,
         "ms_nickname": "",
+        "ms_nickname_draft": "",
         "ms_saved": False,
         "ms_sql_input": "",
         "ms_answer_input": "",
@@ -1664,11 +1665,19 @@ def main():
                         st.markdown("")
 
             st.divider()
-            nickname = st.text_input("Your nickname (for leaderboard):", max_chars=24,
-                                      placeholder="Enter nickname...")
-            if st.button("🚀 Start Game", type="primary", disabled=not nickname.strip()):
-                start_game(difficulty, nickname.strip())
-                st.rerun()
+            st.text_input(
+                "Your nickname (for leaderboard):",
+                key="ms_nickname_draft",
+                max_chars=24,
+                placeholder="Enter nickname...",
+            )
+            nickname = st.session_state.get("ms_nickname_draft", "").strip()
+            if st.button("🚀 Start Game", type="primary"):
+                if nickname:
+                    start_game(difficulty, nickname)
+                    st.rerun()
+                else:
+                    st.warning("Please enter a nickname before starting.")
             return
 
         # Active game
