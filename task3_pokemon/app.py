@@ -1303,6 +1303,7 @@ def main():
 
     st.markdown("""
 <style>
+.block-container { padding: 0.8rem 1.5rem 2rem !important; }
 section[data-testid="stSidebar"] > div:first-child { padding-top: 0.5rem !important; }
 [data-testid="stSidebarContent"] { padding-top: 0.5rem !important; }
 </style>
