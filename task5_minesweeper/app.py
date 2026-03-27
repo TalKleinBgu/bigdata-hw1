@@ -1063,6 +1063,7 @@ def init_session_state():
         "ms_click_bridge_nonce": 0,
         "ms_show_restart_picker": False,
         "ms_restart_difficulty": "Easy",
+        "ms_dialog_was_open": False,
     }
     for k, v in defaults.items():
         if k not in st.session_state:
@@ -1097,6 +1098,7 @@ def start_game(difficulty, nickname):
     st.session_state.ms_answer_input = ""
     st.session_state.ms_feedback = None
     st.session_state.ms_show_restart_picker = False
+    st.session_state.ms_dialog_was_open = False
 
 
 def handle_cell_click(r, c, conn):
@@ -1152,6 +1154,7 @@ def defuse_mine(r, c):
     ss.ms_sql_question = None
     ss.ms_sql_bomb_pos = None
     ss.ms_feedback = None
+    ss.ms_dialog_was_open = False
     if check_win(board, rows, cols):
         ss.ms_won = True
         ss.ms_game_over = True
@@ -1387,8 +1390,8 @@ div[data-testid="stTextInput"], div[data-testid="stTextArea"], div[data-testid="
     margin-bottom: 1rem;
 }
 .ms-level-badge {
-    display: inline-block; border-radius: 8px; padding: 3px 10px;
-    font-size: 0.75rem; font-weight: 700; color: #fff; margin-bottom: 0.5rem;
+    display: inline-block; border-radius: 8px; padding: 4px 12px;
+    font-size: 0.8rem; font-weight: 700; color: #fff; margin-bottom: 0.3rem;
 }
 .ms-win-box {
     background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%);
@@ -1420,6 +1423,7 @@ div[data-testid="stTextInput"], div[data-testid="stTextArea"], div[data-testid="
 # Render helpers
 # ײ³ֲ¢׳’ג‚¬ֲ׳’ג€ֲ¬ײ³ֲ¢׳’ג‚¬ֲ׳’ג€ֲ¬ײ³ֲ¢׳’ג‚¬ֲ׳’ג€ֲ¬ײ³ֲ¢׳’ג‚¬ֲ׳’ג€ֲ¬ײ³ֲ¢׳’ג‚¬ֲ׳’ג€ֲ¬ײ³ֲ¢׳’ג‚¬ֲ׳’ג€ֲ¬ײ³ֲ¢׳’ג‚¬ֲ׳’ג€ֲ¬ײ³ֲ¢׳’ג‚¬ֲ׳’ג€ֲ¬ײ³ֲ¢׳’ג‚¬ֲ׳’ג€ֲ¬ײ³ֲ¢׳’ג‚¬ֲ׳’ג€ֲ¬ײ³ֲ¢׳’ג‚¬ֲ׳’ג€ֲ¬ײ³ֲ¢׳’ג‚¬ֲ׳’ג€ֲ¬ײ³ֲ¢׳’ג‚¬ֲ׳’ג€ֲ¬ײ³ֲ¢׳’ג‚¬ֲ׳’ג€ֲ¬ײ³ֲ¢׳’ג‚¬ֲ׳’ג€ֲ¬ײ³ֲ¢׳’ג‚¬ֲ׳’ג€ֲ¬ײ³ֲ¢׳’ג‚¬ֲ׳’ג€ֲ¬ײ³ֲ¢׳’ג‚¬ֲ׳’ג€ֲ¬ײ³ֲ¢׳’ג‚¬ֲ׳’ג€ֲ¬ײ³ֲ¢׳’ג‚¬ֲ׳’ג€ֲ¬ײ³ֲ¢׳’ג‚¬ֲ׳’ג€ֲ¬ײ³ֲ¢׳’ג‚¬ֲ׳’ג€ֲ¬ײ³ֲ¢׳’ג‚¬ֲ׳’ג€ֲ¬ײ³ֲ¢׳’ג‚¬ֲ׳’ג€ֲ¬ײ³ֲ¢׳’ג‚¬ֲ׳’ג€ֲ¬ײ³ֲ¢׳’ג‚¬ֲ׳’ג€ֲ¬ײ³ֲ¢׳’ג‚¬ֲ׳’ג€ֲ¬ײ³ֲ¢׳’ג‚¬ֲ׳’ג€ֲ¬ײ³ֲ¢׳’ג‚¬ֲ׳’ג€ֲ¬ײ³ֲ¢׳’ג‚¬ֲ׳’ג€ֲ¬ײ³ֲ¢׳’ג‚¬ֲ׳’ג€ֲ¬ײ³ֲ¢׳’ג‚¬ֲ׳’ג€ֲ¬ײ³ֲ¢׳’ג‚¬ֲ׳’ג€ֲ¬ײ³ֲ¢׳’ג‚¬ֲ׳’ג€ֲ¬ײ³ֲ¢׳’ג‚¬ֲ׳’ג€ֲ¬ײ³ֲ¢׳’ג‚¬ֲ׳’ג€ֲ¬ײ³ֲ¢׳’ג‚¬ֲ׳’ג€ֲ¬ײ³ֲ¢׳’ג‚¬ֲ׳’ג€ֲ¬ײ³ֲ¢׳’ג‚¬ֲ׳’ג€ֲ¬ײ³ֲ¢׳’ג‚¬ֲ׳’ג€ֲ¬ײ³ֲ¢׳’ג‚¬ֲ׳’ג€ֲ¬ײ³ֲ¢׳’ג‚¬ֲ׳’ג€ֲ¬ײ³ֲ¢׳’ג‚¬ֲ׳’ג€ֲ¬ײ³ֲ¢׳’ג‚¬ֲ׳’ג€ֲ¬ײ³ֲ¢׳’ג‚¬ֲ׳’ג€ֲ¬ײ³ֲ¢׳’ג‚¬ֲ׳’ג€ֲ¬ײ³ֲ¢׳’ג‚¬ֲ׳’ג€ֲ¬ײ³ֲ¢׳’ג‚¬ֲ׳’ג€ֲ¬ײ³ֲ¢׳’ג‚¬ֲ׳’ג€ֲ¬ײ³ֲ¢׳’ג‚¬ֲ׳’ג€ֲ¬ײ³ֲ¢׳’ג‚¬ֲ׳’ג€ֲ¬ײ³ֲ¢׳’ג‚¬ֲ׳’ג€ֲ¬ײ³ֲ¢׳’ג‚¬ֲ׳’ג€ֲ¬ײ³ֲ¢׳’ג‚¬ֲ׳’ג€ֲ¬ײ³ֲ¢׳’ג‚¬ֲ׳’ג€ֲ¬ײ³ֲ¢׳’ג‚¬ֲ׳’ג€ֲ¬ײ³ֲ¢׳’ג‚¬ֲ׳’ג€ֲ¬ײ³ֲ¢׳’ג‚¬ֲ׳’ג€ֲ¬ײ³ֲ¢׳’ג‚¬ֲ׳’ג€ֲ¬ײ³ֲ¢׳’ג‚¬ֲ׳’ג€ֲ¬ײ³ֲ¢׳’ג‚¬ֲ׳’ג€ֲ¬ײ³ֲ¢׳’ג‚¬ֲ׳’ג€ֲ¬ײ³ֲ¢׳’ג‚¬ֲ׳’ג€ֲ¬ײ³ֲ¢׳’ג‚¬ֲ׳’ג€ֲ¬ײ³ֲ¢׳’ג‚¬ֲ׳’ג€ֲ¬ײ³ֲ¢׳’ג‚¬ֲ׳’ג€ֲ¬ײ³ֲ¢׳’ג‚¬ֲ׳’ג€ֲ¬ײ³ֲ¢׳’ג‚¬ֲ׳’ג€ֲ¬ײ³ֲ¢׳’ג‚¬ֲ׳’ג€ֲ¬ײ³ֲ¢׳’ג‚¬ֲ׳’ג€ֲ¬ײ³ֲ¢׳’ג‚¬ֲ׳’ג€ֲ¬ײ³ֲ¢׳’ג‚¬ֲ׳’ג€ֲ¬ײ³ֲ¢׳’ג‚¬ֲ׳’ג€ֲ¬ײ³ֲ¢׳’ג‚¬ֲ׳’ג€ֲ¬ײ³ֲ¢׳’ג‚¬ֲ׳’ג€ֲ¬ײ³ֲ¢׳’ג‚¬ֲ׳’ג€ֲ¬ײ³ֲ¢׳’ג‚¬ֲ׳’ג€ֲ¬ײ³ֲ¢׳’ג‚¬ֲ׳’ג€ֲ¬
 
+@st.fragment(run_every=1)
 def render_timer():
     ss = st.session_state
     if not ss.ms_started or ss.ms_start_time is None:
@@ -1490,34 +1494,34 @@ def render_board_component(conn):
     st.components.v1.html(board_html, height=height, scrolling=False)
 
 
-@st.dialog("\U0001F4A3 SQL Rescue - Defuse the Mine!", width="large")
+@st.dialog("\U0001F4A3 SQL Rescue")
 def sql_rescue_dialog(conn):
     ss = st.session_state
     q = ss.ms_sql_question
     if q is None:
+        ss.ms_dialog_was_open = False
         st.rerun()
         return
     level = min(ss.ms_mine_hit_count, 5)
     level_name, level_desc = LEVEL_NAMES[level]
     accent = LEVEL_ACCENT[level]
 
-    # Header
-    st.markdown(f"""<div class="ms-rescue-box">
-<h3 style="margin:0 0 0.3rem">\U0001F4A3 Mine #{ss.ms_mine_hit_count} - Defuse it with SQL!</h3>
-<span class="ms-level-badge" style="background:{accent}">Level {level}: {level_name}</span>
-<p style="margin:0.3rem 0 0; font-size:0.85rem; color:#5d4037;">{level_desc} - answer correctly to continue playing.</p>
-</div>""", unsafe_allow_html=True)
+    # Compact header
+    st.markdown(
+        f'<span class="ms-level-badge" style="background:{accent}">Mine #{ss.ms_mine_hit_count} \u00B7 Level {level}: {level_name}</span> '
+        f'<span style="font-size:0.82rem; color:#5d4037;">{level_desc}</span>',
+        unsafe_allow_html=True,
+    )
 
-    # Question
-    st.markdown(f"**Question:** {q['text']}")
-    st.divider()
+    # Prominent question
+    st.markdown(f"<p style='font-size:1.15rem; font-weight:600; margin:0.5rem 0 0.3rem;'>{q['text']}</p>", unsafe_allow_html=True)
 
     # SQL editor
     sql_key = f"ms_sql_editor_{ss.ms_mine_hit_count}"
     sql_input = st.text_area("Write your SQL query here:", value=ss.ms_sql_input, height=110, key=sql_key, placeholder="SELECT ...")
     ss.ms_sql_input = sql_input
 
-    # Action buttons
+    # Action buttons - Run, Hint, Give Up in one row
     col_run, col_hint, col_giveup = st.columns([1, 1, 1])
     with col_run:
         run_clicked = st.button("\u25B6 Run Query", use_container_width=True)
@@ -1546,6 +1550,7 @@ def sql_rescue_dialog(conn):
         ss.ms_game_over = True
         ss.ms_won = False
         ss.ms_sql_rescue = False
+        ss.ms_dialog_was_open = False
         if ss.ms_start_time:
             ss.ms_elapsed_final = time.time() - ss.ms_start_time
         st.rerun()
@@ -1569,11 +1574,7 @@ def sql_rescue_dialog(conn):
     else:
         answer_input = st.text_input("Your answer:", key=ans_key, placeholder="Type your answer here...")
 
-    col_submit, col_exit = st.columns([2, 1])
-    with col_submit:
-        submit_clicked = st.button("\u2705 Submit Answer", type="primary", use_container_width=True)
-    with col_exit:
-        exit_clicked = st.button("\u2716 Exit Rescue (Give Up)", type="secondary", use_container_width=True, key=f"ms_exit_rescue_{ss.ms_mine_hit_count}")
+    submit_clicked = st.button("\u2705 Submit Answer", type="primary", use_container_width=True)
 
     if submit_clicked:
         last_df = ss.ms_last_query_result
@@ -1582,24 +1583,47 @@ def sql_rescue_dialog(conn):
             r, c = ss.ms_sql_bomb_pos
             defuse_mine(r, c)
             ss.ms_feedback = None
+            ss.ms_dialog_was_open = False
             st.balloons()
             st.rerun()
         else:
             ss.ms_sql_wrong_attempts += 1
             ss.ms_feedback = f"Not quite! Attempt #{ss.ms_sql_wrong_attempts}. Try refining your query or check the hint."
 
-    if exit_clicked:
-        reveal_all_mines()
-        ss.ms_game_over = True
-        ss.ms_won = False
-        ss.ms_sql_rescue = False
-        if ss.ms_start_time:
-            ss.ms_elapsed_final = time.time() - ss.ms_start_time
-        st.rerun()
-
     # Display feedback after submit processing so it shows immediately
     if ss.ms_feedback:
         st.warning(ss.ms_feedback)
+
+
+DIFF_INFO = {
+    "Easy": {"icon": "\U0001F7E2", "grid": "9\u00D79", "mines": "10 mines"},
+    "Medium": {"icon": "\U0001F7E1", "grid": "16\u00D716", "mines": "40 mines"},
+    "Expert": {"icon": "\U0001F534", "grid": "16\u00D730", "mines": "99 mines"},
+}
+
+
+@st.dialog("\U0001F501 Restart - Select Difficulty")
+def restart_difficulty_dialog():
+    ss = st.session_state
+    for diff_name, info in DIFF_INFO.items():
+        with st.container():
+            st.markdown(
+                f"""<div style="background:{'#e8f5e9' if diff_name == 'Easy' else '#fff8e1' if diff_name == 'Medium' else '#ffebee'};
+                border:1px solid {'#a5d6a7' if diff_name == 'Easy' else '#ffe082' if diff_name == 'Medium' else '#ef9a9a'};
+                border-radius:10px; padding:0.6rem 0.9rem; margin-bottom:0.45rem;">
+                <span style="font-size:1.1rem;">{info['icon']}</span>
+                <strong style="font-size:1rem;">{diff_name}</strong>
+                <span style="color:#666; font-size:0.85rem; margin-left:0.5rem;">{info['grid']} \u00B7 {info['mines']}</span>
+                </div>""",
+                unsafe_allow_html=True,
+            )
+            if st.button(f"Start {diff_name}", key=f"ms_restart_{diff_name}", use_container_width=True):
+                ss.ms_show_restart_picker = False
+                start_game(diff_name, ss.ms_nickname)
+                st.rerun()
+    if st.button("\u2716 Cancel", type="secondary", use_container_width=True, key="ms_restart_cancel"):
+        ss.ms_show_restart_picker = False
+        st.rerun()
 
 
 def render_end_screen(conn):
@@ -1754,33 +1778,25 @@ def main():
                 reset_to_setup(keep_nickname=False)
 
         if ss.ms_show_restart_picker:
-            left, center, right = st.columns([1.5, 3, 1.5])
-            with center:
-                st.markdown('<div class="ms-modal-window">', unsafe_allow_html=True)
-                st.markdown("### Select Difficulty")
-                selected = st.radio(
-                    "Board size",
-                    ["Easy", "Medium", "Expert"],
-                    key="ms_restart_difficulty",
-                    horizontal=True,
-                    label_visibility="collapsed",
-                )
-                rc1, rc2, rc3 = st.columns([1, 1, 1])
-                with rc1:
-                    if st.button("\u2705 Start", type="primary", key="ms_restart_confirm"):
-                        start_game(selected, ss.ms_nickname)
-                        st.rerun()
-                with rc3:
-                    if st.button("\u2716 Cancel", type="secondary", key="ms_restart_cancel"):
-                        ss.ms_show_restart_picker = False
-                        st.rerun()
-                st.markdown('</div>', unsafe_allow_html=True)
+            restart_difficulty_dialog()
 
         st.info("\U0001F7E2 Left-click: Reveal a cell    |    \U0001F6A9 Right-click: Flag / unflag")
         st.divider()
 
         if ss.ms_sql_rescue and not ss.ms_game_over:
-            sql_rescue_dialog(conn)
+            if ss.ms_dialog_was_open:
+                # User closed the dialog via X button - treat as give up
+                reveal_all_mines()
+                ss.ms_game_over = True
+                ss.ms_won = False
+                ss.ms_sql_rescue = False
+                ss.ms_dialog_was_open = False
+                if ss.ms_start_time:
+                    ss.ms_elapsed_final = time.time() - ss.ms_start_time
+                st.rerun()
+            else:
+                ss.ms_dialog_was_open = True
+                sql_rescue_dialog(conn)
 
         if ss.ms_game_over:
             render_end_screen(conn)
