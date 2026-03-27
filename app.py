@@ -17,7 +17,7 @@ st.markdown(
 
 .block-container {
     padding: 1rem 1.8rem 1.2rem !important;
-    max-width: 1180px;
+    max-width: 90vw;
 }
 
 .hw1-hero {
