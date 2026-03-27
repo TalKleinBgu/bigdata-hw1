@@ -10,6 +10,8 @@ st.markdown(
     """
 <style>
 [data-testid="stSidebarNav"] { display: none; }
+header[data-testid="stHeader"] { display: none !important; }
+#MainMenu { display: none !important; }
 .block-container { max-width: 90vw !important; padding-left: 1.8rem !important; padding-right: 1.8rem !important; }
 .hw1-nav {
     background: linear-gradient(135deg, #425a78 0%, #55759c 55%, #6f8eb4 100%);

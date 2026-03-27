@@ -10,6 +10,8 @@ st.markdown(
     """
 <style>
 [data-testid="stSidebarNav"] { display: none; }
+header[data-testid="stHeader"] { display: none !important; }
+#MainMenu { display: none !important; }
 section[data-testid="stSidebar"] { display: none !important; }
 [data-testid="collapsedControl"] { display: none !important; }
 .block-container { max-width: 90vw !important; padding-left: 1.8rem !important; padding-right: 1.8rem !important; }
