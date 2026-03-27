@@ -859,7 +859,7 @@ def page_battle():
                 unsafe_allow_html=True,
             )
         with col2:
-            st.markdown("### " AI Team")
+            st.markdown("### AI Team")
             for p in ai_team:
                 render_battle_card(p)
 
