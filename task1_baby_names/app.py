@@ -233,11 +233,8 @@ with tab_explore:
             placeholder="e.g. David, Sarah, Michael",
             help="Comma-separated list of names (case-insensitive)",
         )
-        mode = st.select_slider(
-            "Metric",
-            options=["Raw Count", "Percentage"],
-            value="Raw Count",
-        )
+        show_percentage = st.toggle("Show Percentage", value=False)
+        mode = "Percentage" if show_percentage else "Raw Count"
 
     names = [n.strip().capitalize() for n in name_input.split(",") if n.strip()]
 

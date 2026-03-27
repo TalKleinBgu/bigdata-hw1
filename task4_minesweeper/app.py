@@ -1507,7 +1507,8 @@ def sql_rescue_dialog(conn):
         unsafe_allow_html=True,
     )
 
-    # Prominent question
+    # Short guidance + prominent question
+    st.caption("Use SQL to find the result, then write the final answer in the answer box.")
     st.markdown(f"<p style='font-size:1.15rem; font-weight:600; margin:0.5rem 0 0.3rem;'>{q['text']}</p>", unsafe_allow_html=True)
 
     # Database reference
