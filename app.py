@@ -16,8 +16,9 @@ st.markdown(
 #MainMenu, footer, header      { visibility: hidden; }
 
 .block-container {
-    padding: 1rem 1.8rem 1.2rem !important;
-    max-width: 90vw;
+    max-width: 90vw !important;
+    padding-left: 1.8rem !important;
+    padding-right: 1.8rem !important;
 }
 
 .hw1-hero {
