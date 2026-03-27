@@ -1208,6 +1208,7 @@ def init_session_state():
         "score": 0,
         "hints_used": {1: False, 2: False, 3: False, 4: False, 5: False},
         "nickname": "",
+        "nickname_draft": "",
         "game_finished": False,
         "saved_to_leaderboard": False,
         "last_query_result": {1: None, 2: None, 3: None, 4: None, 5: None},
@@ -1654,8 +1655,8 @@ def render_sidebar(conn):
     st.markdown("""
 <style>
 .block-container { padding: 0.8rem 1.5rem 2rem !important; }
-section[data-testid="stSidebar"] > div:first-child { padding-top: 0.5rem !important; }
-[data-testid="stSidebarContent"] { padding-top: 0.5rem !important; }
+section[data-testid="stSidebar"] > div:first-child { padding-top: 0 !important; }
+[data-testid="stSidebarContent"] { padding-top: 0 !important; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -1924,14 +1925,19 @@ def render_welcome(conn):
 
     st.markdown("---")
 
-    nickname = st.text_input(
+    st.text_input(
         "Enter your nickname:",
+        key="nickname_draft",
         placeholder="Your name for the leaderboard...",
     )
-    if st.button("🚀 Start Game!", type="primary", disabled=not nickname.strip()):
-        st.session_state.nickname = nickname.strip()
-        new_game(conn)
-        st.rerun()
+    nickname = st.session_state.get("nickname_draft", "").strip()
+    if st.button("🚀 Start Game!", type="primary"):
+        if nickname:
+            st.session_state.nickname = nickname
+            new_game(conn)
+            st.rerun()
+        else:
+            st.warning("Please enter a nickname before starting.")
 
 
 def render_victory(conn):
