@@ -1605,12 +1605,11 @@ def render_postgame_analytics():
 
 def render_header():
     st.markdown("""
-    <h1 style='text-align: center; color: #E65100;'>
-        🏀 NBA SQL Trivia
-    </h1>
-    <p style='text-align: center; color: #666; font-size: 1.1em;'>
-        Test your SQL skills with real NBA data — every game is different!
-    </p>
+    <div class='sticky-page-header'>
+      <div class='sticky-page-title'>🏀 NBA SQL Trivia</div>
+      <div class='sticky-page-subtitle'>Test your SQL skills with real NBA data — every game is different!</div>
+      <div class='sticky-page-section'>🏀 Game | 🏆 Leaderboard | 🏃 Practice</div>
+    </div>
     """, unsafe_allow_html=True)
 
     if st.session_state.game_started and not st.session_state.game_finished:
@@ -1655,9 +1654,24 @@ def render_sidebar(conn):
     st.markdown("""
 <style>
 .block-container { padding: 0.8rem 1.5rem 2rem !important; }
+.sticky-page-header {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    background: rgba(255, 255, 255, 0.97);
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 0.65rem 0.9rem;
+    margin-bottom: 0.85rem;
+}
+.sticky-page-title { font-size: 1.7rem; font-weight: 800; line-height: 1.2; }
+.sticky-page-subtitle { font-size: 0.95rem; color: #4b5563; margin-top: 0.2rem; }
+.sticky-page-section { font-size: 0.85rem; color: #111827; margin-top: 0.3rem; font-weight: 600; }
 .main .block-container { text-align: center; }
 h1, h2, h3, h4, h5, h6, p, label, li { text-align: center; }
 [data-testid="stHorizontalBlock"] { justify-content: center; }
+div[data-testid="stTabs"] [data-baseweb="tab-list"] { justify-content: center; }
+div[data-testid="stTabs"] [data-baseweb="tab"] { margin: 0 0.2rem; }
 div.stButton > button { display: block; margin-left: auto; margin-right: auto; }
 div[data-testid="stTextInput"], div[data-testid="stTextArea"], div[data-testid="stSelectbox"], div[data-testid="stRadio"] { margin-left: auto; margin-right: auto; }
 section[data-testid="stSidebar"] > div:first-child { padding-top: 0 !important; }

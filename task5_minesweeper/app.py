@@ -1324,9 +1324,24 @@ def inject_css():
 <style>
 #MainMenu, footer, header { visibility: hidden; }
 .block-container { padding: 0.8rem 1.5rem 2rem !important; }
+.sticky-page-header {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    background: rgba(255, 255, 255, 0.97);
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 0.65rem 0.9rem;
+    margin-bottom: 0.85rem;
+}
+.sticky-page-title { font-size: 1.7rem; font-weight: 800; line-height: 1.2; }
+.sticky-page-subtitle { font-size: 0.95rem; color: #4b5563; margin-top: 0.2rem; }
+.sticky-page-section { font-size: 0.85rem; color: #111827; margin-top: 0.3rem; font-weight: 600; }
 .main .block-container { text-align: center; }
 h1, h2, h3, h4, h5, h6, p, label, li { text-align: center; }
 [data-testid="stHorizontalBlock"] { justify-content: center; }
+div[data-testid="stTabs"] [data-baseweb="tab-list"] { justify-content: center; }
+div[data-testid="stTabs"] [data-baseweb="tab"] { margin: 0 0.2rem; }
 div.stButton > button { display: block; margin-left: auto; margin-right: auto; }
 div[data-testid="stTextInput"], div[data-testid="stTextArea"], div[data-testid="stSelectbox"], div[data-testid="stRadio"] { margin-left: auto; margin-right: auto; }
 
@@ -1655,6 +1670,16 @@ def main():
     conn = get_connection()
 
     ss = st.session_state
+    st.markdown(
+        """
+<div class="sticky-page-header">
+  <div class="sticky-page-title">💣 SQL Minesweeper</div>
+  <div class="sticky-page-subtitle">Classic Minesweeper + NBA SQL rescue challenges.</div>
+  <div class="sticky-page-section">💣 Play | 🏆 Leaderboard</div>
+</div>
+""",
+        unsafe_allow_html=True,
+    )
     game_tab, lb_tab = st.tabs(["💣 Play", "🏆 Leaderboard"])
 
     with lb_tab:

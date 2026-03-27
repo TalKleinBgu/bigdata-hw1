@@ -1281,8 +1281,8 @@ def main():
         """
 <div class="sticky-page-header">
   <div class="sticky-page-title">⚔️ Pokemon Battle Arena</div>
-  <div class="sticky-page-subtitle">Big Data Homework 1 -- Task 3</div>
-  <div class="sticky-page-section">Section: Battle Arena | Analysis | Schema & Data | Battle Mechanics</div>
+  <div class="sticky-page-subtitle">Battle, analyze, and explore Pokemon data with SQL.</div>
+  <div class="sticky-page-section">⚔️ Battle Arena | 📊 Analysis | 🗂️ Schema & Data | 📖 Battle Mechanics</div>
 </div>
 """,
         unsafe_allow_html=True,
@@ -1328,6 +1328,8 @@ def main():
 .main .block-container { text-align: center; }
 h1, h2, h3, h4, h5, h6, p, label, li { text-align: center; }
 [data-testid="stHorizontalBlock"] { justify-content: center; }
+div[data-testid="stTabs"] [data-baseweb="tab-list"] { justify-content: center; }
+div[data-testid="stTabs"] [data-baseweb="tab"] { margin: 0 0.2rem; }
 div.stButton > button { display: block; margin-left: auto; margin-right: auto; }
 div[data-testid="stTextInput"], div[data-testid="stTextArea"], div[data-testid="stSelectbox"], div[data-testid="stRadio"] { margin-left: auto; margin-right: auto; }
 section[data-testid="stSidebar"] > div:first-child { padding-top: 0.5rem !important; }

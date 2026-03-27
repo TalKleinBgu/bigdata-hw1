@@ -155,7 +155,7 @@ st.markdown(
 <div class="sticky-page-header">
   <div class="sticky-page-title">👶 Baby Names Explorer</div>
   <div class="sticky-page-subtitle">Exploring US baby-name trends by state from the Social Security Administration (1910 -- present)</div>
-  <div class="sticky-page-section">Section: Name Popularity | Custom SQL | Name Diversity | Pattern Discovery | Schema</div>
+  <div class="sticky-page-section">🧭 Name Popularity | 💻 Custom SQL | 📈 Name Diversity | 🔍 Pattern Discovery | 📋 Schema</div>
 </div>
 """,
     unsafe_allow_html=True,
@@ -186,6 +186,8 @@ st.markdown("""
 .main .block-container { text-align: center; }
 h1, h2, h3, h4, h5, h6, p, label, li { text-align: center; }
 [data-testid="stHorizontalBlock"] { justify-content: center; }
+div[data-testid="stTabs"] [data-baseweb="tab-list"] { justify-content: center; }
+div[data-testid="stTabs"] [data-baseweb="tab"] { margin: 0 0.2rem; }
 div.stButton > button { display: block; margin-left: auto; margin-right: auto; }
 div[data-testid="stTextInput"], div[data-testid="stTextArea"], div[data-testid="stSelectbox"], div[data-testid="stRadio"] { margin-left: auto; margin-right: auto; }
 section[data-testid="stSidebar"] > div:first-child { padding-top: 0.5rem !important; }

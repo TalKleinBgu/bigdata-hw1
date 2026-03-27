@@ -726,7 +726,7 @@ def main():
 <div class="sticky-page-header">
   <div class="sticky-page-title">🎬 Oscar Actor Explorer</div>
   <div class="sticky-page-subtitle">Explore Oscar nomination history, actor profiles, and interesting discoveries.</div>
-  <div class="sticky-page-section">Section: Actor Profile | Discoveries | Schema</div>
+  <div class="sticky-page-section">👤 Actor Profile (Task 2.2) | 🔍 Discoveries (Task 2.3) | 📋 Schema (Task 2.1)</div>
 </div>
 """,
         unsafe_allow_html=True,
@@ -756,6 +756,8 @@ def main():
 .main .block-container { text-align: center; }
 h1, h2, h3, h4, h5, h6, p, label, li { text-align: center; }
 [data-testid="stHorizontalBlock"] { justify-content: center; }
+div[data-testid="stTabs"] [data-baseweb="tab-list"] { justify-content: center; }
+div[data-testid="stTabs"] [data-baseweb="tab"] { margin: 0 0.2rem; }
 div.stButton > button { display: block; margin-left: auto; margin-right: auto; }
 div[data-testid="stTextInput"], div[data-testid="stTextArea"], div[data-testid="stSelectbox"], div[data-testid="stRadio"] { margin-left: auto; margin-right: auto; }
 section[data-testid="stSidebar"] > div:first-child { padding-top: 0.5rem !important; }
