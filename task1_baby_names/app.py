@@ -179,9 +179,10 @@ st.markdown("""
     padding: 0.9rem 1.2rem;
     margin: 0 auto 1rem auto;
     max-width: 980px;
+    text-align: center;
 }
-.sticky-page-title { font-size: 2rem; font-weight: 800; line-height: 1.15; }
-.sticky-page-subtitle { font-size: 1.05rem; color: #4b5563; margin-top: 0.3rem; }
+.sticky-page-title { font-size: 2rem; font-weight: 800; line-height: 1.15; text-align: center; }
+.sticky-page-subtitle { font-size: 1.05rem; color: #4b5563; margin-top: 0.3rem; text-align: center; }
 .sticky-page-section { font-size: 0.95rem; color: #111827; margin-top: 0.4rem; font-weight: 600; }
 .main .block-container { text-align: center; }
 h1, h2, h3, h4, h5, h6, p, label, li { text-align: center; }
