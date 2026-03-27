@@ -1060,6 +1060,7 @@ def init_session_state():
         "ms_sql_input": "",
         "ms_answer_input": "",
         "ms_feedback": None,
+        "ms_click_bridge_nonce": 0,
     }
     for k, v in defaults.items():
         if k not in st.session_state:
@@ -1282,7 +1283,7 @@ def generate_board_html(board, rows, cols, game_over, locked):
   function sendAction(r, c, action) {{
     var inputs = window.parent.document.querySelectorAll('input[placeholder="MS_CLICK_BRIDGE"]');
     if (inputs.length === 0) return;
-    var input = inputs[0];
+    var input = inputs[inputs.length - 1];
     input.focus();
     var setter = Object.getOwnPropertyDescriptor(window.parent.HTMLInputElement.prototype, 'value').set;
     setter.call(input, r + ',' + c + ',' + action);
@@ -1424,19 +1425,27 @@ def render_board_component(conn):
     locked = ss.ms_game_over or ss.ms_sql_rescue
 
     # Click bridge — hidden input
-    click_val = st.text_input("", key="ms_click_bridge", placeholder="MS_CLICK_BRIDGE",
-                               label_visibility="collapsed")
+    bridge_key = f"ms_click_bridge_{ss.ms_click_bridge_nonce}"
+    click_val = st.text_input(
+        "",
+        key=bridge_key,
+        placeholder="MS_CLICK_BRIDGE",
+        label_visibility="collapsed",
+    )
 
     # Process incoming click
     if click_val:
         parts = click_val.split(",")
         if len(parts) == 3:
-            r, c, action = int(parts[0]), int(parts[1]), parts[2]
-            if action == "reveal" and not locked:
-                handle_cell_click(r, c, conn)
-            elif action == "flag" and not locked:
-                handle_flag_click(r, c)
-        st.session_state["ms_click_bridge"] = ""
+            try:
+                r, c, action = int(parts[0]), int(parts[1]), parts[2]
+                if action == "reveal" and not locked:
+                    handle_cell_click(r, c, conn)
+                elif action == "flag" and not locked:
+                    handle_flag_click(r, c)
+            except ValueError:
+                pass
+        ss.ms_click_bridge_nonce += 1
         st.rerun()
 
     board_html = generate_board_html(
