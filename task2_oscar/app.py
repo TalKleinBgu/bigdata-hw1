@@ -777,7 +777,7 @@ section[data-testid="stSidebar"] > div:first-child { padding-top: 0.5rem !import
 
     # ----- Tabs -----
     tab_profile, tab_discoveries, tab_schema = st.tabs(
-        ["\U0001F464 Actor Profile (Task 2.2)", "\U0001F50D Discoveries (Task 2.3)", "\U0001F4CB Schema (Task 2.1)"]
+        ["Actor Profile (Task 2.2)", "Discoveries (Task 2.3)", "Schema (Task 2.1)"]
     )
 
     # ===================================================================

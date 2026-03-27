@@ -1742,7 +1742,7 @@ def main():
         unsafe_allow_html=True,
     )
 
-    game_tab, lb_tab = st.tabs(["\U0001F4A3 Play", "\U0001F3C6 Leaderboard"])
+    game_tab, lb_tab = st.tabs(["Play", "Leaderboard"])
 
     with lb_tab:
         render_leaderboard(conn)
