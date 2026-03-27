@@ -1530,7 +1530,7 @@ def sql_rescue_dialog(conn):
             )
             st.caption(f"Columns: `{cols}`")
             try:
-                sample = pd.read_sql(f"SELECT * FROM {tbl} LIMIT 3", conn)
+                sample = pd.read_sql(f"SELECT * FROM {tbl} LIMIT 1", conn)
                 st.dataframe(sample, use_container_width=True, hide_index=True)
             except Exception:
                 pass
