@@ -1277,8 +1277,16 @@ def main():
         layout="wide",
     )
 
-    st.title("⚔️ Pokemon Battle Arena")
-    st.caption("Big Data Homework 1 -- Task 3")
+    st.markdown(
+        """
+<div class="sticky-page-header">
+  <div class="sticky-page-title">⚔️ Pokemon Battle Arena</div>
+  <div class="sticky-page-subtitle">Big Data Homework 1 -- Task 3</div>
+  <div class="sticky-page-section">Section: Battle Arena | Analysis | Schema & Data | Battle Mechanics</div>
+</div>
+""",
+        unsafe_allow_html=True,
+    )
 
     # Initialize DB
     with st.spinner("Initializing database..."):
@@ -1304,6 +1312,19 @@ def main():
     st.markdown("""
 <style>
 .block-container { padding: 0.8rem 1.5rem 2rem !important; }
+.sticky-page-header {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    background: rgba(255, 255, 255, 0.97);
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 0.65rem 0.9rem;
+    margin-bottom: 0.85rem;
+}
+.sticky-page-title { font-size: 1.7rem; font-weight: 800; line-height: 1.2; }
+.sticky-page-subtitle { font-size: 0.95rem; color: #4b5563; margin-top: 0.2rem; }
+.sticky-page-section { font-size: 0.85rem; color: #111827; margin-top: 0.3rem; font-weight: 600; }
 .main .block-container { text-align: center; }
 h1, h2, h3, h4, h5, h6, p, label, li { text-align: center; }
 [data-testid="stHorizontalBlock"] { justify-content: center; }
