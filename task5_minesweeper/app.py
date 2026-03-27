@@ -1729,30 +1729,38 @@ def main():
 
     with game_tab:
         if not ss.ms_started:
-            # --- Difficulty selection ---
-            st.markdown("""<div style="background:linear-gradient(135deg,#f4f8ff 0%,#edf5ff 55%,#f8fbff 100%);
-                border:1px solid #dbe6f5; border-radius:14px; padding:1.2rem 1.4rem; margin-bottom:0.9rem;">
-                <div style="font-size:1.05rem; font-weight:700; color:#1c2f45; margin-bottom:0.7rem;">Choose Difficulty</div>
-                <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:0.7rem;">
-                    <div id="ms-diff-easy" style="background:#e8f5e9; border:2px solid #a5d6a7; border-radius:12px; padding:0.7rem; text-align:center;">
-                        <div style="font-size:1.5rem;">\U0001F7E2</div>
-                        <div style="font-weight:700; font-size:0.95rem; color:#2e7d32;">Easy</div>
-                        <div style="font-size:0.78rem; color:#555;">9\u00D79 \u00B7 10 mines</div>
-                    </div>
-                    <div id="ms-diff-medium" style="background:#fff8e1; border:2px solid #ffe082; border-radius:12px; padding:0.7rem; text-align:center;">
-                        <div style="font-size:1.5rem;">\U0001F7E1</div>
-                        <div style="font-weight:700; font-size:0.95rem; color:#f57f17;">Medium</div>
-                        <div style="font-size:0.78rem; color:#555;">16\u00D716 \u00B7 40 mines</div>
-                    </div>
-                    <div id="ms-diff-expert" style="background:#ffebee; border:2px solid #ef9a9a; border-radius:12px; padding:0.7rem; text-align:center;">
-                        <div style="font-size:1.5rem;">\U0001F534</div>
-                        <div style="font-weight:700; font-size:0.95rem; color:#c62828;">Expert</div>
-                        <div style="font-size:0.78rem; color:#555;">16\u00D730 \u00B7 99 mines</div>
-                    </div>
-                </div>
-            </div>""", unsafe_allow_html=True)
+            # --- Nickname ---
+            _, center_col, _ = st.columns([1, 2, 1])
+            with center_col:
+                st.text_input("Your nickname (for leaderboard):", key="ms_nickname_draft", max_chars=24, placeholder="Enter nickname...")
 
-            difficulty = st.radio("Select difficulty", ["Easy", "Medium", "Expert"], horizontal=True, label_visibility="collapsed")
+            # --- Difficulty selection as clickable cards ---
+            _diff_cards = [
+                ("Easy",   "\U0001F7E2", "9\u00D79",   "10 mines",  "#e8f5e9", "#a5d6a7", "#2e7d32"),
+                ("Medium", "\U0001F7E1", "16\u00D716",  "40 mines",  "#fff8e1", "#ffe082", "#f57f17"),
+                ("Expert", "\U0001F534", "16\u00D730",  "99 mines",  "#ffebee", "#ef9a9a", "#c62828"),
+            ]
+            st.markdown("<div style='font-size:1.05rem; font-weight:700; color:#1c2f45; margin-bottom:0.5rem;'>Choose Difficulty & Start</div>", unsafe_allow_html=True)
+            col_e, col_m, col_x = st.columns(3)
+            for col, (dname, icon, grid, mines, bg, border, color) in zip([col_e, col_m, col_x], _diff_cards):
+                with col:
+                    st.markdown(f"""<div style="background:{bg}; border:2px solid {border}; border-radius:12px;
+                        padding:0.8rem 0.5rem; text-align:center; margin-bottom:0.3rem;">
+                        <div style="font-size:1.5rem;">{icon}</div>
+                        <div style="font-weight:700; font-size:0.95rem; color:{color};">{dname}</div>
+                        <div style="font-size:0.78rem; color:#555;">{grid} \u00B7 {mines}</div>
+                    </div>""", unsafe_allow_html=True)
+                    if st.button(f"\U0001F680 Start {dname}", key=f"ms_setup_start_{dname}", use_container_width=True):
+                        nickname = st.session_state.get("ms_nickname_draft", "").strip()
+                        if nickname:
+                            start_game(dname, nickname)
+                            st.rerun()
+                        else:
+                            st.session_state["ms_setup_warn"] = True
+
+            if st.session_state.get("ms_setup_warn"):
+                st.warning("Please enter a nickname before starting.")
+                st.session_state["ms_setup_warn"] = False
 
             # --- SQL Rescue Levels ---
             levels_html = ""
@@ -1766,24 +1774,12 @@ def main():
                 </div>"""
 
             st.markdown(f"""<div style="background:#f9fafb; border:1px solid #e5e7eb; border-radius:14px;
-                padding:1rem 1.4rem; margin-bottom:0.9rem;">
+                padding:1rem 1.4rem; margin-top:0.9rem;">
                 <div style="font-size:0.92rem; font-weight:700; color:#1c2f45; margin-bottom:0.5rem;">
                     SQL Rescue Levels <span style="font-weight:400; color:#6b7280; font-size:0.82rem;">\u2014 hit a mine, solve SQL to survive</span>
                 </div>
                 {levels_html}
             </div>""", unsafe_allow_html=True)
-
-            # --- Nickname & start ---
-            _, center_col, _ = st.columns([1, 2, 1])
-            with center_col:
-                st.text_input("Your nickname (for leaderboard):", key="ms_nickname_draft", max_chars=24, placeholder="Enter nickname...")
-                nickname = st.session_state.get("ms_nickname_draft", "").strip()
-                if st.button("\U0001F680 Start Game", type="primary", use_container_width=True):
-                    if nickname:
-                        start_game(difficulty, nickname)
-                        st.rerun()
-                    else:
-                        st.warning("Please enter a nickname before starting.")
             return
 
         st.markdown(
