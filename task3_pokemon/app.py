@@ -1282,7 +1282,6 @@ def main():
 <div class="sticky-page-header">
   <div class="sticky-page-title">⚔️ Pokemon Battle Arena</div>
   <div class="sticky-page-subtitle">Battle, analyze, and explore Pokemon data with SQL.</div>
-  <div class="sticky-page-section">⚔️ Battle Arena | 📊 Analysis | 🗂️ Schema & Data | 📖 Battle Mechanics</div>
 </div>
 """,
         unsafe_allow_html=True,
@@ -1296,7 +1295,7 @@ def main():
     tab1, tab2, tab3, tab4 = st.tabs([
         "⚔️ Battle Arena",
         "📊 Analysis",
-        "🗄️ Schema & Data",
+        "🗂️ Schema & Data",
         "📖 Battle Mechanics",
     ])
 

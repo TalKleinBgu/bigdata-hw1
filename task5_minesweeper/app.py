@@ -1,5 +1,5 @@
 """
-SQL Minesweeper — Task 5
+SQL Minesweeper â€” Task 5
 Classic Minesweeper + NBA SQL rescue challenges when you hit a mine.
 """
 
@@ -12,9 +12,9 @@ import random
 import shutil
 from collections import deque
 
-# ──────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # Constants
-# ──────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 _DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(_DIR, "minesweeper.db")
@@ -37,9 +37,9 @@ LEVEL_NAMES = {
 SCORE_BASE = {"Easy": 500, "Medium": 1_000, "Expert": 2_000}
 LEVEL_ACCENT = {1: "#4A90D9", 2: "#43A047", 3: "#F57C00", 4: "#8E24AA", 5: "#E53935"}
 
-# ──────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # Database setup
-# ──────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 @st.cache_resource
 def get_connection():
@@ -468,9 +468,9 @@ def _create_fallback_data(conn):
     conn.commit()
 
 
-# ──────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # SQL query runner
-# ──────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 def run_sql(sql, conn):
     sql_s = sql.strip().rstrip(";").strip()
@@ -485,9 +485,9 @@ def run_sql(sql, conn):
         return f"SQL Error: {e}"
 
 
-# ──────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # SQL answer validation (adapted from Task 4)
-# ──────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 def validate_answer(user_answer, question, conn, last_df=None):
     ua = str(user_answer).strip()
@@ -621,9 +621,9 @@ def build_hint(question, user_sql, conn):
     return "\n\n".join(parts)
 
 
-# ──────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # Question generators (adapted from Task 4)
-# ──────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 def _random_team(conn):
     return pd.read_sql("SELECT id, full_name, abbreviation, city FROM teams", conn).sample(1).iloc[0]
@@ -659,7 +659,7 @@ def q1_player_team(conn):
     team = pd.read_sql(f"SELECT full_name FROM teams WHERE id = {p['team_id']}", conn).iloc[0]["full_name"]
     return {"text": f"What team does **{p['name']}** play for?",
             "answer": team,
-            "hint": "Try: SELECT * FROM players — look at team_id, then check the teams table.",
+            "hint": "Try: SELECT * FROM players â€” look at team_id, then check the teams table.",
             "validator_type": "team_name"}
 
 def q1_team_city(conn):
@@ -921,7 +921,7 @@ def q5_games_between(conn):
            OR (home_team_id={t2['id']} AND away_team_id={t1['id']})""", conn).iloc[0]["c"]
     return {"text": f"How many games were played between the **{t1['full_name']}** and the **{t2['full_name']}**?",
             "answer": str(int(cnt)),
-            "hint": "Try: SELECT * FROM games WHERE (home_team_id = X AND away_team_id = Y) OR (home_team_id = Y AND away_team_id = X) — check the teams table for IDs.",
+            "hint": "Try: SELECT * FROM games WHERE (home_team_id = X AND away_team_id = Y) OR (home_team_id = Y AND away_team_id = X) â€” check the teams table for IDs.",
             "validator_type": "exact_number"}
 
 def q5_team_total_games(conn):
@@ -970,9 +970,9 @@ def generate_question(level, conn):
     return {"text": "Error generating question.", "answer": "", "hint": "", "validator_type": "exact_number"}
 
 
-# ──────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # Minesweeper board logic
-# ──────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 def make_empty_board(rows, cols):
     return [[{"is_mine": False, "revealed": False, "flagged": False, "defused": False, "adjacent": 0}
@@ -1029,9 +1029,9 @@ def count_flags(board, rows, cols):
     return sum(board[r][c]["flagged"] for r in range(rows) for c in range(cols))
 
 
-# ──────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # Session state
-# ──────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 def init_session_state():
     defaults = {
@@ -1105,7 +1105,7 @@ def handle_cell_click(r, c, conn):
     if cell["revealed"] or cell["defused"] or cell["flagged"]:
         return
 
-    # First click — generate board
+    # First click â€” generate board
     if ss.ms_first_click:
         place_mines(board, rows, cols, ss.ms_mines, r, c)
         ss.ms_start_time = time.time()
@@ -1113,6 +1113,8 @@ def handle_cell_click(r, c, conn):
 
     if cell["is_mine"]:
         # Trigger SQL rescue
+        cell["revealed"] = True
+        cell["flagged"] = False
         ss.ms_mine_hit_count += 1
         level = min(ss.ms_mine_hit_count, 5)
         ss.ms_sql_rescue = True
@@ -1152,9 +1154,9 @@ def defuse_mine(r, c):
         ss.ms_game_over = True
 
 
-# ──────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # Scoring & leaderboard
-# ──────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 def calculate_score(difficulty, elapsed_seconds, mines_hit, max_sql_level):
     base = SCORE_BASE[difficulty]
@@ -1192,23 +1194,25 @@ def format_time(seconds):
     return f"{m:02d}:{s:02d}"
 
 
-# ──────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # Board HTML renderer
-# ──────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 def _cell_style_content(cell, game_over):
     """Return (css_class, display_content) for a cell."""
     if cell["defused"]:
-        return "defused", "💣"
+        return "defused", "ðŸ’£"
     if game_over and cell["is_mine"]:
-        return "mine-shown", "💣"
+        return "mine-shown", "ðŸ’£"
+    if cell["is_mine"] and cell["revealed"] and not cell["defused"]:
+        return "mine-shown", "\U0001F4A3"
     if cell["revealed"]:
         n = cell["adjacent"]
         if n == 0:
             return "revealed empty", ""
         return f"revealed n{n}", str(n)
     if cell["flagged"]:
-        return "flagged", "🚩"
+        return "flagged", "ðŸš©"
     return "unrevealed", ""
 
 
@@ -1315,9 +1319,9 @@ def generate_board_html(board, rows, cols, game_over, locked):
 </html>"""
 
 
-# ──────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # CSS
-# ──────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 def inject_css():
     st.markdown("""
@@ -1376,12 +1380,19 @@ div[data-testid="stTextInput"], div[data-testid="stTextArea"], div[data-testid="
     border: 2px solid #e53935; border-radius: 14px; padding: 1.5rem;
     text-align: center; margin-bottom: 1rem;
 }
+.ms-modal-window {
+    background: #ffffff;
+    border: 2px solid #ff8f00;
+    border-radius: 14px;
+    padding: 1rem 1.1rem;
+    box-shadow: 0 14px 32px rgba(0, 0, 0, 0.24);
+}
 </style>""", unsafe_allow_html=True)
 
 
-# ──────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # Render helpers
-# ──────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 def render_timer():
     ss = st.session_state
@@ -1391,7 +1402,7 @@ def render_timer():
         elapsed = getattr(ss, "ms_elapsed_final", time.time() - ss.ms_start_time)
         st.components.v1.html(f"""
 <div style='text-align:center'>
-  <div style='font-size:0.75rem;color:#888;'>⏱ Time</div>
+  <div style='font-size:0.75rem;color:#888;'>â± Time</div>
   <div style='font-size:2rem;font-weight:800;color:#E65100;font-family:monospace;'>{format_time(elapsed)}</div>
 </div>""", height=60)
         return
@@ -1408,7 +1419,7 @@ function _tick(){{
 setInterval(_tick,1000); _tick();
 </script>
 <div style='text-align:center'>
-  <div style='font-size:0.75rem;color:#888;'>⏱ Time</div>
+  <div style='font-size:0.75rem;color:#888;'>â± Time</div>
   <div id='ms-timer' style='font-size:2rem;font-weight:800;color:#E65100;font-family:monospace;'>00:00</div>
 </div>""", height=60)
 
@@ -1421,15 +1432,15 @@ def render_stats():
     c1, c2, c3, c4 = st.columns(4)
     with c1:
         st.markdown(f"""<div class="ms-stat-box">
-            <div class="ms-stat-label">💣 Mines Left</div>
+            <div class="ms-stat-label">ðŸ’£ Mines Left</div>
             <div class="ms-stat-value">{remaining}</div></div>""", unsafe_allow_html=True)
     with c2:
         st.markdown(f"""<div class="ms-stat-box">
-            <div class="ms-stat-label">🚩 Flags</div>
+            <div class="ms-stat-label">ðŸš© Flags</div>
             <div class="ms-stat-value">{flags}</div></div>""", unsafe_allow_html=True)
     with c3:
         st.markdown(f"""<div class="ms-stat-box">
-            <div class="ms-stat-label">💥 Rescues</div>
+            <div class="ms-stat-label">ðŸ’¥ Rescues</div>
             <div class="ms-stat-value">{ss.ms_mine_hit_count}</div></div>""", unsafe_allow_html=True)
     with c4:
         render_timer()
@@ -1439,7 +1450,7 @@ def render_board_component(conn):
     ss = st.session_state
     locked = ss.ms_game_over or ss.ms_sql_rescue
 
-    # Click bridge — hidden input
+    # Click bridge â€” hidden input
     bridge_key = f"ms_click_bridge_{ss.ms_click_bridge_nonce}"
     click_val = st.text_input(
         "",
@@ -1470,18 +1481,19 @@ def render_board_component(conn):
     height = ss.ms_rows * (cell_px + 2) + 24
     st.components.v1.html(board_html, height=height, scrolling=False)
 
-    st.caption("Left-click to reveal · Right-click to flag/unflag")
+    st.caption("Left-click to reveal Â· Right-click to flag/unflag")
 
 
-def render_sql_rescue(conn):
+def render_sql_rescue(conn, show_header=True):
     ss = st.session_state
     q = ss.ms_sql_question
     level = min(ss.ms_mine_hit_count, 5)
     level_name, level_desc = LEVEL_NAMES[level]
     accent = LEVEL_ACCENT[level]
 
-    st.markdown(f"""<div class="ms-rescue-box">
-<h3 style="margin:0 0 0.3rem">💣 Mine #{ss.ms_mine_hit_count} — Defuse it with SQL!</h3>
+    if show_header:
+        st.markdown(f"""<div class="ms-rescue-box">
+<h3 style="margin:0 0 0.3rem">\U0001F4A3 Mine #{ss.ms_mine_hit_count} — Defuse it with SQL!</h3>
 <span class="ms-level-badge" style="background:{accent}">Level {level}: {level_name}</span>
 <p style="margin:0.3rem 0 0; font-size:0.85rem; color:#5d4037;">{level_desc} — answer correctly to continue playing.</p>
 </div>""", unsafe_allow_html=True)
@@ -1489,7 +1501,6 @@ def render_sql_rescue(conn):
     st.markdown(f"**Question:** {q['text']}")
     st.divider()
 
-    # SQL editor
     sql_key = f"ms_sql_editor_{ss.ms_mine_hit_count}"
     sql_input = st.text_area(
         "Write your SQL query here:",
@@ -1502,7 +1513,7 @@ def render_sql_rescue(conn):
 
     col_run, col_hint, col_giveup = st.columns([1, 1, 1])
     with col_run:
-        if st.button("▶ Run Query", use_container_width=True):
+        if st.button("\u25B6 Run Query", use_container_width=True):
             if sql_input.strip():
                 result = run_sql(sql_input, conn)
                 if isinstance(result, pd.DataFrame):
@@ -1514,14 +1525,14 @@ def render_sql_rescue(conn):
             st.rerun()
 
     with col_hint:
-        hint_label = "💡 Hint" + (" (used)" if ss.ms_sql_hint_shown else "")
+        hint_label = "\U0001F4A1 Hint" + (" (used)" if ss.ms_sql_hint_shown else "")
         if st.button(hint_label, use_container_width=True):
             ss.ms_sql_hint_shown = True
             ss.ms_hints_used_total += 1
             st.rerun()
 
     with col_giveup:
-        if st.button("💀 Give Up", use_container_width=True, type="secondary"):
+        if st.button("\U0001F480 Give Up", use_container_width=True, type="secondary"):
             ss.ms_game_over = True
             ss.ms_won = False
             ss.ms_sql_rescue = False
@@ -1529,32 +1540,31 @@ def render_sql_rescue(conn):
                 ss.ms_elapsed_final = time.time() - ss.ms_start_time
             st.rerun()
 
-    # Query result display
     if ss.ms_last_query_error:
         st.error(ss.ms_last_query_error)
     elif ss.ms_last_query_result is not None:
         st.dataframe(ss.ms_last_query_result, use_container_width=True, hide_index=True)
 
-    # Hint display
     if ss.ms_sql_hint_shown:
         hint_text = build_hint(q, sql_input if sql_input.strip() else ss.ms_sql_input, conn)
         st.info(hint_text)
 
-    # Feedback from wrong attempt
     if ss.ms_feedback:
         st.warning(ss.ms_feedback)
 
     st.divider()
-    # Answer submission
     ans_key = f"ms_answer_{ss.ms_mine_hit_count}_{ss.ms_sql_wrong_attempts}"
     if q["validator_type"] == "dataframe_match":
         st.markdown("**Answer:** Run a query that produces the expected output, then click Submit.")
         answer_input = ""
     else:
-        answer_input = st.text_input("Your answer:", key=ans_key,
-                                      placeholder="Type your answer here...")
+        answer_input = st.text_input(
+            "Your answer:",
+            key=ans_key,
+            placeholder="Type your answer here...",
+        )
 
-    if st.button("✅ Submit Answer", type="primary", use_container_width=True):
+    if st.button("\u2705 Submit Answer", type="primary", use_container_width=True):
         last_df = ss.ms_last_query_result
         correct = validate_answer(answer_input, q, conn, last_df)
         if correct:
@@ -1572,6 +1582,20 @@ def render_sql_rescue(conn):
             st.rerun()
 
 
+def render_sql_rescue_popup(conn):
+    ss = st.session_state
+    title = f"\U0001F4A3 Mine #{ss.ms_mine_hit_count} — Defuse it with SQL!"
+    if hasattr(st, "dialog"):
+        @st.dialog(title)
+        def _rescue_dialog():
+            render_sql_rescue(conn, show_header=False)
+        _rescue_dialog()
+    else:
+        left, center, right = st.columns([1, 2, 1])
+        with center:
+            st.markdown('<div class="ms-modal-window">', unsafe_allow_html=True)
+            render_sql_rescue(conn, show_header=True)
+            st.markdown('</div>', unsafe_allow_html=True)
 def render_end_screen(conn):
     ss = st.session_state
     elapsed = getattr(ss, "ms_elapsed_final", None)
@@ -1585,24 +1609,24 @@ def render_end_screen(conn):
 
     if ss.ms_won:
         st.markdown(f"""<div class="ms-win-box">
-<h2 style="margin:0;color:#2e7d32;">🎉 Board Cleared!</h2>
+<h2 style="margin:0;color:#2e7d32;">ðŸŽ‰ Board Cleared!</h2>
 <p style="margin:0.3rem 0 0;color:#1b5e20;">You defused all mines and cleared the {ss.ms_difficulty} board!</p>
 </div>""", unsafe_allow_html=True)
     else:
         st.markdown(f"""<div class="ms-lose-box">
-<h2 style="margin:0;color:#c62828;">💥 Game Over</h2>
+<h2 style="margin:0;color:#c62828;">ðŸ’¥ Game Over</h2>
 <p style="margin:0.3rem 0 0;color:#b71c1c;">You gave up on mine #{ss.ms_mine_hit_count}.</p>
 </div>""", unsafe_allow_html=True)
 
     c1, c2, c3, c4 = st.columns(4)
     with c1:
-        st.metric("⏱ Time", format_time(elapsed))
+        st.metric("â± Time", format_time(elapsed))
     with c2:
-        st.metric("💣 Rescues", ss.ms_mine_hit_count)
+        st.metric("ðŸ’£ Rescues", ss.ms_mine_hit_count)
     with c3:
-        st.metric("🧠 Max SQL Level", max_sql_level)
+        st.metric("ðŸ§  Max SQL Level", max_sql_level)
     with c4:
-        st.metric("⭐ Score", score)
+        st.metric("â­ Score", score)
 
     # Save to leaderboard (wins only)
     if ss.ms_won and not ss.ms_saved and ss.ms_nickname:
@@ -1611,7 +1635,7 @@ def render_end_screen(conn):
         ss.ms_saved = True
         st.success("Score saved to leaderboard!")
 
-    if st.button("🔄 Play Again", type="primary"):
+    if st.button("ðŸ”„ Play Again", type="primary"):
         for key in list(st.session_state.keys()):
             if key.startswith("ms_"):
                 del st.session_state[key]
@@ -1619,7 +1643,7 @@ def render_end_screen(conn):
 
 
 def render_leaderboard(conn):
-    st.subheader("🏆 Leaderboard")
+    st.subheader("ðŸ† Leaderboard")
     tabs = st.tabs(["Easy", "Medium", "Expert"])
     for i, diff in enumerate(["Easy", "Medium", "Expert"]):
         with tabs[i]:
@@ -1630,7 +1654,7 @@ def render_leaderboard(conn):
 
             # Podium
             top3 = lb.head(3)
-            medals = ["🥇", "🥈", "🥉"]
+            medals = ["ðŸ¥‡", "ðŸ¥ˆ", "ðŸ¥‰"]
             cols = st.columns(len(top3))
             for j, (_, row) in enumerate(top3.iterrows()):
                 with cols[j]:
@@ -1640,7 +1664,7 @@ def render_leaderboard(conn):
                         <div style="font-weight:700;font-size:0.95rem">{row['nickname']}</div>
                         <div style="color:#388e3c;font-weight:700">{int(row['score'])} pts</div>
                         <div style="font-size:0.78rem;color:#666">{format_time(row['completion_time_seconds'])}</div>
-                        <div style="font-size:0.72rem;color:#888">{row['mines_hit']} rescues · SQL L{int(row['max_sql_level'])}</div>
+                        <div style="font-size:0.72rem;color:#888">{row['mines_hit']} rescues Â· SQL L{int(row['max_sql_level'])}</div>
                     </div>""", unsafe_allow_html=True)
 
             st.divider()
@@ -1660,9 +1684,9 @@ def render_leaderboard(conn):
             )
 
 
-# ──────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # Main
-# ──────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 def main():
     inject_css()
@@ -1673,14 +1697,14 @@ def main():
     st.markdown(
         """
 <div class="sticky-page-header">
-  <div class="sticky-page-title">💣 SQL Minesweeper</div>
+  <div class="sticky-page-title">ðŸ’£ SQL Minesweeper</div>
   <div class="sticky-page-subtitle">Classic Minesweeper + NBA SQL rescue challenges.</div>
-  <div class="sticky-page-section">💣 Play | 🏆 Leaderboard</div>
+  <div class="sticky-page-section">ðŸ’£ Play | ðŸ† Leaderboard</div>
 </div>
 """,
         unsafe_allow_html=True,
     )
-    game_tab, lb_tab = st.tabs(["💣 Play", "🏆 Leaderboard"])
+    game_tab, lb_tab = st.tabs(["ðŸ’£ Play", "ðŸ† Leaderboard"])
 
     with lb_tab:
         render_leaderboard(conn)
@@ -1688,9 +1712,9 @@ def main():
     with game_tab:
         if not ss.ms_started:
             # Setup screen
-            st.markdown("## 💣 SQL Minesweeper")
+            st.markdown("## ðŸ’£ SQL Minesweeper")
             st.markdown(
-                "Classic Minesweeper — but when you hit a mine, you must solve an **NBA SQL query** to defuse it "
+                "Classic Minesweeper â€” but when you hit a mine, you must solve an **NBA SQL query** to defuse it "
                 "and continue playing! Each rescue escalates the SQL difficulty. Left-click to reveal, "
                 "right-click to flag."
             )
@@ -1698,7 +1722,7 @@ def main():
             c1, c2 = st.columns([1, 1])
             with c1:
                 difficulty = st.radio("Difficulty", ["Easy", "Medium", "Expert"],
-                                      captions=["9×9, 10 mines", "16×16, 40 mines", "16×30, 99 mines"],
+                                      captions=["9Ã—9, 10 mines", "16Ã—16, 40 mines", "16Ã—30, 99 mines"],
                                       horizontal=False)
             with c2:
                 st.markdown("**SQL Rescue Levels**")
@@ -1707,7 +1731,7 @@ def main():
                     st.markdown(
                         f'<span style="background:{accent};color:#fff;border-radius:6px;'
                         f'padding:2px 8px;font-size:0.75rem;font-weight:700;">L{lvl}</span> '
-                        f'**{name}** — {desc}',
+                        f'**{name}** â€” {desc}',
                         unsafe_allow_html=True,
                     )
                     if lvl < 5:
@@ -1721,7 +1745,7 @@ def main():
                 placeholder="Enter nickname...",
             )
             nickname = st.session_state.get("ms_nickname_draft", "").strip()
-            if st.button("🚀 Start Game", type="primary"):
+            if st.button("ðŸš€ Start Game", type="primary"):
                 if nickname:
                     start_game(difficulty, nickname)
                     st.rerun()
@@ -1731,15 +1755,15 @@ def main():
 
         # Active game
         st.markdown(
-            f"**💣 SQL Minesweeper** · {ss.ms_difficulty} "
-            f"({ss.ms_rows}×{ss.ms_cols}, {ss.ms_mines} mines) · "
+            f"**ðŸ’£ SQL Minesweeper** Â· {ss.ms_difficulty} "
+            f"({ss.ms_rows}Ã—{ss.ms_cols}, {ss.ms_mines} mines) Â· "
             f"Player: **{ss.ms_nickname}**",
         )
 
         render_stats()
         end_c1, end_c2, end_c3 = st.columns([1, 1, 1])
         with end_c2:
-            if st.button("⏹ End Game & Back", type="secondary", use_container_width=True, key="ms_end_game"):
+            if st.button("â¹ End Game & Back", type="secondary", use_container_width=True, key="ms_end_game"):
                 for key in list(st.session_state.keys()):
                     if key.startswith("ms_"):
                         del st.session_state[key]
@@ -1754,7 +1778,7 @@ def main():
 
         if ss.ms_sql_rescue and not ss.ms_game_over:
             st.divider()
-            render_sql_rescue(conn)
+            render_sql_rescue_popup(conn)
 
 
 if __name__ == "__main__":

@@ -1608,7 +1608,6 @@ def render_header():
     <div class='sticky-page-header'>
       <div class='sticky-page-title'>🏀 NBA SQL Trivia</div>
       <div class='sticky-page-subtitle'>Test your SQL skills with real NBA data — every game is different!</div>
-      <div class='sticky-page-section'>🏀 Game | 🏆 Leaderboard | 🏃 Practice</div>
     </div>
     """, unsafe_allow_html=True)
 

@@ -155,7 +155,6 @@ st.markdown(
 <div class="sticky-page-header">
   <div class="sticky-page-title">👶 Baby Names Explorer</div>
   <div class="sticky-page-subtitle">Exploring US baby-name trends by state from the Social Security Administration (1910 -- present)</div>
-  <div class="sticky-page-section">🧭 Name Popularity | 💻 Custom SQL | 📈 Name Diversity | 🔍 Pattern Discovery | 📋 Schema</div>
 </div>
 """,
     unsafe_allow_html=True,
@@ -208,10 +207,10 @@ with st.sidebar:
 # ---------------------------------------------------------------------------
 tab_explore, tab_sql, tab_diversity, tab_patterns, tab_schema = st.tabs(
     [
-        "Name Popularity",
-        "Custom SQL",
-        "Name Diversity",
-        "Pattern Discovery",
+        "🧭 Name Popularity",
+        "💻 Custom SQL",
+        "📈 Name Diversity",
+        "🔍 Pattern Discovery",
         "📋 Schema",
     ]
 )

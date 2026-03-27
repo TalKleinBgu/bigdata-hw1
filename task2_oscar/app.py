@@ -726,7 +726,6 @@ def main():
 <div class="sticky-page-header">
   <div class="sticky-page-title">🎬 Oscar Actor Explorer</div>
   <div class="sticky-page-subtitle">Explore Oscar nomination history, actor profiles, and interesting discoveries.</div>
-  <div class="sticky-page-section">👤 Actor Profile (Task 2.2) | 🔍 Discoveries (Task 2.3) | 📋 Schema (Task 2.1)</div>
 </div>
 """,
         unsafe_allow_html=True,
