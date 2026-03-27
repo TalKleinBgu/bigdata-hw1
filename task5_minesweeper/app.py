@@ -1213,7 +1213,6 @@ def _cell_style_content(cell, game_over):
 
 def generate_board_html(board, rows, cols, game_over, locked):
     cell_px = max(28, min(40, 580 // cols))
-    grid_w = cols * (cell_px + 2) + 8
 
     cells_html = ""
     for r in range(rows):
@@ -1230,7 +1229,10 @@ def generate_board_html(board, rows, cols, game_over, locked):
 <head>
 <meta charset="utf-8">
 <style>
-  body {{ margin:0; padding:4px; background:transparent; font-family:Arial,sans-serif; }}
+  body {{
+    margin:0; padding:4px; background:transparent; font-family:Arial,sans-serif;
+    display:flex; justify-content:center; align-items:flex-start;
+  }}
   .ms-grid {{
     display: inline-grid;
     grid-template-columns: repeat({cols}, {cell_px}px);
@@ -1281,9 +1283,17 @@ def generate_board_html(board, rows, cols, game_over, locked):
     var inputs = window.parent.document.querySelectorAll('input[placeholder="MS_CLICK_BRIDGE"]');
     if (inputs.length === 0) return;
     var input = inputs[0];
+    input.focus();
     var setter = Object.getOwnPropertyDescriptor(window.parent.HTMLInputElement.prototype, 'value').set;
     setter.call(input, r + ',' + c + ',' + action);
     input.dispatchEvent(new Event('input', {{ bubbles: true }}));
+    input.dispatchEvent(new Event('change', {{ bubbles: true }}));
+    var enterDown = new KeyboardEvent('keydown', {{ key: 'Enter', code: 'Enter', which: 13, keyCode: 13, bubbles: true }});
+    var enterPress = new KeyboardEvent('keypress', {{ key: 'Enter', code: 'Enter', which: 13, keyCode: 13, bubbles: true }});
+    var enterUp = new KeyboardEvent('keyup', {{ key: 'Enter', code: 'Enter', which: 13, keyCode: 13, bubbles: true }});
+    input.dispatchEvent(enterDown);
+    input.dispatchEvent(enterPress);
+    input.dispatchEvent(enterUp);
   }}
 
   document.getElementById('grid').addEventListener('click', function(e) {{
@@ -1688,6 +1698,13 @@ def main():
         )
 
         render_stats()
+        end_c1, end_c2, end_c3 = st.columns([1, 1, 1])
+        with end_c2:
+            if st.button("⏹ End Game & Back", type="secondary", use_container_width=True, key="ms_end_game"):
+                for key in list(st.session_state.keys()):
+                    if key.startswith("ms_"):
+                        del st.session_state[key]
+                st.rerun()
         st.divider()
 
         if ss.ms_game_over:

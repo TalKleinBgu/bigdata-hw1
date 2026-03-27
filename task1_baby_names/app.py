@@ -150,7 +150,7 @@ st.set_page_config(
     layout="wide",
 )
 
-st.title("Baby Names Explorer")
+st.title("👶 Baby Names Explorer")
 st.caption("Exploring US baby-name trends by state from the Social Security Administration (1910 -- present)")
 
 # Ensure DB exists and indexes are up to date
