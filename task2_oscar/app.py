@@ -368,16 +368,22 @@ def get_all_names() -> list[str]:
 
 
 def normalize_name(value: str) -> str:
-    """Normalize names for exact-match search."""
+    """Normalize names for search."""
     return " ".join(str(value).strip().casefold().split())
 
 
-def get_exact_name_matches(query: str, names: list[str]) -> list[str]:
-    """Return only exact matches for the typed query."""
+def get_name_suggestions(query: str, names: list[str], limit: int = 25) -> list[str]:
+    """Return autocomplete suggestions for the typed query."""
     normalized_query = normalize_name(query)
     if not normalized_query:
         return []
-    return [name for name in names if normalize_name(name) == normalized_query]
+
+    starts_with = [name for name in names if normalize_name(name).startswith(normalized_query)]
+    contains = [
+        name for name in names
+        if normalized_query in normalize_name(name) and name not in starts_with
+    ]
+    return (starts_with + contains)[:limit]
 
 
 # ---------------------------------------------------------------------------
@@ -841,17 +847,18 @@ section[data-testid="stSidebar"] > div:first-child { padding-top: 0.5rem !import
             placeholder="For example: Brad Pitt",
         )
 
-        matching_names = get_exact_name_matches(search_query, all_names)
+        matching_names = get_name_suggestions(search_query, all_names)
         selected_name = st.selectbox(
-            "Exact dataset matches",
+            "Name suggestions",
             options=matching_names if matching_names else [""],
             index=0,
             disabled=not matching_names,
-            placeholder="Exact matches will appear here",
+            placeholder="Suggestions will appear here",
+            label_visibility="collapsed",
         )
 
         if search_query and not matching_names:
-            st.warning("No exact match found in the dataset.")
+            st.warning("No matching names found in the dataset.")
 
         target_name = selected_name if selected_name else ""
 
@@ -866,15 +873,16 @@ section[data-testid="stSidebar"] > div:first-child { padding-top: 0.5rem !import
                     with st.spinner("Searching Wikipedia..."):
                         wiki_titles = search_wikipedia_titles(target_name, limit=6)
 
-                    wiki_choice = None
                     if wiki_titles:
                         if len(wiki_titles) > 1:
                             st.caption("Multiple Wikipedia matches found. Choose the correct profile:")
-                        wiki_choice = st.selectbox(
-                            "Wikipedia article",
-                            wiki_titles,
-                            key=f"wiki_article_{target_name}",
-                        )
+                            wiki_choice = st.selectbox(
+                                "Wikipedia article",
+                                wiki_titles,
+                                key=f"wiki_article_{target_name}",
+                            )
+                        else:
+                            wiki_choice = wiki_titles[0]
                         with st.spinner("Fetching Wikipedia data..."):
                             wiki = fetch_wikipedia_info_from_title(wiki_choice)
                     else:
