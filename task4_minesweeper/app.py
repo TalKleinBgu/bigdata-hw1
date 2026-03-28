@@ -1256,37 +1256,84 @@ def generate_board_html(board, rows, cols, game_over, locked):
   .ms-grid {{
     display: inline-grid;
     grid-template-columns: repeat({cols}, {cell_px}px);
-    gap: 2px;
-    background: #9e9e9e;
-    padding: 4px;
-    border-radius: 6px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+    gap: 1px;
+    background: linear-gradient(145deg, #7a8a9a, #5c6b7a);
+    padding: 5px;
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.08);
     user-select: none;
   }}
   .ms-cell {{
     width:{cell_px}px; height:{cell_px}px;
     display:flex; align-items:center; justify-content:center;
     font-size:{max(11, cell_px-12)}px; font-weight:bold;
-    border-radius:3px; box-sizing:border-box;
+    border-radius:4px; box-sizing:border-box;
+    transition: background 0.12s ease, transform 0.1s ease, box-shadow 0.12s ease;
   }}
   .unrevealed {{
-    background:#e0e0e0; border:2px outset #fafafa; cursor:pointer;
+    background: linear-gradient(145deg, #e8ecf0, #cdd4db);
+    border: 1px solid rgba(255,255,255,0.5);
+    border-bottom-color: rgba(0,0,0,0.12);
+    border-right-color: rgba(0,0,0,0.08);
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.6);
   }}
-  .unrevealed:hover {{ background:#c8c8c8; }}
+  .unrevealed:hover {{
+    background: linear-gradient(145deg, #dce2e8, #bfc8d1);
+    transform: scale(0.95);
+    box-shadow: 0 0 6px rgba(74,144,217,0.35);
+  }}
   .flagged {{
-    background:#e0e0e0; border:2px outset #fafafa; cursor:pointer; font-size:{max(10, cell_px-14)}px;
+    background: linear-gradient(145deg, #fff3e0, #ffe0b2);
+    border: 1px solid #ffb74d;
+    cursor: pointer;
+    font-size:{max(10, cell_px-14)}px;
+    box-shadow: 0 1px 3px rgba(255,152,0,0.2);
   }}
-  .flagged:hover {{ background:#c8c8c8; }}
-  .revealed {{ background:#f0f0f0; border:1px solid #bdbdbd; cursor:default; }}
-  .empty {{ background:#eeeeee; }}
-  .defused {{ background:#c8e6c9; border:1px solid #81c784; cursor:default; font-size:{max(10,cell_px-14)}px; }}
-  .mine-shown {{ background:#ffcdd2; border:1px solid #e57373; cursor:default; font-size:{max(10,cell_px-14)}px; }}
-  .n1 {{ color:#1565c0; }}
-  .n2 {{ color:#2e7d32; }}
-  .n3 {{ color:#c62828; }}
-  .n4 {{ color:#283593; }}
-  .n5 {{ color:#6a1b1b; }}
-  .n6 {{ color:#00838f; }}
+  .flagged:hover {{
+    background: linear-gradient(145deg, #ffe0b2, #ffcc80);
+    transform: scale(0.95);
+  }}
+  .revealed {{
+    background: #f5f5f5;
+    border: 1px solid #d0d0d0;
+    cursor: default;
+  }}
+  .empty {{
+    background: #eef1f4;
+    border: 1px solid #dde1e6;
+  }}
+  .defused {{
+    background: linear-gradient(145deg, #c8e6c9, #a5d6a7);
+    border: 1px solid #66bb6a;
+    cursor: default;
+    font-size:{max(10,cell_px-14)}px;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.06);
+    animation: defusePulse 0.6s ease-out;
+  }}
+  @keyframes defusePulse {{
+    0% {{ transform: scale(1.2); box-shadow: 0 0 12px rgba(76,175,80,0.5); }}
+    100% {{ transform: scale(1); box-shadow: inset 0 1px 2px rgba(0,0,0,0.06); }}
+  }}
+  .mine-shown {{
+    background: linear-gradient(145deg, #ffcdd2, #ef9a9a);
+    border: 1px solid #e57373;
+    cursor: default;
+    font-size:{max(10,cell_px-14)}px;
+    box-shadow: inset 0 1px 3px rgba(198,40,40,0.15);
+    animation: mineReveal 0.4s ease-out;
+  }}
+  @keyframes mineReveal {{
+    0% {{ transform: scale(0.6); opacity: 0.5; }}
+    50% {{ transform: scale(1.15); }}
+    100% {{ transform: scale(1); opacity: 1; }}
+  }}
+  .n1 {{ color:#1976D2; text-shadow: 0 0 1px rgba(25,118,210,0.2); }}
+  .n2 {{ color:#388E3C; text-shadow: 0 0 1px rgba(56,142,60,0.2); }}
+  .n3 {{ color:#D32F2F; text-shadow: 0 0 1px rgba(211,47,47,0.2); }}
+  .n4 {{ color:#7B1FA2; text-shadow: 0 0 1px rgba(123,31,162,0.2); }}
+  .n5 {{ color:#8B0000; text-shadow: 0 0 1px rgba(139,0,0,0.2); }}
+  .n6 {{ color:#00838f; text-shadow: 0 0 1px rgba(0,131,143,0.2); }}
   .n7 {{ color:#212121; }}
   .n8 {{ color:#757575; }}
   {'* { pointer-events:none !important; cursor:default !important; }' if locked else ''}
@@ -1347,13 +1394,15 @@ def inject_css():
     position: sticky;
     top: 0;
     z-index: 1000;
-    background: rgba(255, 255, 255, 0.97);
-    border: 1px solid #e5e7eb;
-    border-radius: 14px;
+    background: linear-gradient(145deg, rgba(255,255,255,0.98), rgba(240,242,245,0.97));
+    border: 1px solid #dde1e6;
+    border-radius: 16px;
     padding: 1.1rem 1.35rem;
     margin: 0 auto 1rem auto;
     max-width: 980px;
     text-align: center;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+    backdrop-filter: blur(12px);
 }
 .sticky-page-title { font-size: 2.25rem; font-weight: 800; line-height: 1.12; }
 .sticky-page-subtitle { font-size: 1.18rem; color: #4b5563; margin-top: 0.35rem; text-align: center; }
@@ -1373,29 +1422,49 @@ div[data-testid="stTextInput"], div[data-testid="stTextArea"], div[data-testid="
 }
 
 .ms-stat-box {
-    background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 10px;
-    padding: 0.5rem 1rem; text-align: center;
+    background: linear-gradient(145deg, #ffffff, #f0f2f5);
+    border: 1px solid #dde1e6;
+    border-radius: 12px;
+    padding: 0.6rem 1rem;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
-.ms-stat-label { font-size: 0.72rem; color: #6c757d; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
-.ms-stat-value { font-size: 1.5rem; font-weight: 800; color: #1c2f45; font-family: monospace; }
+.ms-stat-box:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+.ms-stat-label { font-size: 0.72rem; color: #6c757d; font-weight: 600; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 0.15rem; }
+.ms-stat-value { font-size: 1.5rem; font-weight: 800; color: #1c2f45; font-family: 'SF Mono', 'Consolas', monospace; }
 .ms-rescue-box {
     background: linear-gradient(135deg, #fff3e0 0%, #fce4ec 100%);
     border: 2px solid #ff8f00; border-radius: 14px; padding: 1.2rem 1.4rem;
     margin-bottom: 1rem;
+    box-shadow: 0 4px 16px rgba(255,143,0,0.15);
 }
 .ms-level-badge {
-    display: inline-block; border-radius: 8px; padding: 4px 12px;
-    font-size: 0.8rem; font-weight: 700; color: #fff; margin-bottom: 0.3rem;
+    display: inline-block; border-radius: 20px; padding: 5px 16px;
+    font-size: 0.82rem; font-weight: 700; color: #fff; margin-bottom: 0.3rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    letter-spacing: 0.3px;
 }
 .ms-win-box {
-    background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%);
-    border: 2px solid #43a047; border-radius: 14px; padding: 1.5rem;
+    background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 50%, #f1f8e9 100%);
+    border: 2px solid #43a047; border-radius: 16px; padding: 1.8rem;
     text-align: center; margin-bottom: 1rem;
+    box-shadow: 0 4px 20px rgba(67,160,71,0.18);
+    animation: winFadeIn 0.5s ease-out;
+}
+@keyframes winFadeIn {
+    0% { opacity: 0; transform: translateY(-10px); }
+    100% { opacity: 1; transform: translateY(0); }
 }
 .ms-lose-box {
-    background: linear-gradient(135deg, #ffebee 0%, #fce4ec 100%);
-    border: 2px solid #e53935; border-radius: 14px; padding: 1.5rem;
+    background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 50%, #fce4ec 100%);
+    border: 2px solid #e53935; border-radius: 16px; padding: 1.8rem;
     text-align: center; margin-bottom: 1rem;
+    box-shadow: 0 4px 20px rgba(229,57,53,0.15);
+    animation: winFadeIn 0.5s ease-out;
 }
 .ms-modal-window {
     background: #ffffff;
@@ -1500,16 +1569,25 @@ def sql_rescue_dialog(conn):
     level_name, level_desc = LEVEL_NAMES[level]
     accent = LEVEL_ACCENT[level]
 
-    # Compact header
+    # Gradient banner header
     st.markdown(
-        f'<span class="ms-level-badge" style="background:{accent}">Mine #{ss.ms_mine_hit_count} \u00B7 Level {level}: {level_name}</span> '
-        f'<span style="font-size:0.82rem; color:#5d4037;">{level_desc}</span>',
+        f"""<div style="background: linear-gradient(135deg, {accent}22 0%, {accent}11 100%);
+            border-left: 4px solid {accent}; border-radius: 8px; padding: 0.7rem 1rem; margin-bottom: 0.5rem;">
+            <span class="ms-level-badge" style="background: linear-gradient(135deg, {accent}, {accent}cc);">
+                Mine #{ss.ms_mine_hit_count} &middot; Level {level}: {level_name}
+            </span>
+            <span style="font-size:0.82rem; color:#5d4037; margin-left: 0.5rem;">{level_desc}</span>
+        </div>""",
         unsafe_allow_html=True,
     )
 
     # Short guidance + prominent question
     st.caption("Use SQL to find the result, then write the final answer in the answer box.")
-    st.markdown(f"<p style='font-size:1.15rem; font-weight:600; margin:0.5rem 0 0.3rem;'>{q['text']}</p>", unsafe_allow_html=True)
+    st.markdown(
+        f"""<p style='font-size:1.15rem; font-weight:600; margin:0.5rem 0 0.3rem;
+            color: #1c2f45; line-height: 1.4;'>{q['text']}</p>""",
+        unsafe_allow_html=True,
+    )
 
     # Database reference
     _tables_info = {
@@ -1520,19 +1598,25 @@ def sql_rescue_dialog(conn):
     with st.expander("\U0001F4CB Database Schema & Preview"):
         for tbl, (desc, cols) in _tables_info.items():
             st.markdown(
-                f"**{tbl}** \u2014 *{desc}*",
+                f"""<div style="background: linear-gradient(135deg, #f8f9fa, #eef1f5); border: 1px solid #dde1e6;
+                    border-radius: 8px; padding: 0.5rem 0.8rem; margin-bottom: 0.3rem;">
+                    <span style="font-weight: 700; color: #1565c0; font-family: 'SF Mono','Consolas',monospace; font-size: 0.9rem;">{tbl}</span>
+                    <span style="color: #6b7280; font-size: 0.82rem;"> &mdash; {desc}</span>
+                    <div style="font-size: 0.75rem; color: #4a5568; margin-top: 0.25rem; font-family: 'SF Mono','Consolas',monospace;
+                        background: #ffffff; border-radius: 4px; padding: 0.25rem 0.5rem; border: 1px solid #e5e7eb;">{cols}</div>
+                </div>""",
                 unsafe_allow_html=True,
             )
-            st.caption(f"Columns: `{cols}`")
             try:
                 sample = pd.read_sql(f"SELECT * FROM {tbl} LIMIT 1", conn)
                 st.dataframe(sample, use_container_width=True, hide_index=True)
             except Exception:
                 pass
         st.markdown(
-            "<div style='font-size:0.78rem; color:#6b7280; margin-top:0.4rem;'>"
-            "<b>Relationships:</b> players.team_id \u2192 teams.id &nbsp;\u00B7&nbsp; "
-            "games.home_team_id / away_team_id \u2192 teams.id</div>",
+            """<div style='font-size:0.78rem; color:#4a5568; margin-top:0.5rem;
+                background: #f0f4ff; border: 1px solid #c7d2fe; border-radius: 6px; padding: 0.4rem 0.7rem;'>
+                <b style="color:#3730a3;">Relationships:</b> players.team_id &rarr; teams.id &nbsp;&middot;&nbsp;
+                games.home_team_id / away_team_id &rarr; teams.id</div>""",
             unsafe_allow_html=True,
         )
 
@@ -1583,7 +1667,14 @@ def sql_rescue_dialog(conn):
 
     if ss.ms_sql_hint_shown:
         hint_text = build_hint(q, sql_input if sql_input.strip() else ss.ms_sql_input, conn)
-        st.info(hint_text)
+        st.markdown(
+            f"""<div style="background: linear-gradient(135deg, #e3f2fd, #e8eaf6); border: 1px solid #90caf9;
+                border-radius: 10px; padding: 0.6rem 1rem; margin: 0.3rem 0;
+                box-shadow: 0 2px 6px rgba(33,150,243,0.1);">
+                {hint_text}
+            </div>""",
+            unsafe_allow_html=True,
+        )
 
     # Answer section
     st.divider()
@@ -1612,7 +1703,15 @@ def sql_rescue_dialog(conn):
 
     # Display feedback after submit processing so it shows immediately
     if ss.ms_feedback:
-        st.warning(ss.ms_feedback)
+        st.markdown(
+            f"""<div style="background: linear-gradient(135deg, #fff3e0, #ffe0b2); border: 1px solid #ffb74d;
+                border-radius: 10px; padding: 0.6rem 1rem; margin: 0.3rem 0;
+                box-shadow: 0 2px 6px rgba(255,152,0,0.12);">
+                <span style="font-size: 1.1rem; margin-right: 0.4rem;">&#9888;&#65039;</span>
+                <span style="font-weight: 600; color: #e65100;">{ss.ms_feedback}</span>
+            </div>""",
+            unsafe_allow_html=True,
+        )
 
 
 DIFF_INFO = {
@@ -1625,15 +1724,18 @@ DIFF_INFO = {
 @st.dialog("\U0001F501 Restart - Select Difficulty")
 def restart_difficulty_dialog():
     ss = st.session_state
+    _restart_bg = {"Easy": "linear-gradient(135deg, #e8f5e9, #f1f8e9)", "Medium": "linear-gradient(135deg, #fff8e1, #fffde7)", "Expert": "linear-gradient(135deg, #ffebee, #fce4ec)"}
+    _restart_border = {"Easy": "#a5d6a7", "Medium": "#ffe082", "Expert": "#ef9a9a"}
     for diff_name, info in DIFF_INFO.items():
         with st.container():
             st.markdown(
-                f"""<div style="background:{'#e8f5e9' if diff_name == 'Easy' else '#fff8e1' if diff_name == 'Medium' else '#ffebee'};
-                border:1px solid {'#a5d6a7' if diff_name == 'Easy' else '#ffe082' if diff_name == 'Medium' else '#ef9a9a'};
-                border-radius:10px; padding:0.6rem 0.9rem; margin-bottom:0.45rem;">
-                <span style="font-size:1.1rem;">{info['icon']}</span>
-                <strong style="font-size:1rem;">{diff_name}</strong>
-                <span style="color:#666; font-size:0.85rem; margin-left:0.5rem;">{info['grid']} \u00B7 {info['mines']}</span>
+                f"""<div style="background:{_restart_bg[diff_name]};
+                border:2px solid {_restart_border[diff_name]};
+                border-radius:12px; padding:0.7rem 1rem; margin-bottom:0.45rem;
+                box-shadow: 0 2px 8px {_restart_border[diff_name]}44;">
+                <span style="font-size:1.2rem; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.1));">{info['icon']}</span>
+                <strong style="font-size:1rem; margin-left:0.3rem;">{diff_name}</strong>
+                <span style="color:#666; font-size:0.85rem; margin-left:0.5rem; font-family:'SF Mono','Consolas',monospace;">{info['grid']} &middot; {info['mines']}</span>
                 </div>""",
                 unsafe_allow_html=True,
             )
@@ -1699,16 +1801,20 @@ def render_leaderboard(conn):
 
             top3 = lb.head(3)
             medals = ["\U0001F947", "\U0001F948", "\U0001F949"]
+            medal_bg = ["linear-gradient(145deg, #fffdf0, #fff8e1)", "linear-gradient(145deg, #f8f9fa, #eceff1)", "linear-gradient(145deg, #fff3e0, #ffe0b2)"]
+            medal_border = ["#ffd54f", "#b0bec5", "#ffb74d"]
+            medal_glow = ["rgba(255,213,79,0.3)", "rgba(176,190,197,0.3)", "rgba(255,183,77,0.3)"]
             cols = st.columns(len(top3))
             for j, (_, row) in enumerate(top3.iterrows()):
                 with cols[j]:
-                    st.markdown(f"""<div style="text-align:center;background:#f8f9fa;
-                        border-radius:12px;padding:0.8rem;border:1px solid #dee2e6;">
-                        <div style="font-size:1.8rem">{medals[j]}</div>
-                        <div style="font-weight:700;font-size:0.95rem">{row['nickname']}</div>
-                        <div style="color:#388e3c;font-weight:700">{int(row['score'])} pts</div>
-                        <div style="font-size:0.78rem;color:#666">{format_time(row['completion_time_seconds'])}</div>
-                        <div style="font-size:0.72rem;color:#888">{row['mines_hit']} rescues \u00B7 SQL L{int(row['max_sql_level'])}</div>
+                    st.markdown(f"""<div style="text-align:center; background:{medal_bg[j]};
+                        border-radius:14px; padding:1rem 0.8rem; border:2px solid {medal_border[j]};
+                        box-shadow: 0 4px 16px {medal_glow[j]}; transition: transform 0.2s ease;">
+                        <div style="font-size:2.2rem; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));">{medals[j]}</div>
+                        <div style="font-weight:700; font-size:1rem; color:#1c2f45; margin-top:0.2rem;">{row['nickname']}</div>
+                        <div style="color:#2e7d32; font-weight:800; font-size:1.1rem;">{int(row['score'])} pts</div>
+                        <div style="font-size:0.8rem; color:#555; font-family:'SF Mono','Consolas',monospace;">{format_time(row['completion_time_seconds'])}</div>
+                        <div style="font-size:0.72rem; color:#888; margin-top:0.15rem;">{row['mines_hit']} rescues &middot; SQL L{int(row['max_sql_level'])}</div>
                     </div>""", unsafe_allow_html=True)
 
             st.divider()
@@ -1764,11 +1870,14 @@ def main():
             col_e, col_m, col_x = st.columns(3)
             for col, (dname, icon, grid, mines, bg, border, color) in zip([col_e, col_m, col_x], _diff_cards):
                 with col:
-                    st.markdown(f"""<div style="background:{bg}; border:2px solid {border}; border-radius:12px;
-                        padding:0.8rem 0.5rem; text-align:center; margin-bottom:0.3rem;">
-                        <div style="font-size:1.5rem;">{icon}</div>
-                        <div style="font-weight:700; font-size:0.95rem; color:{color};">{dname}</div>
-                        <div style="font-size:0.78rem; color:#555;">{grid} \u00B7 {mines}</div>
+                    st.markdown(f"""<div style="background: linear-gradient(145deg, {bg}, #ffffff);
+                        border:2px solid {border}; border-radius:14px;
+                        padding:1rem 0.5rem; text-align:center; margin-bottom:0.3rem;
+                        box-shadow: 0 3px 12px {border}44;
+                        transition: transform 0.2s ease, box-shadow 0.2s ease;">
+                        <div style="font-size:1.8rem; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.12));">{icon}</div>
+                        <div style="font-weight:800; font-size:1rem; color:{color}; margin-top:0.2rem;">{dname}</div>
+                        <div style="font-size:0.8rem; color:#555; font-family:'SF Mono','Consolas',monospace;">{grid} &middot; {mines}</div>
                     </div>""", unsafe_allow_html=True)
                     if st.button(f"\U0001F680 Start {dname}", key=f"ms_setup_start_{dname}", use_container_width=True):
                         nickname = st.session_state.get("ms_nickname_draft", "").strip()
@@ -1786,24 +1895,39 @@ def main():
             levels_html = ""
             for lvl, (name, desc) in LEVEL_NAMES.items():
                 accent = LEVEL_ACCENT[lvl]
-                levels_html += f"""<div style="display:flex; align-items:center; gap:0.55rem; padding:0.35rem 0;">
-                    <span style="background:{accent}; color:#fff; border-radius:8px; padding:3px 10px;
-                        font-size:0.75rem; font-weight:700; min-width:28px; text-align:center;">L{lvl}</span>
+                levels_html += f"""<div style="display:flex; align-items:center; gap:0.6rem; padding:0.4rem 0.5rem;
+                    border-radius:8px; margin-bottom:0.2rem;
+                    background: linear-gradient(90deg, {accent}0d 0%, transparent 100%);
+                    border-left: 3px solid {accent};">
+                    <span style="background: linear-gradient(135deg, {accent}, {accent}cc); color:#fff; border-radius:12px; padding:3px 12px;
+                        font-size:0.75rem; font-weight:700; min-width:28px; text-align:center;
+                        box-shadow: 0 1px 4px {accent}44;">L{lvl}</span>
                     <span style="font-weight:600; font-size:0.88rem; color:#1c2f45;">{name}</span>
                     <span style="color:#6b7280; font-size:0.82rem;">{desc}</span>
                 </div>"""
 
-            st.markdown(f"""<div style="background:#f9fafb; border:1px solid #e5e7eb; border-radius:14px;
-                padding:1rem 1.4rem; margin-top:0.9rem;">
-                <div style="font-size:0.92rem; font-weight:700; color:#1c2f45; margin-bottom:0.5rem;">
-                    SQL Rescue Levels <span style="font-weight:400; color:#6b7280; font-size:0.82rem;">\u2014 hit a mine, solve SQL to survive</span>
+            st.markdown(f"""<div style="background: linear-gradient(145deg, #f9fafb, #f0f2f5); border:1px solid #e5e7eb; border-radius:14px;
+                padding:1rem 1.4rem; margin-top:0.9rem;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+                <div style="font-size:0.95rem; font-weight:700; color:#1c2f45; margin-bottom:0.6rem;">
+                    SQL Rescue Levels <span style="font-weight:400; color:#6b7280; font-size:0.82rem;">&mdash; hit a mine, solve SQL to survive</span>
                 </div>
                 {levels_html}
             </div>""", unsafe_allow_html=True)
             return
 
+        diff_color = {"Easy": "#2e7d32", "Medium": "#f57f17", "Expert": "#c62828"}.get(ss.ms_difficulty, "#1c2f45")
         st.markdown(
-            f"**\U0001F4A3 SQL Minesweeper** \u00B7 {ss.ms_difficulty} ({ss.ms_rows}x{ss.ms_cols}, {ss.ms_mines} mines) \u00B7 Player: **{ss.ms_nickname}**"
+            f"""<div style="background: linear-gradient(135deg, #f8f9fa, #eef1f5); border: 1px solid #dde1e6;
+                border-radius: 10px; padding: 0.5rem 1rem; margin-bottom: 0.3rem; display: inline-block;">
+                <span style="font-weight: 700; font-size: 0.95rem;">\U0001F4A3 SQL Minesweeper</span>
+                <span style="color: #9e9e9e; margin: 0 0.3rem;">&middot;</span>
+                <span style="color: {diff_color}; font-weight: 700;">{ss.ms_difficulty}</span>
+                <span style="color: #666; font-size: 0.85rem;">({ss.ms_rows}x{ss.ms_cols}, {ss.ms_mines} mines)</span>
+                <span style="color: #9e9e9e; margin: 0 0.3rem;">&middot;</span>
+                <span style="font-size: 0.85rem;">Player: <strong>{ss.ms_nickname}</strong></span>
+            </div>""",
+            unsafe_allow_html=True,
         )
 
         render_stats()
@@ -1820,7 +1944,14 @@ def main():
         if ss.ms_show_restart_picker:
             restart_difficulty_dialog()
 
-        st.info("\U0001F7E2 Left-click: Reveal a cell    |    \U0001F6A9 Right-click: Flag / unflag")
+        st.markdown(
+            """<div style="background: linear-gradient(135deg, #e8f5e9, #f1f8e9); border: 1px solid #a5d6a7;
+                border-radius: 8px; padding: 0.4rem 0.8rem; text-align: center; font-size: 0.85rem; color: #2e7d32;">
+                \U0001F7E2 <strong>Left-click:</strong> Reveal a cell &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
+                \U0001F6A9 <strong>Right-click:</strong> Flag / unflag
+            </div>""",
+            unsafe_allow_html=True,
+        )
         st.divider()
 
         if ss.ms_sql_rescue and not ss.ms_game_over:

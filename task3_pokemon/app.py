@@ -552,29 +552,34 @@ def pokemon_preview_card(p: dict, slot_num: int, stat_maxima: dict):
         """
 
     stats_html = (
-        stat_bar("HP", "hp", "#2E7D32")
-        + stat_bar("ATK", "attack", "#EF6C00")
-        + stat_bar("DEF", "defense", "#F9A825")
+        stat_bar("HP", "hp", "#43A047")
+        + stat_bar("ATK", "attack", "#E53935")
+        + stat_bar("DEF", "defense", "#1E88E5")
         + stat_bar("SpA", "sp_atk", "#8E24AA")
-        + stat_bar("SpD", "sp_def", "#1E88E5")
-        + stat_bar("SPD", "speed", "#43A047")
-        + stat_bar("TOTAL", "total", "#1565C0")
+        + stat_bar("SpD", "sp_def", "#00ACC1")
+        + stat_bar("SPD", "speed", "#FB8C00")
+        + stat_bar("TOTAL", "total", "#3949AB")
     )
 
     st.markdown(
         f"""
         <div style="
             border: 1px solid #d6dde8;
-            border-radius: 10px;
-            padding: 10px 10px 8px 10px;
-            background: var(--secondary-background-color, #f2f4f8);
+            border-radius: 12px;
+            padding: 12px 12px 10px 12px;
+            background: linear-gradient(160deg, #f7f9fc 0%, #eef2f7 100%);
             margin-top: 6px;
-        ">
-            <div style="font-size:0.68rem;font-weight:700;color:#1f3a56;
-                background:#dbe4f0;border-radius:999px;padding:1px 8px;
-                display:inline-block;margin-bottom:6px;">Slot {slot_num}</div>
-            <div style="font-size:0.95rem;font-weight:800;margin-bottom:3px;">{p['name']}</div>
-            <div style="font-size:0.80rem;margin-bottom:8px;color:#444;">{types_str}</div>
+            transition: box-shadow 0.2s ease, transform 0.15s ease;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+        "
+        onmouseover="this.style.boxShadow='0 4px 16px rgba(74,144,217,0.18)';this.style.transform='translateY(-2px)';"
+        onmouseout="this.style.boxShadow='0 1px 4px rgba(0,0,0,0.06)';this.style.transform='translateY(0)';"
+        >
+            <div style="font-size:0.64rem;font-weight:800;color:#fff;letter-spacing:0.5px;
+                background:linear-gradient(135deg,#4A90D9,#6366F1);border-radius:999px;padding:2px 10px;
+                display:inline-block;margin-bottom:7px;text-transform:uppercase;">Slot {slot_num}</div>
+            <div style="font-size:0.98rem;font-weight:800;margin-bottom:3px;color:#1a1a2e;">{p['name']}</div>
+            <div style="font-size:0.80rem;margin-bottom:9px;color:#555;">{types_str}</div>
             {stats_html}
         </div>
         """,
@@ -700,22 +705,38 @@ def render_battle_log(log_entries: list[str], title: str, key_prefix: str, heigh
         st.info("No log entries for this filter yet.")
 
 
-def render_battle_card(p: dict):
+def render_battle_card(p: dict, is_active: bool = False):
     """Render a battle card; all alive Pokemon are active fighters."""
     fainted = p["current_hp"] <= 0
     pct = max(0, p["current_hp"] / p["max_hp"]) if p["max_hp"] > 0 else 0
     if pct > 0.5:
         bar_color = "#4CAF50"
+        bg_tint = "rgba(76,175,80,0.07)" if not fainted else "#f0f0f0"
     elif pct > 0.2:
         bar_color = "#FFC107"
+        bg_tint = "rgba(255,193,7,0.08)" if not fainted else "#f0f0f0"
     else:
-        bar_color = "#e67e22"
+        bar_color = "#e63946"
+        bg_tint = "rgba(230,57,70,0.07)" if not fainted else "#f0f0f0"
 
-    border_color = "#4A90D9" if not fainted else "#ccc"
-    bg = "linear-gradient(135deg,#e8f4fd 0%,#f8fbff 100%)" if not fainted else "#f0f0f0"
+    if fainted:
+        border_color = "#ccc"
+        bg = "#f0f0f0"
+        box_shadow = "none"
+        glow_css = ""
+    else:
+        border_color = "#4A90D9"
+        bg = f"linear-gradient(135deg, {bg_tint} 0%, #f8fbff 60%, #ffffff 100%)"
+        box_shadow = "0 3px 12px rgba(74,144,217,0.18)"
+        glow_css = (
+            "animation: battleCardPulse 2.2s ease-in-out infinite;"
+            if is_active else ""
+        )
+
     opacity = "0.42" if fainted else "1"
     status_text = "Fighting" if not fainted else "Fainted"
     status_color = "#27ae60" if not fainted else "#aaa"
+    status_bg = "rgba(39,174,96,0.10)" if not fainted else "rgba(170,170,170,0.12)"
 
     t1 = type_badge(p.get("type1", ""))
     t2_raw = p.get("type2", "")
@@ -723,25 +744,54 @@ def render_battle_card(p: dict):
     types_str = t1 + (f"&nbsp;/&nbsp;{t2}" if t2 else "")
     hp_text = f"{max(0, p['current_hp'])} / {p['max_hp']}"
 
+    # Stat mini-indicators
+    atk_val = p.get("attack", 0)
+    def_val = p.get("defense", 0)
+    spd_val = p.get("speed", 0)
+    stat_dots = (
+        f'<span style="display:inline-flex;align-items:center;gap:3px;font-size:0.65rem;color:#888;">'
+        f'<span title="ATK {atk_val}" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#EF6C00;"></span>'
+        f'<span style="margin-right:5px;">{atk_val}</span>'
+        f'<span title="DEF {def_val}" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#1E88E5;"></span>'
+        f'<span style="margin-right:5px;">{def_val}</span>'
+        f'<span title="SPD {spd_val}" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#43A047;"></span>'
+        f'<span>{spd_val}</span>'
+        f'</span>'
+    )
+
     st.markdown(f"""
+    <style>
+        @keyframes battleCardPulse {{
+            0%, 100% {{ box-shadow: 0 3px 12px rgba(74,144,217,0.18); }}
+            50% {{ box-shadow: 0 3px 18px rgba(74,144,217,0.45), 0 0 6px rgba(74,144,217,0.20); }}
+        }}
+    </style>
     <div style="
         border: 2px solid {border_color};
-        border-radius: 12px;
-        padding: 12px 14px;
+        border-radius: 14px;
+        padding: 14px 16px 12px 16px;
         background: {bg};
         opacity: {opacity};
-        margin-bottom: 8px;
-        box-shadow: {'0 3px 10px rgba(74,144,217,0.20)' if not fainted else 'none'};
+        margin-bottom: 10px;
+        box-shadow: {box_shadow};
+        {glow_css}
+        transition: box-shadow 0.3s, transform 0.15s;
     ">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-            <span style="font-weight:800;font-size:1rem;">{p['name']}</span>
-            <span style="font-size:0.72rem;font-weight:700;color:{status_color};">{status_text}</span>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
+            <span style="font-weight:800;font-size:1.05rem;letter-spacing:-0.2px;">{p['name']}</span>
+            <span style="font-size:0.68rem;font-weight:700;color:{status_color};
+                background:{status_bg};border-radius:999px;padding:2px 9px;">{status_text}</span>
         </div>
         <div style="font-size:0.82rem;color:#555;margin-bottom:8px;">{types_str}</div>
-        <div style="font-size:0.78rem;color:#666;margin-bottom:4px;">HP:&nbsp;<b>{hp_text}</b></div>
-        <div style="background:#ddd;border-radius:6px;height:14px;width:100%;overflow:hidden;">
-            <div style="background:{bar_color};height:100%;width:{pct*100:.1f}%;border-radius:6px;transition:width 0.3s;"></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+            <span style="font-size:0.76rem;color:#555;font-weight:600;">HP&nbsp;&nbsp;<b style="color:#333;">{hp_text}</b></span>
+            <span style="font-size:0.72rem;color:#999;">{pct*100:.0f}%</span>
         </div>
+        <div style="background:#e0e0e0;border-radius:8px;height:16px;width:100%;overflow:hidden;margin-bottom:8px;">
+            <div style="background:linear-gradient(90deg, {bar_color}, {bar_color}dd);height:100%;width:{pct*100:.1f}%;
+                border-radius:8px;transition:width 0.4s ease;"></div>
+        </div>
+        {stat_dots}
     </div>
     """, unsafe_allow_html=True)
 
@@ -846,22 +896,38 @@ def page_battle():
         player_team = st.session_state.player_team
         ai_team = st.session_state.ai_team
 
+        # Determine fastest alive pokemon on each side for active glow
+        _p_alive = [p for p in player_team if p["current_hp"] > 0]
+        _a_alive = [p for p in ai_team if p["current_hp"] > 0]
+        _p_fastest = max(_p_alive, key=lambda x: x["speed"])["name"] if _p_alive else ""
+        _a_fastest = max(_a_alive, key=lambda x: x["speed"])["name"] if _a_alive else ""
+
         # Layout: player vs AI
         col1, col_mid, col2 = st.columns([5, 1, 5])
         with col1:
             st.markdown("###  Your Team")
             for p in player_team:
-                render_battle_card(p)
+                render_battle_card(p, is_active=(p["name"] == _p_fastest))
         with col_mid:
             st.markdown(
-                "<div style='text-align:center;font-size:1.8rem;font-weight:900;"
-                "padding-top:40px;color:#555;'>VS</div>",
+                """<style>
+                    @keyframes vsGlow {
+                        0%, 100% { text-shadow: 0 0 8px rgba(99,102,241,0.3), 0 0 2px rgba(239,68,68,0.2); }
+                        50% { text-shadow: 0 0 16px rgba(99,102,241,0.5), 0 0 6px rgba(239,68,68,0.35); }
+                    }
+                </style>
+                <div style='text-align:center;padding-top:36px;'>
+                    <span style="font-size:2.6rem;font-weight:900;letter-spacing:4px;
+                        background:linear-gradient(135deg,#EF4444,#6366F1);
+                        -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+                        animation:vsGlow 2s ease-in-out infinite;">VS</span>
+                </div>""",
                 unsafe_allow_html=True,
             )
         with col2:
             st.markdown("### AI Team")
             for p in ai_team:
-                render_battle_card(p)
+                render_battle_card(p, is_active=(p["name"] == _a_fastest))
 
         st.markdown("---")
 
@@ -871,20 +937,25 @@ def page_battle():
             st.markdown(
                 f"""
                 <div style="
-                    border:1px solid #d8e0ec;
-                    border-radius:12px;
-                    padding:10px 12px;
-                    background:linear-gradient(180deg,#f9fbff 0%, #f1f5fb 100%);
-                    margin-bottom:10px;
+                    border:2px solid #6366F1;
+                    border-radius:14px;
+                    padding:12px 16px 8px 16px;
+                    background:linear-gradient(135deg,#EEF2FF 0%, #F5F3FF 50%, #f9fbff 100%);
+                    margin-bottom:12px;
+                    box-shadow:0 2px 10px rgba(99,102,241,0.12);
                 ">
-                    <div style="font-size:0.75rem;font-weight:800;color:#334155;text-align:center;margin-bottom:6px;">
-                        Battle Controls - Turn {turn_count}
+                    <div style="font-size:0.68rem;font-weight:800;color:#6366F1;text-align:center;
+                        text-transform:uppercase;letter-spacing:1.5px;margin-bottom:2px;">
+                        Battle Controls
+                    </div>
+                    <div style="font-size:1.3rem;font-weight:900;color:#1E1B4B;text-align:center;">
+                        Turn {turn_count}
                     </div>
                 </div>
                 """,
                 unsafe_allow_html=True,
             )
-            next_col, auto_col = st.columns(2)
+            next_col, spacer_col, auto_col = st.columns([5, 1, 4])
             with next_col:
                 next_clicked = st.button("Next Turn", key="next_turn_main", type="primary", use_container_width=True)
             with auto_col:
@@ -942,17 +1013,41 @@ def page_battle():
         winner = st.session_state.get("winner", "player")
         if winner == "player":
             st.balloons()
-            st.success(" YOU WIN! Congratulations, Pokemon Master!")
-        elif winner == "draw":
-            st.info(" DRAW! Both teams fainted at the same time!")
-        else:
             st.markdown(
-                '<div style="padding:12px 16px;border-radius:8px;background:#f0f0f0;'
-                'border:1px solid #ccc;font-size:1.05rem;"> You lost... Better luck next time!</div>',
+                """<div style="text-align:center;padding:28px 20px;border-radius:16px;
+                    background:linear-gradient(135deg,#059669 0%,#10B981 40%,#34D399 100%);
+                    box-shadow:0 6px 24px rgba(16,185,129,0.3);margin-bottom:16px;">
+                    <div style="font-size:2.2rem;font-weight:900;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,0.2);
+                        letter-spacing:1px;">YOU WIN!</div>
+                    <div style="font-size:1rem;color:#D1FAE5;margin-top:4px;">Congratulations, Pokemon Master!</div>
+                </div>""",
                 unsafe_allow_html=True,
             )
-        pa_l, pa_c, pa_r = st.columns([1.4, 2.2, 1.4])
+        elif winner == "draw":
+            st.markdown(
+                """<div style="text-align:center;padding:28px 20px;border-radius:16px;
+                    background:linear-gradient(135deg,#6366F1 0%,#818CF8 40%,#A5B4FC 100%);
+                    box-shadow:0 6px 24px rgba(99,102,241,0.3);margin-bottom:16px;">
+                    <div style="font-size:2.2rem;font-weight:900;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,0.2);
+                        letter-spacing:1px;">DRAW!</div>
+                    <div style="font-size:1rem;color:#E0E7FF;margin-top:4px;">Both teams fainted at the same time!</div>
+                </div>""",
+                unsafe_allow_html=True,
+            )
+        else:
+            st.markdown(
+                """<div style="text-align:center;padding:28px 20px;border-radius:16px;
+                    background:linear-gradient(135deg,#DC2626 0%,#EF4444 40%,#F87171 100%);
+                    box-shadow:0 6px 24px rgba(220,38,38,0.25);margin-bottom:16px;">
+                    <div style="font-size:2.2rem;font-weight:900;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,0.2);
+                        letter-spacing:1px;">DEFEAT</div>
+                    <div style="font-size:1rem;color:#FEE2E2;margin-top:4px;">You lost... Better luck next time!</div>
+                </div>""",
+                unsafe_allow_html=True,
+            )
+        pa_l, pa_c, pa_r = st.columns([1.2, 2.6, 1.2])
         with pa_c:
+            st.markdown("<div style='height:6px;'></div>", unsafe_allow_html=True)
             play_again_top = st.button("Play Again", key="play_again_top", type="primary", use_container_width=True)
         if play_again_top:
             st.session_state.battle_state = "select"
@@ -1007,14 +1102,21 @@ def page_battle():
 
         # Battle history
         st.markdown("---")
-        st.subheader("\U0001f4ca Battle History")
+        st.markdown(
+            """<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+                <span style="font-size:1.3rem;font-weight:800;color:#1E1B4B;">Battle History</span>
+                <span style="font-size:0.7rem;font-weight:700;color:#6366F1;background:#EEF2FF;
+                    border-radius:999px;padding:2px 10px;">Last 20</span>
+            </div>""",
+            unsafe_allow_html=True,
+        )
         conn = get_conn()
         hist = pd.read_sql_query("SELECT * FROM battle_history ORDER BY id DESC LIMIT 20", conn)
         conn.close()
         if hist.empty:
             st.info("No battles yet.")
         else:
-            st.dataframe(hist, use_container_width=True)
+            st.dataframe(hist, use_container_width=True, hide_index=True)
 
 
 def execute_turn(player_team, ai_team):

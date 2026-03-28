@@ -5,6 +5,7 @@ A Streamlit app that explores US baby name trends using SSA data stored in SQLit
 """
 
 import os
+import re
 import sqlite3
 from pathlib import Path
 
@@ -271,18 +272,35 @@ with tab_explore:
         if df.empty:
             st.warning("No data found for the entered names.")
         else:
-            fig = px.line(
-                df,
-                x="Year",
-                y="Value",
-                color="Name",
-                labels={"Value": y_label, "Year": "Year"},
-                title=f"Name Popularity ({mode})",
+            colors = px.colors.qualitative.Set2
+            fig = go.Figure()
+            for i, name in enumerate(df["Name"].unique()):
+                name_df = df[df["Name"] == name]
+                c = colors[i % len(colors)]
+                # Build rgba fill color with low opacity
+                rgb = px.colors.hex_to_colors_dict.get(c, c) if hasattr(px.colors, 'hex_to_colors_dict') else c
+                _rgb_match = re.match(r'#([0-9a-fA-F]{2})([0-9a-fA-F]{2})([0-9a-fA-F]{2})', c)
+                if _rgb_match:
+                    _r, _g, _b = (int(_rgb_match.group(j), 16) for j in (1, 2, 3))
+                    fill_c = f"rgba({_r},{_g},{_b},0.08)"
+                else:
+                    fill_c = "rgba(100,100,100,0.08)"
+                fig.add_trace(go.Scatter(
+                    x=name_df["Year"], y=name_df["Value"],
+                    name=name, mode="lines",
+                    line=dict(color=c, width=2.5, shape="spline"),
+                    fill="tozeroy", fillcolor=fill_c,
+                ))
+            fig.update_layout(
+                title=dict(text=f"<b>Name Popularity ({mode})</b>", font=dict(size=16)),
+                hovermode="x unified",
+                dragmode=False,
+                plot_bgcolor="rgba(0,0,0,0)",
+                xaxis=dict(showspikes=True, spikemode="across", spikethickness=1, title="Year"),
+                yaxis=dict(showspikes=True, spikemode="across", spikethickness=1,
+                           gridcolor="#E5E7EB", title=y_label),
+                legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="center", x=0.5),
             )
-            fig.update_layout(hovermode="x unified", template="plotly_white",
-                                dragmode=False,
-                                xaxis=dict(showspikes=True, spikemode="across", spikethickness=1),
-                                yaxis=dict(showspikes=True, spikemode="across", spikethickness=1, showgrid=False))
             st.plotly_chart(fig, use_container_width=True)
     else:
         st.info("Type at least one name above to see the chart.")
@@ -457,7 +475,8 @@ with tab_diversity:
         go.Scatter(
             x=div_df["Year"], y=div_df["UniqueNames"],
             name="Unique Names", mode="lines",
-            line=dict(color="#4A90D9", width=2),
+            line=dict(color="#4A90D9", width=2.5, shape="spline"),
+            fill="tozeroy", fillcolor="rgba(74,144,217,0.1)",
         )
     )
     fig_div.add_trace(
@@ -465,19 +484,22 @@ with tab_diversity:
             x=div_df["Year"], y=div_df["AvgCountPerName"],
             name="Avg Count per Name", mode="lines",
             yaxis="y2",
-            line=dict(color="#E8636E", width=2, dash="dot"),
+            line=dict(color="#E8636E", width=2.5, dash="dot", shape="spline"),
         )
     )
     fig_div.update_layout(
-        title="Name Diversity Over Time",
+        title=dict(text="<b>Name Diversity Over Time</b>", font=dict(size=16)),
         xaxis_title="Year",
-        yaxis=dict(title=dict(text="Unique Names", font=dict(color="#4A90D9"))),
+        plot_bgcolor="rgba(0,0,0,0)",
+        yaxis=dict(title=dict(text="Unique Names", font=dict(color="#4A90D9")),
+                   gridcolor="#E5E7EB", tickfont=dict(color="#4A90D9")),
         yaxis2=dict(
             title=dict(text="Avg Count per Name", font=dict(color="#E8636E")),
             overlaying="y",
             side="right",
+            gridcolor="rgba(0,0,0,0)",
+            tickfont=dict(color="#E8636E"),
         ),
-        template="plotly_white",
         hovermode="x unified",
         dragmode=False,
         xaxis=dict(showspikes=True, spikemode="across", spikethickness=1),
@@ -502,16 +524,27 @@ with tab_patterns:
     """
     p1_df = cached_static_query(p1_sql)
 
-    fig_p1 = px.line(
-        p1_df, x="Year", y="UniqueNames",
-        title="Number of Unique Baby Names per Year",
-        labels={"UniqueNames": "Unique Names"},
+    fig_p1 = go.Figure()
+    fig_p1.add_trace(go.Scatter(
+        x=p1_df["Year"], y=p1_df["UniqueNames"],
+        mode="lines", name="Unique Names",
+        line=dict(color="#6366F1", width=2.5, shape="spline"),
+        fill="tozeroy", fillcolor="rgba(99,102,241,0.1)",
+    ))
+    fig_p1.add_vline(
+        x=1950, line_dash="dash", line_color="#EF4444", line_width=2,
+        annotation=dict(text="<b>1950</b>", font=dict(size=13, color="#EF4444"),
+                        showarrow=True, arrowhead=2, arrowcolor="#EF4444"),
     )
-    # Add a vertical reference line at 1950
-    fig_p1.add_vline(x=1950, line_dash="dash", line_color="red", annotation_text="1950")
-    fig_p1.update_layout(template="plotly_white", dragmode=False, hovermode="x unified",
-                          xaxis=dict(showspikes=True, spikemode="across", spikethickness=1),
-                          yaxis=dict(showspikes=True, spikemode="across", spikethickness=1, showgrid=False))
+    fig_p1.update_layout(
+        title=dict(text="<b>Number of Unique Baby Names per Year</b>", font=dict(size=16)),
+        plot_bgcolor="rgba(0,0,0,0)",
+        dragmode=False, hovermode="x unified",
+        xaxis=dict(showspikes=True, spikemode="across", spikethickness=1, title="Year"),
+        yaxis=dict(showspikes=True, spikemode="across", spikethickness=1,
+                   gridcolor="#E5E7EB", title="Unique Names"),
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="center", x=0.5),
+    )
     st.plotly_chart(fig_p1, use_container_width=True)
     with st.expander("Show SQL query"):
         st.code(p1_sql, language="sql")
@@ -541,17 +574,31 @@ with tab_patterns:
     """
     p2_df = cached_static_query(p2_sql)
 
-    fig_p2 = px.bar(
-        p2_df, x="Year", y="Total",
-        title='Popularity of the Name "Arya" Over Time',
-        labels={"Total": "Births"},
-        color_discrete_sequence=["#7B68EE"],
+    fig_p2 = go.Figure()
+    fig_p2.add_trace(go.Bar(
+        x=p2_df["Year"], y=p2_df["Total"],
+        name="Births",
+        marker=dict(
+            color=p2_df["Total"],
+            colorscale="Purples",
+            cornerradius=5,
+            line=dict(width=0),
+        ),
+    ))
+    fig_p2.add_vline(
+        x=2011, line_dash="dash", line_color="#EF4444", line_width=2,
+        annotation=dict(text="<b>GoT S1 (2011)</b>", font=dict(size=12, color="#EF4444"),
+                        showarrow=True, arrowhead=2, arrowcolor="#EF4444"),
     )
-    fig_p2.add_vline(x=2011, line_dash="dash", line_color="red",
-                     annotation_text="GoT S1 (2011)")
-    fig_p2.update_layout(template="plotly_white", dragmode=False, hovermode="x unified",
-                          xaxis=dict(showspikes=True, spikemode="across", spikethickness=1),
-                          yaxis=dict(showspikes=True, spikemode="across", spikethickness=1, showgrid=False))
+    fig_p2.update_layout(
+        title=dict(text='<b>Popularity of the Name "Arya" Over Time</b>', font=dict(size=16)),
+        plot_bgcolor="rgba(0,0,0,0)",
+        dragmode=False, hovermode="x unified",
+        xaxis=dict(showspikes=True, spikemode="across", spikethickness=1, title="Year"),
+        yaxis=dict(showspikes=True, spikemode="across", spikethickness=1,
+                   gridcolor="#E5E7EB", title="Births"),
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="center", x=0.5),
+    )
     st.plotly_chart(fig_p2, use_container_width=True)
     with st.expander("Show SQL query"):
         st.code(p2_sql, language="sql")
@@ -596,21 +643,28 @@ with tab_patterns:
             .rename(columns={"State": "NumStates"})
             .sort_values(["NumStates", "TopName"], ascending=[False, True])
         )
-        fig_p3_topname_states = px.bar(
-            topname_states_df.head(20),
-            x="TopName",
-            y="NumStates",
-            title="How Many States Each Top Name Dominates",
-            labels={"TopName": "Top Name", "NumStates": "Number of States"},
-            color="NumStates",
-            color_continuous_scale="Blues",
-        )
+        _top20 = topname_states_df.head(20)
+        fig_p3_topname_states = go.Figure()
+        fig_p3_topname_states.add_trace(go.Bar(
+            x=_top20["TopName"], y=_top20["NumStates"],
+            text=_top20["NumStates"], textposition="outside",
+            textfont=dict(size=12),
+            marker=dict(
+                color=_top20["NumStates"],
+                colorscale="Blues",
+                cornerradius=5,
+                line=dict(width=0),
+            ),
+        ))
         fig_p3_topname_states.update_layout(
-            template="plotly_white",
+            title=dict(text="<b>How Many States Each Top Name Dominates</b>", font=dict(size=16)),
+            plot_bgcolor="rgba(0,0,0,0)",
             dragmode=False,
             hovermode="x unified",
-            xaxis=dict(showspikes=True, spikemode="across", spikethickness=1),
-            yaxis=dict(showspikes=True, spikemode="across", spikethickness=1, showgrid=False),
+            xaxis=dict(showspikes=True, spikemode="across", spikethickness=1, title="Top Name"),
+            yaxis=dict(showspikes=True, spikemode="across", spikethickness=1,
+                       gridcolor="#E5E7EB", title="Number of States"),
+            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="center", x=0.5),
         )
         st.plotly_chart(fig_p3_topname_states, use_container_width=True)
         with st.expander("Show SQL query"):
@@ -628,14 +682,28 @@ with tab_patterns:
 
     p3c_df = cached_static_query(p3c_sql)
     if not p3c_df.empty:
-        fig_p3 = px.line(
-            p3c_df, x="Year", y="Total", color="State",
-            title='Regional Popularity of "Jose" Across States',
-            labels={"Total": "Births"},
+        _state_colors = {"CA": "#3B82F6", "TX": "#EF4444", "NY": "#10B981", "FL": "#F59E0B", "MT": "#8B5CF6"}
+        fig_p3 = go.Figure()
+        for state in p3c_df["State"].unique():
+            sdf = p3c_df[p3c_df["State"] == state]
+            c = _state_colors.get(state, "#6B7280")
+            _m = re.match(r'#([0-9a-fA-F]{2})([0-9a-fA-F]{2})([0-9a-fA-F]{2})', c)
+            fill_c = f"rgba({int(_m.group(1),16)},{int(_m.group(2),16)},{int(_m.group(3),16)},0.07)" if _m else "rgba(100,100,100,0.07)"
+            fig_p3.add_trace(go.Scatter(
+                x=sdf["Year"], y=sdf["Total"],
+                name=state, mode="lines",
+                line=dict(color=c, width=2.5, shape="spline"),
+                fill="tozeroy", fillcolor=fill_c,
+            ))
+        fig_p3.update_layout(
+            title=dict(text='<b>Regional Popularity of "Jose" Across States</b>', font=dict(size=16)),
+            plot_bgcolor="rgba(0,0,0,0)",
+            dragmode=False, hovermode="x unified",
+            xaxis=dict(showspikes=True, spikemode="across", spikethickness=1, title="Year"),
+            yaxis=dict(showspikes=True, spikemode="across", spikethickness=1,
+                       gridcolor="#E5E7EB", title="Births"),
+            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="center", x=0.5),
         )
-        fig_p3.update_layout(template="plotly_white", dragmode=False, hovermode="x unified",
-                              xaxis=dict(showspikes=True, spikemode="across", spikethickness=1),
-                              yaxis=dict(showspikes=True, spikemode="across", spikethickness=1, showgrid=False))
         st.plotly_chart(fig_p3, use_container_width=True)
         with st.expander("Show SQL query"):
             st.code(p3c_sql, language="sql")

@@ -867,17 +867,33 @@ section[data-testid="stSidebar"] > div:first-child { padding-top: 0.5rem !import
 
                     st.divider()
 
-                    # --- Oscar Stats ---
-                    m1, m2, m3, m4 = st.columns(4)
-                    m1.metric("Nominations", profile["num_nominations"])
-                    m2.metric("Wins", profile["num_wins"] if profile["num_wins"] else "No wins yet")
-                    m3.metric("Win Rate", f"{profile['win_rate']:.1f}%")
-                    m4.metric(
-                        "Years Active",
+                    # --- Oscar Stats (styled gradient cards) ---
+                    _wins_display = profile["num_wins"] if profile["num_wins"] else "0"
+                    _years_display = (
                         f"{profile['first_year']} - {profile['last_year']}"
                         if profile["first_year"]
-                        else "N/A",
+                        else "N/A"
                     )
+                    st.markdown(f"""
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:1rem 0;">
+  <div style="background:linear-gradient(135deg,#EEF2FF,#E0E7FF);border-radius:12px;padding:1rem;text-align:center;border:1px solid #C7D2FE;">
+    <div style="font-size:0.75rem;color:#6B7280;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">&#127942; Nominations</div>
+    <div style="font-size:1.8rem;font-weight:800;color:#4338CA;">{profile["num_nominations"]}</div>
+  </div>
+  <div style="background:linear-gradient(135deg,#FFFBEB,#FEF3C7);border-radius:12px;padding:1rem;text-align:center;border:1px solid #FDE68A;">
+    <div style="font-size:0.75rem;color:#6B7280;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">&#127941; Wins</div>
+    <div style="font-size:1.8rem;font-weight:800;color:#B45309;">{_wins_display}</div>
+  </div>
+  <div style="background:linear-gradient(135deg,#ECFDF5,#D1FAE5);border-radius:12px;padding:1rem;text-align:center;border:1px solid #A7F3D0;">
+    <div style="font-size:0.75rem;color:#6B7280;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">&#9989; Win Rate</div>
+    <div style="font-size:1.8rem;font-weight:800;color:#065F46;">{profile['win_rate']:.1f}%</div>
+  </div>
+  <div style="background:linear-gradient(135deg,#F5F3FF,#EDE9FE);border-radius:12px;padding:1rem;text-align:center;border:1px solid #DDD6FE;">
+    <div style="font-size:0.75rem;color:#6B7280;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">&#128197; Years Active</div>
+    <div style="font-size:1.8rem;font-weight:800;color:#6D28D9;">{_years_display}</div>
+  </div>
+</div>
+""", unsafe_allow_html=True)
 
                     if profile["years_to_first_win"] is not None:
                         st.info(
@@ -913,6 +929,7 @@ section[data-testid="stSidebar"] > div:first-child { padding-top: 0.5rem !import
 
                     # --- Nominations Table ---
                     st.subheader("All Nominations")
+                    st.caption("Look for the \U0001F3C6 trophy icon in the Result column to spot wins.")
                     rows = []
                     for n in profile["nominations"]:
                         rows.append(
@@ -962,9 +979,25 @@ section[data-testid="stSidebar"] > div:first-child { padding-top: 0.5rem !import
                     orientation="h",
                     title="Most Oscar Nominations Without a Win",
                     color="Nominations",
-                    color_continuous_scale=[[0, "#6BAED6"], [1, "#08306B"]],
+                    color_continuous_scale=[[0, "#93C5FD"], [0.5, "#3B82F6"], [1, "#1E3A8A"]],
+                    text="Nominations",
                 )
-                fig1.update_layout(yaxis={"categoryorder": "total ascending"}, height=500)
+                fig1.update_traces(
+                    textposition="outside",
+                    textfont_size=11,
+                    marker_cornerradius=5,
+                )
+                fig1.update_layout(
+                    yaxis={"categoryorder": "total ascending"},
+                    height=520,
+                    plot_bgcolor="rgba(0,0,0,0)",
+                    paper_bgcolor="rgba(0,0,0,0)",
+                    title_font_size=16,
+                    yaxis_gridcolor="#E5E7EB",
+                    xaxis_gridcolor="#E5E7EB",
+                    hovermode="x unified",
+                    margin=dict(r=60),
+                )
                 st.plotly_chart(fig1, use_container_width=True)
 
                 top_name = df1.iloc[0]["Name"]
@@ -1026,24 +1059,64 @@ section[data-testid="stSidebar"] > div:first-child { padding-top: 0.5rem !import
 
                 fig2 = go.Figure()
                 for _, row in df2.iterrows():
+                    # Connecting line
                     fig2.add_trace(
                         go.Scatter(
                             x=[row["First Nomination"], row["First Win"]],
                             y=[row["Name"], row["Name"]],
-                            mode="lines+markers+text",
-                            text=["Nominated", "Won"],
-                            textposition="top center",
-                            marker=dict(size=10),
-                            line=dict(width=3),
-                            name=row["Name"],
+                            mode="lines",
+                            line=dict(width=4, color="#CBD5E1"),
                             showlegend=False,
+                            hoverinfo="skip",
+                        )
+                    )
+                    # Nominated marker (red)
+                    fig2.add_trace(
+                        go.Scatter(
+                            x=[row["First Nomination"]],
+                            y=[row["Name"]],
+                            mode="markers+text",
+                            text=[str(int(row["First Nomination"]))],
+                            textposition="bottom center",
+                            textfont=dict(size=9, color="#DC2626"),
+                            marker=dict(size=12, color="#EF4444", symbol="circle",
+                                        line=dict(width=1.5, color="#FFFFFF")),
+                            showlegend=False,
+                            hovertemplate=f"<b>{row['Name']}</b><br>Nominated: {int(row['First Nomination'])}<extra></extra>",
+                        )
+                    )
+                    # Won marker (green)
+                    fig2.add_trace(
+                        go.Scatter(
+                            x=[row["First Win"]],
+                            y=[row["Name"]],
+                            mode="markers+text",
+                            text=[str(int(row["First Win"]))],
+                            textposition="bottom center",
+                            textfont=dict(size=9, color="#16A34A"),
+                            marker=dict(size=12, color="#22C55E", symbol="diamond",
+                                        line=dict(width=1.5, color="#FFFFFF")),
+                            showlegend=False,
+                            hovertemplate=f"<b>{row['Name']}</b><br>Won: {int(row['First Win'])}<extra></extra>",
                         )
                     )
                 fig2.update_layout(
-                    title="Timeline: First Nomination to First Win",
+                    title=dict(text="Timeline: First Nomination to First Win", font_size=16),
                     xaxis_title="Year",
                     yaxis={"categoryorder": "array", "categoryarray": df2["Name"].tolist()[::-1]},
-                    height=550,
+                    height=600,
+                    plot_bgcolor="rgba(0,0,0,0)",
+                    paper_bgcolor="rgba(0,0,0,0)",
+                    yaxis_gridcolor="#E5E7EB",
+                    xaxis_gridcolor="#E5E7EB",
+                    hovermode="closest",
+                    margin=dict(l=10),
+                )
+                # Add legend-like annotation
+                fig2.add_annotation(
+                    text="<span style='color:#EF4444;'>&#9679;</span> Nominated &nbsp;&nbsp; <span style='color:#22C55E;'>&#9670;</span> Won",
+                    xref="paper", yref="paper", x=0.5, y=1.06,
+                    showarrow=False, font=dict(size=12),
                 )
                 st.plotly_chart(fig2, use_container_width=True)
                 st.dataframe(df2, use_container_width=True, hide_index=True)
@@ -1129,9 +1202,25 @@ section[data-testid="stSidebar"] > div:first-child { padding-top: 0.5rem !import
                     y="Distinct Categories",
                     color="Total Nominations",
                     title="Nominees in the Most Different Oscar Categories",
-                    color_continuous_scale="Viridis",
+                    color_continuous_scale="Plasma",
+                    text="Distinct Categories",
                 )
-                fig3.update_layout(xaxis_tickangle=-45, height=500)
+                fig3.update_traces(
+                    textposition="outside",
+                    textfont_size=11,
+                    marker_cornerradius=5,
+                )
+                fig3.update_layout(
+                    xaxis_tickangle=-45,
+                    height=520,
+                    plot_bgcolor="rgba(0,0,0,0)",
+                    paper_bgcolor="rgba(0,0,0,0)",
+                    title_font_size=16,
+                    yaxis_gridcolor="#E5E7EB",
+                    xaxis_gridcolor="#E5E7EB",
+                    hovermode="x unified",
+                    legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="center", x=0.5),
+                )
                 st.plotly_chart(fig3, use_container_width=True)
 
                 st.markdown("**Categories per person (top 5):**")
