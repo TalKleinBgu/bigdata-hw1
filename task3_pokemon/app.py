@@ -911,16 +911,17 @@ def page_battle():
         with col_mid:
             st.markdown(
                 """<style>
-                    @keyframes vsGlow {
-                        0%, 100% { text-shadow: 0 0 8px rgba(99,102,241,0.3), 0 0 2px rgba(239,68,68,0.2); }
-                        50% { text-shadow: 0 0 16px rgba(99,102,241,0.5), 0 0 6px rgba(239,68,68,0.35); }
+                    @keyframes vsPulse {
+                        0%, 100% { transform: scale(1); text-shadow: 0 0 12px rgba(239,68,68,0.4), 0 2px 8px rgba(99,102,241,0.3); }
+                        50% { transform: scale(1.08); text-shadow: 0 0 24px rgba(239,68,68,0.6), 0 4px 16px rgba(99,102,241,0.5); }
                     }
                 </style>
                 <div style='text-align:center;padding-top:36px;'>
                     <span style="font-size:2.6rem;font-weight:900;letter-spacing:4px;
-                        background:linear-gradient(135deg,#EF4444,#6366F1);
-                        -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-                        animation:vsGlow 2s ease-in-out infinite;">VS</span>
+                        color:#EF4444;
+                        text-shadow: 0 0 12px rgba(239,68,68,0.4), 0 2px 8px rgba(99,102,241,0.3);
+                        animation:vsPulse 2s ease-in-out infinite;
+                        display:inline-block;">VS</span>
                 </div>""",
                 unsafe_allow_html=True,
             )
@@ -1399,24 +1400,22 @@ def page_battle_mechanics():
                 <span style="font-size:1.4rem;font-weight:800;color:#4338CA;">⚡ Damage Formula</span>
                 <span style="font-size:0.75rem;color:#6B7280;display:block;margin-top:2px;">Based on Pokemon Gen V simplified</span>
             </div>
-            <div style="background:#1E1B4B;border-radius:12px;padding:1rem 1.2rem;margin-bottom:1rem;text-align:center;">
-                <code style="color:#A5B4FC;font-size:0.85rem;line-height:1.8;">
-                    <span style="color:#C4B5FD;">base</span> = ((<span style="color:#FDE68A;">2</span>×<span style="color:#FDE68A;">Level</span>/<span style="color:#FDE68A;">5</span> + <span style="color:#FDE68A;">2</span>) × <span style="color:#93C5FD;">Power</span> × <span style="color:#6EE7B7;">A</span>/<span style="color:#FCA5A5;">D</span>) / <span style="color:#FDE68A;">50</span> + <span style="color:#FDE68A;">2</span><br>
-                    <span style="color:#C4B5FD;">damage</span> = <span style="color:#C4B5FD;">base</span> × <span style="color:#F9A8D4;">type_mult</span> × <span style="color:#D1D5DB;">rand</span>(<span style="color:#FDE68A;">0.85</span>, <span style="color:#FDE68A;">1.0</span>)
-                </code>
+            <div style="background:#1E1B4B !important;border-radius:12px;padding:1.1rem 1.4rem;margin-bottom:1rem;text-align:center;color:#A5B4FC !important;font-family:'SF Mono',Consolas,'Courier New',monospace;font-size:0.88rem;line-height:2;">
+                <span style="color:#C4B5FD !important;">base</span><span style="color:#A5B4FC !important;"> = ((</span><span style="color:#FDE68A !important;">2</span><span style="color:#A5B4FC !important;">×</span><span style="color:#FDE68A !important;">Level</span><span style="color:#A5B4FC !important;">/</span><span style="color:#FDE68A !important;">5</span><span style="color:#A5B4FC !important;"> + </span><span style="color:#FDE68A !important;">2</span><span style="color:#A5B4FC !important;">) × </span><span style="color:#93C5FD !important;">Power</span><span style="color:#A5B4FC !important;"> × </span><span style="color:#6EE7B7 !important;">A</span><span style="color:#A5B4FC !important;">/</span><span style="color:#FCA5A5 !important;">D</span><span style="color:#A5B4FC !important;">) / </span><span style="color:#FDE68A !important;">50</span><span style="color:#A5B4FC !important;"> + </span><span style="color:#FDE68A !important;">2</span><br>
+                <span style="color:#C4B5FD !important;">damage</span><span style="color:#A5B4FC !important;"> = </span><span style="color:#C4B5FD !important;">base</span><span style="color:#A5B4FC !important;"> × </span><span style="color:#F9A8D4 !important;">type_mult</span><span style="color:#A5B4FC !important;"> × </span><span style="color:#D1D5DB !important;">rand</span><span style="color:#A5B4FC !important;">(</span><span style="color:#FDE68A !important;">0.85</span><span style="color:#A5B4FC !important;">, </span><span style="color:#FDE68A !important;">1.0</span><span style="color:#A5B4FC !important;">)</span>
             </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:0.82rem;">
-                <div style="background:rgba(255,255,255,0.7);border-radius:8px;padding:8px 10px;">
-                    <span style="color:#6EE7B7;font-weight:700;">A</span> = max(Attack, Sp.Atk) of attacker
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:0.82rem;color:#374151;">
+                <div style="background:rgba(255,255,255,0.85);border-radius:8px;padding:8px 10px;border:1px solid #E5E7EB;">
+                    <span style="color:#059669;font-weight:700;">A</span> = max(Attack, Sp.Atk) of attacker
                 </div>
-                <div style="background:rgba(255,255,255,0.7);border-radius:8px;padding:8px 10px;">
-                    <span style="color:#FCA5A5;font-weight:700;">D</span> = Defense or Sp.Def (matching A)
+                <div style="background:rgba(255,255,255,0.85);border-radius:8px;padding:8px 10px;border:1px solid #E5E7EB;">
+                    <span style="color:#DC2626;font-weight:700;">D</span> = Defense or Sp.Def (matching A)
                 </div>
-                <div style="background:rgba(255,255,255,0.7);border-radius:8px;padding:8px 10px;">
-                    <span style="color:#FDE68A;font-weight:700;">Level</span> = 50 &nbsp;|&nbsp; <span style="color:#93C5FD;font-weight:700;">Power</span> = 60
+                <div style="background:rgba(255,255,255,0.85);border-radius:8px;padding:8px 10px;border:1px solid #E5E7EB;">
+                    <span style="color:#B45309;font-weight:700;">Level</span> = 50 &nbsp;|&nbsp; <span style="color:#2563EB;font-weight:700;">Power</span> = 60
                 </div>
-                <div style="background:rgba(255,255,255,0.7);border-radius:8px;padding:8px 10px;">
-                    <span style="color:#F9A8D4;font-weight:700;">type_mult</span> = Type1 vs Type1 × Type2
+                <div style="background:rgba(255,255,255,0.85);border-radius:8px;padding:8px 10px;border:1px solid #E5E7EB;">
+                    <span style="color:#DB2777;font-weight:700;">type_mult</span> = Type1 vs Type1 &times; Type2
                 </div>
             </div>
         </div>
