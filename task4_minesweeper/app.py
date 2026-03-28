@@ -1476,6 +1476,24 @@ div[data-testid="stTextInput"], div[data-testid="stTextArea"], div[data-testid="
 .ms-popup-panel {
     display: none;
 }
+
+/* ---- SQL Rescue dialog: shorter & wider ---- */
+[role="dialog"] {
+    max-width: 760px !important;
+    width: 760px !important;
+}
+[role="dialog"] [data-testid="stVerticalBlockBorderWrapper"] {
+    max-height: 60vh !important;
+    overflow-y: auto !important;
+}
+[role="dialog"] .stTextArea textarea {
+    min-height: 80px !important;
+    max-height: 100px !important;
+}
+[role="dialog"] [data-testid="stExpander"] [data-testid="stVerticalBlockBorderWrapper"] {
+    max-height: 220px !important;
+    overflow-y: auto !important;
+}
 </style>""", unsafe_allow_html=True)
 
 

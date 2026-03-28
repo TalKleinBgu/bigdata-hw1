@@ -578,17 +578,9 @@ with tab_patterns:
     st.plotly_chart(fig_p2, use_container_width=True)
     with st.expander("Show SQL query"):
         st.code(p2_sql, language="sql")
-    st.markdown("**Finding:** The name *Arya* surged after 2011, indicating a strong pop-culture effect on naming choices.")
+    st.markdown("""<div class="insight-box"><strong>Finding:</strong> The name <em>Arya</em> surged after 2011, indicating a strong pop-culture effect on naming choices.</div>""", unsafe_allow_html=True)
 
-    st.markdown(
-        """
-        **Interpretation:** In this dataset, *Arya* is nearly absent for many years
-        (first appears at **5 births in 1982**) and then rises sharply around the early
-        2010s (**249 in 2010**, **422 in 2011**), reaching a peak of **1,574 in 2014**.
-        This timing supports a strong pop-culture effect, where media exposure can
-        rapidly increase adoption of a previously uncommon name.
-        """
-    )
+    st.markdown("""<div class="insight-box"><strong>Interpretation:</strong> In this dataset, <em>Arya</em> is nearly absent for many years (first appears at <strong>5 births in 1982</strong>) and then rises sharply around the early 2010s (<strong>249 in 2010</strong>, <strong>422 in 2011</strong>), reaching a peak of <strong>1,574 in 2014</strong>. This timing supports a strong pop-culture effect, where media exposure can rapidly increase adoption of a previously uncommon name.</div>""", unsafe_allow_html=True)
 
     st.markdown('<div style="border-top:1px solid #E5E7EB;margin:1.5rem 0;"></div>', unsafe_allow_html=True)
 
@@ -683,20 +675,9 @@ with tab_patterns:
         st.plotly_chart(fig_p3, use_container_width=True)
         with st.expander("Show SQL query"):
             st.code(p3c_sql, language="sql")
-    st.markdown("**Finding:** Name popularity is strongly regional, and the same name can be dominant in some states while uncommon in others.")
+    st.markdown("""<div class="insight-box"><strong>Finding:</strong> Name popularity is strongly regional, and the same name can be dominant in some states while uncommon in others.</div>""", unsafe_allow_html=True)
 
-    st.markdown(
-        """
-        **Interpretation:** Name popularity varies dramatically by state, reflecting
-        regional demographics and cultural influences. In the all-years top-name
-        results, only a few names dominate many states (for example, **Robert: 16
-        states**, **James: 14**, **John: 10**, **Michael: 10**), while *Jose* shows strong
-        concentration in specific states rather than uniform popularity
-        (**2014: TX 1,540; CA 1,318; NY 196; FL 300; MT 5 in its latest year, 2004**).
-        This indicates that U.S. naming is a regional mosaic, not a single national
-        pattern.
-        """
-    )
+    st.markdown("""<div class="insight-box"><strong>Interpretation:</strong> Name popularity varies dramatically by state, reflecting regional demographics and cultural influences. In the all-years top-name results, only a few names dominate many states (for example, <strong>Robert: 16 states</strong>, <strong>James: 14</strong>, <strong>John: 10</strong>, <strong>Michael: 10</strong>), while <em>Jose</em> shows strong concentration in specific states rather than uniform popularity (<strong>2014: TX 1,540; CA 1,318; NY 196; FL 300; MT 5 in its latest year, 2004</strong>). This indicates that U.S. naming is a regional mosaic, not a single national pattern.</div>""", unsafe_allow_html=True)
 
 # ===== TAB E: Schema =======================================================
 with tab_schema:

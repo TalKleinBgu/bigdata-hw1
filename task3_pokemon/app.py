@@ -910,19 +910,15 @@ def page_battle():
                 render_battle_card(p, is_active=(p["name"] == _p_fastest))
         with col_mid:
             st.markdown(
-                """<style>
-                    @keyframes vsPulse {
-                        0%, 100% { transform: scale(1); text-shadow: 0 0 12px rgba(239,68,68,0.4), 0 2px 8px rgba(99,102,241,0.3); }
-                        50% { transform: scale(1.08); text-shadow: 0 0 24px rgba(239,68,68,0.6), 0 4px 16px rgba(99,102,241,0.5); }
-                    }
-                </style>
-                <div style='text-align:center;padding-top:36px;'>
-                    <span style="font-size:2.6rem;font-weight:900;letter-spacing:4px;
-                        color:#EF4444;
-                        text-shadow: 0 0 12px rgba(239,68,68,0.4), 0 2px 8px rgba(99,102,241,0.3);
-                        animation:vsPulse 2s ease-in-out infinite;
-                        display:inline-block;">VS</span>
-                </div>""",
+"""<style>
+@keyframes vsPulse {
+    0%, 100% { transform: scale(1); text-shadow: 0 0 12px rgba(239,68,68,0.4), 0 2px 8px rgba(99,102,241,0.3); }
+    50% { transform: scale(1.08); text-shadow: 0 0 24px rgba(239,68,68,0.6), 0 4px 16px rgba(99,102,241,0.5); }
+}
+</style>
+<div style="text-align:center;padding-top:36px;">
+<span style="font-size:2.6rem;font-weight:900;letter-spacing:4px;color:#EF4444;text-shadow:0 0 12px rgba(239,68,68,0.4),0 2px 8px rgba(99,102,241,0.3);animation:vsPulse 2s ease-in-out infinite;display:inline-block;">VS</span>
+</div>""",
                 unsafe_allow_html=True,
             )
         with col2:
@@ -1247,14 +1243,7 @@ def page_analysis():
         )
         st.plotly_chart(fig1, use_container_width=True)
 
-        st.markdown("""
-        **Interpretation:** Dragon-type combinations consistently dominate the top of the
-        stat rankings. This is because Dragon-type Pokemon are designed as powerful,
-        late-game Pokemon in the franchise. Legendary and pseudo-legendary Pokemon
-        frequently carry Dragon typing, inflating the average. Dual-type combinations
-        with Dragon (e.g., Dragon/Psychic, Dragon/Fire) tend to have even higher
-        averages since these often correspond to specific powerful legendaries.
-        """)
+        st.markdown("""<div class="insight-box"><strong>Interpretation:</strong> Dragon-type combinations consistently dominate the top of the stat rankings. This is because Dragon-type Pokemon are designed as powerful, late-game Pokemon in the franchise. Legendary and pseudo-legendary Pokemon frequently carry Dragon typing, inflating the average. Dual-type combinations with Dragon (e.g., Dragon/Psychic, Dragon/Fire) tend to have even higher averages since these often correspond to specific powerful legendaries.</div>""", unsafe_allow_html=True)
     else:
         st.info("No data available.")
 
@@ -1333,15 +1322,7 @@ def page_analysis():
 
         st.dataframe(df_gen, use_container_width=True)
 
-        st.markdown("""
-        **Interpretation:** The data shows a mild upward trend in average total stats
-        across generations, suggesting **moderate power creep**. Generation 4 shows a
-        notable spike, largely due to the introduction of many powerful legendaries and
-        evolved forms of earlier Pokemon. However, the trend is not strictly linear --
-        Game Freak balances new generations by introducing both strong and weak Pokemon.
-        The increase in average Attack across generations is more pronounced than Speed,
-        suggesting the franchise has leaned toward higher-damage Pokemon over time.
-        """)
+        st.markdown("""<div class="insight-box"><strong>Interpretation:</strong> The data shows a mild upward trend in average total stats across generations, suggesting <strong>moderate power creep</strong>. Generation 4 shows a notable spike, largely due to the introduction of many powerful legendaries and evolved forms of earlier Pokemon. However, the trend is not strictly linear &mdash; Game Freak balances new generations by introducing both strong and weak Pokemon. The increase in average Attack across generations is more pronounced than Speed, suggesting the franchise has leaned toward higher-damage Pokemon over time.</div>""", unsafe_allow_html=True)
     else:
         st.info("No data available.")
 
