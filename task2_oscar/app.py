@@ -39,7 +39,8 @@ DB_ROOT = Path(os.getenv("OSCAR_DB_DIR", Path(tempfile.gettempdir()) / "oscar_ex
 DB_ROOT.mkdir(parents=True, exist_ok=True)
 DB_PATH = DB_ROOT / "oscar.db"
 CSV_PATH = BASE_DIR / "the_oscar_award.csv"
-DATA_VERSION = "canon-category-v1"
+DATA_VERSION = "canon-category-v2"
+PROFILE_CATEGORIES = ("ACTOR", "ACTRESS", "DIRECTING")
 
 # ---------------------------------------------------------------------------
 # Task 2.1 - SQLAlchemy ORM Model
@@ -145,6 +146,14 @@ def _load_csv() -> pd.DataFrame:
     return df
 
 
+def split_person_credits(value) -> list[str]:
+    """Split dataset credit strings like 'A/B/C' into individual person names."""
+    if pd.isna(value):
+        return []
+    parts = [part.strip() for part in str(value).split("/") if part and str(part).strip()]
+    return parts
+
+
 def _init_db(engine):
     """Create tables and populate from CSV if the DB is empty."""
     Base.metadata.create_all(engine)
@@ -221,7 +230,14 @@ def _init_db(engine):
             s = str(v).strip()
             return s if s else None
 
-        unique_people = sorted({clean_text(v) for v in df["name"].tolist() if clean_text(v)})
+        unique_people = sorted(
+            {
+                person_name
+                for raw_name in df["name"].tolist()
+                for person_name in split_person_credits(raw_name)
+                if clean_text(person_name)
+            }
+        )
         unique_categories = sorted({clean_text(v) for v in df["category"].tolist() if clean_text(v)})
         unique_films = sorted({clean_text(v) for v in df["film"].tolist() if clean_text(v)})
 
@@ -240,9 +256,13 @@ def _init_db(engine):
 
         batch = []
         for _, row in df.iterrows():
-            person_name = clean_text(row.get("name"))
+            person_names = [
+                clean_text(person_name)
+                for person_name in split_person_credits(row.get("name"))
+            ]
+            person_names = [person_name for person_name in person_names if person_name]
             category_name = clean_text(row.get("category"))
-            if not person_name or not category_name:
+            if not person_names or not category_name:
                 continue
 
             winner_val = row.get("winner", False)
@@ -250,17 +270,18 @@ def _init_db(engine):
                 winner_val = winner_val.strip().lower() in ("true", "1", "yes")
 
             film_title = clean_text(row.get("film"))
-            batch.append(
-                {
-                    "year_film": int(row["year_film"]) if pd.notna(row.get("year_film")) else None,
-                    "year_ceremony": int(row["year_ceremony"]) if pd.notna(row.get("year_ceremony")) else None,
-                    "ceremony": int(row["ceremony"]) if pd.notna(row.get("ceremony")) else None,
-                    "winner": bool(winner_val),
-                    "person_id": person_id_by_name[person_name],
-                    "category_id": category_id_by_name[category_name],
-                    "film_id": film_id_by_title.get(film_title),
-                }
-            )
+            for person_name in person_names:
+                batch.append(
+                    {
+                        "year_film": int(row["year_film"]) if pd.notna(row.get("year_film")) else None,
+                        "year_ceremony": int(row["year_ceremony"]) if pd.notna(row.get("year_ceremony")) else None,
+                        "ceremony": int(row["ceremony"]) if pd.notna(row.get("ceremony")) else None,
+                        "winner": bool(winner_val),
+                        "person_id": person_id_by_name[person_name],
+                        "category_id": category_id_by_name[category_name],
+                        "film_id": film_id_by_title.get(film_title),
+                    }
+                )
 
             if len(batch) >= 15000:
                 session.bulk_insert_mappings(Nomination, batch)
@@ -314,11 +335,14 @@ def get_session() -> Session:
 
 @st.cache_data(ttl=600)
 def get_all_names() -> list[str]:
-    """Return a sorted list of all distinct nominee names."""
+    """Return a sorted list of acting/directing nominee names for the profile search."""
     session = get_session()
     try:
         names = [
             r[0] for r in session.query(distinct(Person.name))
+            .join(Nomination, Nomination.person_id == Person.id)
+            .join(Category, Nomination.category_id == Category.id)
+            .filter(Category.name.in_(PROFILE_CATEGORIES))
             .order_by(Person.name)
             .all()
             if r[0]
@@ -330,6 +354,9 @@ def get_all_names() -> list[str]:
         session = get_session()
         return [
             r[0] for r in session.query(distinct(Person.name))
+            .join(Nomination, Nomination.person_id == Person.id)
+            .join(Category, Nomination.category_id == Category.id)
+            .filter(Category.name.in_(PROFILE_CATEGORIES))
             .order_by(Person.name)
             .all()
             if r[0]
@@ -436,7 +463,7 @@ def fetch_wikipedia_info_from_title(page_title: str) -> dict:
 # ---------------------------------------------------------------------------
 
 def query_person_profile(session: Session, name: str) -> dict:
-    """Query the DB for a person's complete Oscar profile."""
+    """Query the DB for a person's full Oscar profile across all categories."""
     noms = (
         session.query(Nomination)
         .join(Person, Nomination.person_id == Person.id)
@@ -549,7 +576,7 @@ def compute_category_average_comparison(session: Session, name: str, category: s
 # ---------------------------------------------------------------------------
 
 def discovery_most_nominated_no_win(session: Session, top_n: int = 15):
-    """People with the most nominations but zero wins."""
+    """Actors/directors with the most nominations but zero wins."""
     sub = (
         session.query(
             Person.name.label("name"),
@@ -557,6 +584,8 @@ def discovery_most_nominated_no_win(session: Session, top_n: int = 15):
             func.sum(case((Nomination.winner == True, 1), else_=0)).label("total_wins"),
         )
         .join(Person, Nomination.person_id == Person.id)
+        .join(Category, Nomination.category_id == Category.id)
+        .filter(Category.name.in_(PROFILE_CATEGORIES))
         .group_by(Person.id, Person.name)
         .subquery()
     )
@@ -571,13 +600,15 @@ def discovery_most_nominated_no_win(session: Session, top_n: int = 15):
 
 
 def discovery_longest_wait_for_win(session: Session, top_n: int = 15):
-    """People with the longest gap between first nomination and first win."""
+    """Actors/directors with the longest gap between first nomination and first win."""
     first_nom = (
         session.query(
             Person.name.label("name"),
             func.min(Nomination.year_ceremony).label("first_nom_year"),
         )
         .join(Person, Nomination.person_id == Person.id)
+        .join(Category, Nomination.category_id == Category.id)
+        .filter(Category.name.in_(PROFILE_CATEGORIES))
         .group_by(Person.id, Person.name)
         .subquery()
     )
@@ -587,7 +618,8 @@ def discovery_longest_wait_for_win(session: Session, top_n: int = 15):
             func.min(Nomination.year_ceremony).label("first_win_year"),
         )
         .join(Person, Nomination.person_id == Person.id)
-        .filter(Nomination.winner == True)
+        .join(Category, Nomination.category_id == Category.id)
+        .filter(Nomination.winner == True, Category.name.in_(PROFILE_CATEGORIES))
         .group_by(Person.id, Person.name)
         .subquery()
     )
@@ -608,7 +640,7 @@ def discovery_longest_wait_for_win(session: Session, top_n: int = 15):
 
 
 def discovery_multi_category(session: Session, top_n: int = 15):
-    """People nominated in the most different categories."""
+    """Actors/directors nominated in the most different acting/directing categories."""
     results = (
         session.query(
             Person.name.label("name"),
@@ -617,6 +649,7 @@ def discovery_multi_category(session: Session, top_n: int = 15):
         )
         .join(Person, Nomination.person_id == Person.id)
         .join(Category, Nomination.category_id == Category.id)
+        .filter(Category.name.in_(PROFILE_CATEGORIES))
         .group_by(Person.id, Person.name)
         .having(func.count(distinct(Category.name)) > 1)
         .order_by(func.count(distinct(Category.name)).desc(), func.count(Nomination.id).desc())
@@ -637,13 +670,21 @@ def generate_fun_facts(session: Session, profile: dict, wiki_info: dict) -> list
     num_noms = profile["num_nominations"]
 
     # Fact 1: Percentile among all nominees
-    total_nominees = session.query(func.count(distinct(Person.id))).scalar()
+    total_nominees = (
+        session.query(func.count(distinct(Person.id)))
+        .join(Nomination, Nomination.person_id == Person.id)
+        .join(Category, Nomination.category_id == Category.id)
+        .filter(Category.name.in_(PROFILE_CATEGORIES))
+        .scalar()
+    )
     sub_counts = (
         session.query(
             Person.name.label("person_name"),
             func.count(Nomination.id).label("cnt"),
         )
         .join(Nomination, Nomination.person_id == Person.id)
+        .join(Category, Nomination.category_id == Category.id)
+        .filter(Category.name.in_(PROFILE_CATEGORIES))
         .group_by(Person.id, Person.name)
         .subquery()
     )
@@ -711,6 +752,19 @@ def generate_fun_facts(session: Session, profile: dict, wiki_info: dict) -> list
 def fuzzy_suggestions(query: str, names: list[str], n: int = 8) -> list[str]:
     """Return close matches using difflib."""
     return difflib.get_close_matches(query, names, n=n, cutoff=0.4)
+
+
+def find_exact_name(query: str, names: list[str]) -> str | None:
+    """Return an exact dataset name match after light normalization."""
+    normalized_query = " ".join(query.strip().casefold().split())
+    if not normalized_query:
+        return None
+
+    for name in names:
+        normalized_name = " ".join(name.strip().casefold().split())
+        if normalized_name == normalized_query:
+            return name
+    return None
 
 
 # ===========================================================================
@@ -788,28 +842,31 @@ section[data-testid="stSidebar"] > div:first-child { padding-top: 0.5rem !import
     with tab_profile:
         st.markdown('<div class="section-header">Search for an Actor or Director</div>', unsafe_allow_html=True)
 
-        # Autocomplete via selectbox with search
+        # Exact name selection from the dataset
         selected_name = st.selectbox(
-            "Type a name to search",
+            "Choose an exact name from the dataset",
             options=[""] + all_names,
             index=0,
-            placeholder="Start typing a name...",
+            placeholder="Select a name...",
         )
 
-        # Alternative free-text search for fuzzy matching
+        # Exact free-text lookup
         free_text = st.text_input(
-            "Or type a partial / approximate name for fuzzy matching",
+            "Or type the exact full name",
             value="",
             key="free_text_search",
         )
 
         target_name = selected_name
-        if free_text and not selected_name:
-            matches = fuzzy_suggestions(free_text, all_names)
-            if matches:
-                target_name = st.selectbox("Did you mean:", matches, key="fuzzy_select")
-            else:
-                st.warning(f"No close matches found for **{free_text}**. Try a different spelling.")
+        if free_text:
+            exact_name = find_exact_name(free_text, all_names)
+            if exact_name:
+                target_name = exact_name
+            elif not selected_name:
+                st.warning(
+                    f"No exact dataset match found for **{free_text}**. "
+                    "Enter the full name exactly as it appears in the dataset."
+                )
                 target_name = ""
 
         if target_name:
@@ -818,9 +875,6 @@ section[data-testid="stSidebar"] > div:first-child { padding-top: 0.5rem !import
                 profile = query_person_profile(session, target_name)
                 if not profile:
                     st.error(f"No Oscar data found for **{target_name}**.")
-                    suggestions = fuzzy_suggestions(target_name, all_names, n=5)
-                    if suggestions:
-                        st.info("Suggestions: " + ", ".join(suggestions))
                 else:
                     # --- Fetch Wikipedia info (with disambiguation) ---
                     with st.spinner("Searching Wikipedia..."):
