@@ -367,25 +367,6 @@ def get_all_names() -> list[str]:
         session.close()
 
 
-def normalize_name(value: str) -> str:
-    """Normalize names for search."""
-    return " ".join(str(value).strip().casefold().split())
-
-
-def get_name_suggestions(query: str, names: list[str], limit: int = 25) -> list[str]:
-    """Return autocomplete suggestions for the typed query."""
-    normalized_query = normalize_name(query)
-    if not normalized_query:
-        return []
-
-    starts_with = [name for name in names if normalize_name(name).startswith(normalized_query)]
-    contains = [
-        name for name in names
-        if normalized_query in normalize_name(name) and name not in starts_with
-    ]
-    return (starts_with + contains)[:limit]
-
-
 # ---------------------------------------------------------------------------
 # Wikipedia helper
 # ---------------------------------------------------------------------------
@@ -841,24 +822,12 @@ section[data-testid="stSidebar"] > div:first-child { padding-top: 0.5rem !import
     with tab_profile:
         st.markdown('<div class="section-header">Search for a Name</div>', unsafe_allow_html=True)
 
-        search_query = st.text_input(
-            "Type a name to search",
-            value="",
-            placeholder="For example: Brad Pitt",
-        )
-
-        matching_names = get_name_suggestions(search_query, all_names)
         selected_name = st.selectbox(
-            "Name suggestions",
-            options=matching_names if matching_names else [""],
+            "Type a name to search",
+            options=[""] + all_names,
             index=0,
-            disabled=not matching_names,
-            placeholder="Suggestions will appear here",
-            label_visibility="collapsed",
+            placeholder="Start typing a name...",
         )
-
-        if search_query and not matching_names:
-            st.warning("No matching names found in the dataset.")
 
         target_name = selected_name if selected_name else ""
 
