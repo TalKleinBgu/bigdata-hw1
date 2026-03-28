@@ -1002,11 +1002,14 @@ section[data-testid="stSidebar"] > div:first-child { padding-top: 0.5rem !import
                 top_name = df1.iloc[0]["Name"]
                 top_noms = int(df1.iloc[0]["Nominations"])
                 st.markdown(
-                    f"**Finding:** {top_name} leads this list with {top_noms} nominations and no wins.\n\n"
-                    "**How found:** Filtered to acting/directing categories, grouped by person, "
-                    "counted nominations and wins, kept only people with zero wins, then sorted descending.\n\n"
-                    "**Why interesting:** It shows that repeated Oscar recognition does not guarantee a win, "
-                    "which highlights how competitive and context-dependent award outcomes can be."
+                    f'<div class="insight-box">'
+                    f'<strong>Finding:</strong> {top_name} leads this list with {top_noms} nominations and no wins.<br><br>'
+                    '<strong>How found:</strong> Filtered to acting/directing categories, grouped by person, '
+                    'counted nominations and wins, kept only people with zero wins, then sorted descending.<br><br>'
+                    '<strong>Why interesting:</strong> It shows that repeated Oscar recognition does not guarantee a win, '
+                    'which highlights how competitive and context-dependent award outcomes can be.'
+                    '</div>',
+                    unsafe_allow_html=True,
                 )
 
                 with st.expander("Show ORM Query Code"):
@@ -1125,12 +1128,15 @@ section[data-testid="stSidebar"] > div:first-child { padding-top: 0.5rem !import
                 top_first_nom = int(df2.iloc[0]["First Nomination"])
                 top_first_win = int(df2.iloc[0]["First Win"])
                 st.markdown(
-                    f"**Finding:** {top_wait_name} has the longest wait here: {top_wait_years} years "
-                    f"({top_first_nom} to {top_first_win}).\n\n"
-                    "**How found:** For each person, computed first nomination year and first win year, "
-                    "joined both results, calculated the year gap, filtered positive gaps, and sorted descending.\n\n"
-                    "**Why interesting:** It shows that Oscar success can take decades, so longevity and persistence "
-                    "often matter as much as early-career momentum."
+                    f'<div class="insight-box">'
+                    f'<strong>Finding:</strong> {top_wait_name} has the longest wait here: {top_wait_years} years '
+                    f'({top_first_nom} to {top_first_win}).<br><br>'
+                    '<strong>How found:</strong> For each person, computed first nomination year and first win year, '
+                    'joined both results, calculated the year gap, filtered positive gaps, and sorted descending.<br><br>'
+                    '<strong>Why interesting:</strong> It shows that Oscar success can take decades, so longevity and persistence '
+                    'often matter as much as early-career momentum.'
+                    '</div>',
+                    unsafe_allow_html=True,
                 )
 
                 with st.expander("Show ORM Query Code"):
@@ -1237,12 +1243,15 @@ section[data-testid="stSidebar"] > div:first-child { padding-top: 0.5rem !import
                 top_multi_name = df3.iloc[0]["Name"]
                 top_multi_cats = int(df3.iloc[0]["Distinct Categories"])
                 st.markdown(
-                    f"**Finding:** {top_multi_name} has the broadest category footprint in this result set "
-                    f"({top_multi_cats} distinct categories).\n\n"
-                    "**How found:** Filtered to acting/directing categories, grouped by person, counted distinct "
-                    "categories and total nominations, kept only people with more than one category, then sorted by breadth.\n\n"
-                    "**Why interesting:** Recognition across multiple categories is a strong signal of versatility, "
-                    "showing who succeeded in more than one creative lane."
+                    f'<div class="insight-box">'
+                    f'<strong>Finding:</strong> {top_multi_name} has the broadest category footprint in this result set '
+                    f'({top_multi_cats} distinct categories).<br><br>'
+                    '<strong>How found:</strong> Filtered to acting/directing categories, grouped by person, counted distinct '
+                    'categories and total nominations, kept only people with more than one category, then sorted by breadth.<br><br>'
+                    '<strong>Why interesting:</strong> Recognition across multiple categories is a strong signal of versatility, '
+                    'showing who succeeded in more than one creative lane.'
+                    '</div>',
+                    unsafe_allow_html=True,
                 )
 
                 with st.expander("Show ORM Query Code"):
