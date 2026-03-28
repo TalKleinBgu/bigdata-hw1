@@ -511,14 +511,8 @@ def compute_category_average_comparison(session: Session, name: str, category: s
 # Discovery queries (Task 2.3)
 # ---------------------------------------------------------------------------
 
-def _actor_director_filter():
-    """Return an OR filter that restricts to acting/directing categories."""
-    from sqlalchemy import or_
-    return or_(*[Category.name.like(pat) for pat in PERSON_CATEGORIES_PATTERN])
-
-
 def discovery_most_nominated_no_win(session: Session, top_n: int = 15):
-    """Actors/directors with the most nominations but zero wins."""
+    """People with the most nominations but zero wins."""
     sub = (
         session.query(
             Person.name.label("name"),
@@ -526,8 +520,6 @@ def discovery_most_nominated_no_win(session: Session, top_n: int = 15):
             func.sum(case((Nomination.winner == True, 1), else_=0)).label("total_wins"),
         )
         .join(Person, Nomination.person_id == Person.id)
-        .join(Category, Nomination.category_id == Category.id)
-        .filter(_actor_director_filter())
         .group_by(Person.id, Person.name)
         .subquery()
     )
@@ -542,16 +534,13 @@ def discovery_most_nominated_no_win(session: Session, top_n: int = 15):
 
 
 def discovery_longest_wait_for_win(session: Session, top_n: int = 15):
-    """Actors/directors with the longest gap between first nomination and first win."""
-    cat_filter = _actor_director_filter()
+    """People with the longest gap between first nomination and first win."""
     first_nom = (
         session.query(
             Person.name.label("name"),
             func.min(Nomination.year_ceremony).label("first_nom_year"),
         )
         .join(Person, Nomination.person_id == Person.id)
-        .join(Category, Nomination.category_id == Category.id)
-        .filter(cat_filter)
         .group_by(Person.id, Person.name)
         .subquery()
     )
@@ -561,9 +550,7 @@ def discovery_longest_wait_for_win(session: Session, top_n: int = 15):
             func.min(Nomination.year_ceremony).label("first_win_year"),
         )
         .join(Person, Nomination.person_id == Person.id)
-        .join(Category, Nomination.category_id == Category.id)
         .filter(Nomination.winner == True)
-        .filter(cat_filter)
         .group_by(Person.id, Person.name)
         .subquery()
     )
@@ -584,7 +571,7 @@ def discovery_longest_wait_for_win(session: Session, top_n: int = 15):
 
 
 def discovery_multi_category(session: Session, top_n: int = 15):
-    """Actors/directors nominated in the most different acting/directing categories."""
+    """People nominated in the most different categories."""
     results = (
         session.query(
             Person.name.label("name"),
@@ -593,7 +580,6 @@ def discovery_multi_category(session: Session, top_n: int = 15):
         )
         .join(Person, Nomination.person_id == Person.id)
         .join(Category, Nomination.category_id == Category.id)
-        .filter(_actor_director_filter())
         .group_by(Person.id, Person.name)
         .having(func.count(distinct(Category.name)) > 1)
         .order_by(func.count(distinct(Category.name)).desc(), func.count(Nomination.id).desc())
