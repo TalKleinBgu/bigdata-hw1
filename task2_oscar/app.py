@@ -6,7 +6,6 @@ A Streamlit application that uses SQLAlchemy ORM to query an Oscar Award
 dataset stored in SQLite and enriches actor profiles with live Wikipedia data.
 """
 
-import difflib
 import os
 import tempfile
 import textwrap
@@ -41,6 +40,15 @@ DB_PATH = DB_ROOT / "oscar.db"
 CSV_PATH = BASE_DIR / "the_oscar_award.csv"
 DATA_VERSION = "canon-category-v2"
 PROFILE_CATEGORIES = ("ACTOR", "ACTRESS", "DIRECTING")
+
+
+def profile_category_filter():
+    """Match acting/directing Oscar categories, including renamed variants."""
+    return (
+        Category.name.like("ACTOR%")
+        | Category.name.like("ACTRESS%")
+        | Category.name.like("DIRECTING%")
+    )
 
 # ---------------------------------------------------------------------------
 # Task 2.1 - SQLAlchemy ORM Model
@@ -335,14 +343,11 @@ def get_session() -> Session:
 
 @st.cache_data(ttl=600)
 def get_all_names() -> list[str]:
-    """Return a sorted list of acting/directing nominee names for the profile search."""
+    """Return a sorted list of all distinct person names parsed from the dataset."""
     session = get_session()
     try:
         names = [
             r[0] for r in session.query(distinct(Person.name))
-            .join(Nomination, Nomination.person_id == Person.id)
-            .join(Category, Nomination.category_id == Category.id)
-            .filter(Category.name.in_(PROFILE_CATEGORIES))
             .order_by(Person.name)
             .all()
             if r[0]
@@ -354,9 +359,6 @@ def get_all_names() -> list[str]:
         session = get_session()
         return [
             r[0] for r in session.query(distinct(Person.name))
-            .join(Nomination, Nomination.person_id == Person.id)
-            .join(Category, Nomination.category_id == Category.id)
-            .filter(Category.name.in_(PROFILE_CATEGORIES))
             .order_by(Person.name)
             .all()
             if r[0]
@@ -585,7 +587,7 @@ def discovery_most_nominated_no_win(session: Session, top_n: int = 15):
         )
         .join(Person, Nomination.person_id == Person.id)
         .join(Category, Nomination.category_id == Category.id)
-        .filter(Category.name.in_(PROFILE_CATEGORIES))
+        .filter(profile_category_filter())
         .group_by(Person.id, Person.name)
         .subquery()
     )
@@ -608,7 +610,7 @@ def discovery_longest_wait_for_win(session: Session, top_n: int = 15):
         )
         .join(Person, Nomination.person_id == Person.id)
         .join(Category, Nomination.category_id == Category.id)
-        .filter(Category.name.in_(PROFILE_CATEGORIES))
+        .filter(profile_category_filter())
         .group_by(Person.id, Person.name)
         .subquery()
     )
@@ -619,7 +621,7 @@ def discovery_longest_wait_for_win(session: Session, top_n: int = 15):
         )
         .join(Person, Nomination.person_id == Person.id)
         .join(Category, Nomination.category_id == Category.id)
-        .filter(Nomination.winner == True, Category.name.in_(PROFILE_CATEGORIES))
+        .filter(Nomination.winner == True, profile_category_filter())
         .group_by(Person.id, Person.name)
         .subquery()
     )
@@ -649,7 +651,7 @@ def discovery_multi_category(session: Session, top_n: int = 15):
         )
         .join(Person, Nomination.person_id == Person.id)
         .join(Category, Nomination.category_id == Category.id)
-        .filter(Category.name.in_(PROFILE_CATEGORIES))
+        .filter(profile_category_filter())
         .group_by(Person.id, Person.name)
         .having(func.count(distinct(Category.name)) > 1)
         .order_by(func.count(distinct(Category.name)).desc(), func.count(Nomination.id).desc())
@@ -674,7 +676,7 @@ def generate_fun_facts(session: Session, profile: dict, wiki_info: dict) -> list
         session.query(func.count(distinct(Person.id)))
         .join(Nomination, Nomination.person_id == Person.id)
         .join(Category, Nomination.category_id == Category.id)
-        .filter(Category.name.in_(PROFILE_CATEGORIES))
+        .filter(profile_category_filter())
         .scalar()
     )
     sub_counts = (
@@ -684,7 +686,7 @@ def generate_fun_facts(session: Session, profile: dict, wiki_info: dict) -> list
         )
         .join(Nomination, Nomination.person_id == Person.id)
         .join(Category, Nomination.category_id == Category.id)
-        .filter(Category.name.in_(PROFILE_CATEGORIES))
+        .filter(profile_category_filter())
         .group_by(Person.id, Person.name)
         .subquery()
     )
@@ -743,28 +745,6 @@ def generate_fun_facts(session: Session, profile: dict, wiki_info: dict) -> list
             )
 
     return facts
-
-
-# ---------------------------------------------------------------------------
-# Fuzzy matching
-# ---------------------------------------------------------------------------
-
-def fuzzy_suggestions(query: str, names: list[str], n: int = 8) -> list[str]:
-    """Return close matches using difflib."""
-    return difflib.get_close_matches(query, names, n=n, cutoff=0.4)
-
-
-def find_exact_name(query: str, names: list[str]) -> str | None:
-    """Return an exact dataset name match after light normalization."""
-    normalized_query = " ".join(query.strip().casefold().split())
-    if not normalized_query:
-        return None
-
-    for name in names:
-        normalized_name = " ".join(name.strip().casefold().split())
-        if normalized_name == normalized_query:
-            return name
-    return None
 
 
 # ===========================================================================
@@ -840,34 +820,16 @@ section[data-testid="stSidebar"] > div:first-child { padding-top: 0.5rem !import
     # Task 2.2 - Actor Profile
     # ===================================================================
     with tab_profile:
-        st.markdown('<div class="section-header">Search for an Actor or Director</div>', unsafe_allow_html=True)
+        st.markdown('<div class="section-header">Search for a Name</div>', unsafe_allow_html=True)
 
-        # Exact name selection from the dataset
         selected_name = st.selectbox(
-            "Choose an exact name from the dataset",
+            "Type a name to search",
             options=[""] + all_names,
             index=0,
-            placeholder="Select a name...",
-        )
-
-        # Exact free-text lookup
-        free_text = st.text_input(
-            "Or type the exact full name",
-            value="",
-            key="free_text_search",
+            placeholder="Start typing a name...",
         )
 
         target_name = selected_name
-        if free_text:
-            exact_name = find_exact_name(free_text, all_names)
-            if exact_name:
-                target_name = exact_name
-            elif not selected_name:
-                st.warning(
-                    f"No exact dataset match found for **{free_text}**. "
-                    "Enter the full name exactly as it appears in the dataset."
-                )
-                target_name = ""
 
         if target_name:
             session = get_session()
