@@ -151,15 +151,12 @@ st.set_page_config(
     layout="wide",
 )
 
-st.markdown(
-    """
+st.markdown("""
 <div class="sticky-page-header">
-  <div class="sticky-page-title">👶 Baby Names Explorer</div>
-  <div class="sticky-page-subtitle">Exploring US baby-name trends by state from the Social Security Administration (1910 -- present)</div>
+  <div class="sticky-page-title">Baby Names Explorer</div>
+  <div class="sticky-page-subtitle">US baby-name trends from the Social Security Administration, 1910 to present</div>
 </div>
-""",
-    unsafe_allow_html=True,
-)
+""", unsafe_allow_html=True)
 
 # Ensure DB exists and indexes are up to date
 conn = get_connection()
@@ -169,27 +166,22 @@ ensure_extra_indexes(conn)
 # ---------------------------------------------------------------------------
 st.markdown("""
 <style>
-.block-container { padding: 0.8rem 1.5rem 2rem !important; }
+.block-container { padding: 1rem 2rem 2.5rem !important; max-width: 1100px !important; margin: 0 auto !important; }
 .sticky-page-header {
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-    background: rgba(255, 255, 255, 0.97);
-    border: 1px solid #e5e7eb;
-    border-radius: 14px;
-    padding: 0.9rem 1.2rem;
-    margin: 0 auto 1rem auto;
-    max-width: 980px;
+    position: sticky; top: 0; z-index: 1000;
+    background: rgba(255,255,255,0.97);
+    border-bottom: 2px solid #E5E7EB;
+    padding: 1rem 1.5rem;
+    margin: 0 -2rem 1.5rem -2rem;
     text-align: center;
 }
-.sticky-page-title { font-size: 2rem; font-weight: 800; line-height: 1.15; text-align: center; }
-.sticky-page-subtitle { font-size: 1.05rem; color: #4b5563; margin-top: 0.3rem; text-align: center; }
-.sticky-page-section { font-size: 0.95rem; color: #111827; margin-top: 0.4rem; font-weight: 600; }
+.sticky-page-title { font-size: 1.5rem; font-weight: 700; color: #111827; line-height: 1.3; }
+.sticky-page-subtitle { font-size: 0.9rem; color: #6B7280; margin-top: 0.25rem; font-weight: 400; }
 .main .block-container { text-align: center; }
 h1, h2, h3, h4, h5, h6, p, label, li { text-align: center; }
 [data-testid="stHorizontalBlock"] { justify-content: center; }
 div[data-testid="stTabs"] [data-baseweb="tab-list"] { justify-content: center; }
-div[data-testid="stTabs"] [data-baseweb="tab"] { margin: 0 0.2rem; }
+div[data-testid="stTabs"] [data-baseweb="tab"] { margin: 0 0.15rem; }
 div.stButton > button { display: block; margin-left: auto; margin-right: auto; }
 div[data-testid="stTextInput"], div[data-testid="stTextArea"], div[data-testid="stSelectbox"], div[data-testid="stRadio"] { margin-left: auto; margin-right: auto; }
 div[data-testid="stTextInput"] label, div[data-testid="stRadio"] label { width: 100%; text-align: center; }
@@ -197,11 +189,16 @@ div[data-testid="stTextInput"] input { text-align: center; }
 div[data-testid="stRadio"] [role="radiogroup"] { justify-content: center; }
 section[data-testid="stSidebar"] > div:first-child { padding-top: 0.5rem !important; }
 [data-testid="stSidebarContent"] { padding-top: 0.5rem !important; }
+/* Uniform section styling */
+.section-header { font-size: 1.15rem; font-weight: 600; color: #1F2937; margin: 1.5rem 0 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px solid #E5E7EB; }
+.section-desc { font-size: 0.88rem; color: #6B7280; margin-bottom: 1rem; line-height: 1.5; }
+.insight-box { background: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 8px; padding: 0.9rem 1.1rem; margin: 0.75rem 0; font-size: 0.85rem; color: #374151; line-height: 1.6; text-align: left; }
+.insight-box b, .insight-box strong { color: #111827; }
 </style>
 """, unsafe_allow_html=True)
 
 with st.sidebar:
-    st.header("About This App")
+    st.markdown('<div style="font-size:0.95rem;font-weight:600;color:#1F2937;margin-bottom:0.5rem;">About</div>', unsafe_allow_html=True)
     st.markdown(
         "This app loads the [US Baby Names dataset]"
         "(https://www.kaggle.com/datasets/kaggle/us-baby-names) "
@@ -212,19 +209,13 @@ with st.sidebar:
 # Main content - organized with tabs
 # ---------------------------------------------------------------------------
 tab_explore, tab_sql, tab_diversity, tab_patterns, tab_schema = st.tabs(
-    [
-        " Name Popularity",
-        " Custom SQL",
-        " Name Diversity",
-        " Pattern Discovery",
-        " Schema",
-    ]
+    ["Name Popularity", "Custom SQL", "Name Diversity", "Pattern Discovery", "Schema"]
 )
 
 # ===== TAB A: Name Popularity Over Time ====================================
 with tab_explore:
-    st.header("Name Popularity Over Time")
-    st.markdown("Enter one or more names (comma-separated) to see how their popularity changed across the years.")
+    st.markdown('<div class="section-header">Name Popularity Over Time</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-desc">Enter one or more names (comma-separated) to see how their popularity changed across the years.</div>', unsafe_allow_html=True)
 
     outer_l, center_col, outer_r = st.columns([1, 4, 1])
     with center_col:
@@ -307,11 +298,8 @@ with tab_explore:
 
 # ===== TAB B: Custom SQL Query Panel =======================================
 with tab_sql:
-    st.header("Custom SQL Query Panel")
-    st.markdown(
-        "Run any **SELECT** query against the `national_names` table. "
-        "Non-SELECT statements are blocked for safety."
-    )
+    st.markdown('<div class="section-header">Custom SQL Query Panel</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-desc">Run any SELECT query against the national_names table. Non-SELECT statements are blocked for safety.</div>', unsafe_allow_html=True)
 
     # Pre-built example queries
     example_queries = {
@@ -453,12 +441,8 @@ with tab_sql:
 
 # ===== TAB C: Name Diversity Over Time =====================================
 with tab_diversity:
-    st.header("Name Diversity Over Time")
-    st.markdown(
-        "How many **unique names** were registered each year, and what is the "
-        "**average count per name**? A rising unique-name count signals increasing "
-        "naming diversity."
-    )
+    st.markdown('<div class="section-header">Name Diversity Over Time</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-desc">How many unique names were registered each year, and what is the average count per name? A rising unique-name count signals increasing naming diversity.</div>', unsafe_allow_html=True)
 
     diversity_sql = """
         SELECT Year,
@@ -509,11 +493,11 @@ with tab_diversity:
 
 # ===== TAB D: Pattern Discovery (Task 1.3) =================================
 with tab_patterns:
-    st.header("Pattern Discovery")
-    st.markdown("Three interesting patterns uncovered from the data, each supported by a SQL query, a chart, and an interpretation.")
+    st.markdown('<div class="section-header">Pattern Discovery</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-desc">Three interesting patterns uncovered from the data, each supported by a SQL query, a chart, and an interpretation.</div>', unsafe_allow_html=True)
 
     # --- Pattern 1: Name Diversity Explosion --------------------------------
-    st.subheader("1. Name Diversity Explosion Since the 1950s")
+    st.markdown('<div class="section-header">1. Name Diversity Explosion Since the 1950s</div>', unsafe_allow_html=True)
 
     p1_sql = """
         SELECT Year,
@@ -548,22 +532,14 @@ with tab_patterns:
     st.plotly_chart(fig_p1, use_container_width=True)
     with st.expander("Show SQL query"):
         st.code(p1_sql, language="sql")
-    st.markdown("**Finding:** Name diversity increased sharply after the mid-20th century, with far more unique names used per year than in earlier decades.")
+    st.markdown("""<div class="insight-box"><strong>Finding:</strong> Name diversity increased sharply after the mid-20th century, with far more unique names used per year than in earlier decades.</div>""", unsafe_allow_html=True)
 
-    st.markdown(
-        """
-        **Interpretation:** The data shows a clear long-term rise in naming diversity.
-        Unique names increase from about **1,693 (1910)** to **3,595 (1950)**, then to
-        **4,689 (1970)**, **8,699 (2000)**, and **9,585 (2014)**. The increase is not a
-        short spike but a sustained expansion over decades, consistent with parents
-        using a broader and more varied set of names over time.
-        """
-    )
+    st.markdown("""<div class="insight-box"><strong>Interpretation:</strong> The data shows a clear long-term rise in naming diversity. Unique names increase from about <strong>1,693 (1910)</strong> to <strong>3,595 (1950)</strong>, then to <strong>4,689 (1970)</strong>, <strong>8,699 (2000)</strong>, and <strong>9,585 (2014)</strong>. The increase is not a short spike but a sustained expansion over decades, consistent with parents using a broader and more varied set of names over time.</div>""", unsafe_allow_html=True)
 
-    st.divider()
+    st.markdown('<div style="border-top:1px solid #E5E7EB;margin:1.5rem 0;"></div>', unsafe_allow_html=True)
 
     # --- Pattern 2: Celebrity / Pop-Culture Influence -----------------------
-    st.subheader("2. Pop-Culture Influence: The \"Arya\" Effect")
+    st.markdown('<div class="section-header">2. Pop-Culture Influence: The "Arya" Effect</div>', unsafe_allow_html=True)
 
     p2_sql = """
         SELECT Year, SUM(Count) AS Total
@@ -614,10 +590,10 @@ with tab_patterns:
         """
     )
 
-    st.divider()
+    st.markdown('<div style="border-top:1px solid #E5E7EB;margin:1.5rem 0;"></div>', unsafe_allow_html=True)
 
     # --- Pattern 3: Regional Naming - The State Divide ----------------------
-    st.subheader("3. Regional Naming: The State Divide")
+    st.markdown('<div class="section-header">3. Regional Naming: The State Divide</div>', unsafe_allow_html=True)
 
     # Show top name per state as a table
     p3_top_sql = """
@@ -724,7 +700,7 @@ with tab_patterns:
 
 # ===== TAB E: Schema =======================================================
 with tab_schema:
-    st.header("Database Schema")
+    st.markdown('<div class="section-header">Database Schema</div>', unsafe_allow_html=True)
     st.code(
         """CREATE TABLE national_names (
     Id     INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -736,13 +712,13 @@ with tab_schema:
 );""",
         language="sql",
     )
-    st.subheader("Indexes")
+    st.markdown('<div class="section-header">Indexes</div>', unsafe_allow_html=True)
     st.markdown("- `idx_name_year` on (Name, Year) - speeds up name popularity lookups across years")
     st.markdown("- `idx_year_gender` on (Year, Gender) - speeds up aggregate queries by year and gender")
     st.markdown("- `idx_state` on (State) - speeds up regional filtering and grouping")
     st.markdown("- `idx_year_name` on (Year, Name) - speeds up top names per year and yearly ranking queries")
     st.markdown("- `idx_name_state_year` on (Name, State, Year) - speeds up state-by-state timeline comparisons")
-    st.subheader("Why These Indexes")
+    st.markdown('<div class="section-header">Why These Indexes</div>', unsafe_allow_html=True)
     st.markdown(
         "- `Name + Year` is used by Task 1.2A time-series queries (`WHERE Name IN (...) GROUP BY Name, Year`)."
     )
@@ -752,12 +728,12 @@ with tab_schema:
     st.markdown(
         "- `State` and composite state/name indexes support regional analyses and state filtering in Task 1.3."
     )
-    st.subheader("SQL Safety")
+    st.markdown('<div class="section-header">SQL Safety</div>', unsafe_allow_html=True)
     st.markdown(
         "The custom SQL panel accepts only `SELECT`/`WITH` queries. "
         "Write operations (`INSERT`, `UPDATE`, `DELETE`, `DROP`, etc.) are blocked with a friendly error."
     )
-    st.divider()
+    st.markdown('<div style="border-top:1px solid #E5E7EB;margin:1.5rem 0;"></div>', unsafe_allow_html=True)
     schema_stats = get_dataset_stats(conn)
     c1, c2 = st.columns(2)
     c1.metric("Total rows", f"{schema_stats['rows']:,}")

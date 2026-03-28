@@ -724,8 +724,8 @@ def main():
     st.markdown(
         """
 <div class="sticky-page-header">
-  <div class="sticky-page-title">🎬 Oscar Actor Explorer</div>
-  <div class="sticky-page-subtitle">Explore Oscar nomination history, actor profiles, and interesting discoveries.</div>
+  <div class="sticky-page-title">Oscar Actor Explorer</div>
+  <div class="sticky-page-subtitle">Explore Oscar nomination history, actor profiles, and interesting discoveries</div>
 </div>
 """,
         unsafe_allow_html=True,
@@ -738,36 +738,35 @@ def main():
     # ----- Sidebar -----
     st.markdown("""
 <style>
-.block-container { padding: 0.8rem 1.5rem 2rem !important; }
+.block-container { padding: 1rem 2rem 2.5rem !important; max-width: 1100px !important; margin: 0 auto !important; }
 .sticky-page-header {
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-    background: rgba(255, 255, 255, 0.97);
-    border: 1px solid #e5e7eb;
-    border-radius: 14px;
-    padding: 0.9rem 1.2rem;
-    margin: 0 auto 1rem auto;
-    max-width: 980px;
+    position: sticky; top: 0; z-index: 1000;
+    background: rgba(255,255,255,0.97);
+    border-bottom: 2px solid #E5E7EB;
+    padding: 1rem 1.5rem;
+    margin: 0 -2rem 1.5rem -2rem;
     text-align: center;
 }
-.sticky-page-title { font-size: 2rem; font-weight: 800; line-height: 1.15; text-align: center; }
-.sticky-page-subtitle { font-size: 1.05rem; color: #4b5563; margin-top: 0.3rem; text-align: center; }
-.sticky-page-section { font-size: 0.95rem; color: #111827; margin-top: 0.4rem; font-weight: 600; }
+.sticky-page-title { font-size: 1.5rem; font-weight: 700; color: #111827; line-height: 1.3; }
+.sticky-page-subtitle { font-size: 0.9rem; color: #6B7280; margin-top: 0.25rem; font-weight: 400; }
 .main .block-container { text-align: center; }
 h1, h2, h3, h4, h5, h6, p, label, li { text-align: center; }
 [data-testid="stHorizontalBlock"] { justify-content: center; }
 div[data-testid="stTabs"] [data-baseweb="tab-list"] { justify-content: center; }
-div[data-testid="stTabs"] [data-baseweb="tab"] { margin: 0 0.2rem; }
+div[data-testid="stTabs"] [data-baseweb="tab"] { margin: 0 0.15rem; }
 div.stButton > button { display: block; margin-left: auto; margin-right: auto; }
 div[data-testid="stTextInput"], div[data-testid="stTextArea"], div[data-testid="stSelectbox"], div[data-testid="stRadio"] { margin-left: auto; margin-right: auto; }
 section[data-testid="stSidebar"] > div:first-child { padding-top: 0.5rem !important; }
 [data-testid="stSidebarContent"] { padding-top: 0.5rem !important; }
+.section-header { font-size: 1.15rem; font-weight: 600; color: #1F2937; margin: 1.5rem 0 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px solid #E5E7EB; }
+.section-desc { font-size: 0.88rem; color: #6B7280; margin-bottom: 1rem; line-height: 1.5; }
+.insight-box { background: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 8px; padding: 0.9rem 1.1rem; margin: 0.75rem 0; font-size: 0.85rem; color: #374151; line-height: 1.6; text-align: left; }
+.insight-box b, .insight-box strong { color: #111827; }
 </style>
 """, unsafe_allow_html=True)
 
     with st.sidebar:
-        st.header("About This App")
+        st.markdown('<div style="font-size:0.95rem;font-weight:600;color:#1F2937;margin-bottom:0.5rem;">About</div>', unsafe_allow_html=True)
         st.markdown(
             "This app loads the [Oscar Award dataset]"
             "(https://www.kaggle.com/datasets/unanimad/the-oscar-award) "
@@ -784,7 +783,7 @@ section[data-testid="stSidebar"] > div:first-child { padding-top: 0.5rem !import
     # Task 2.2 - Actor Profile
     # ===================================================================
     with tab_profile:
-        st.subheader("Search for an Actor or Director")
+        st.markdown('<div class="section-header">Search for an Actor or Director</div>', unsafe_allow_html=True)
 
         # Autocomplete via selectbox with search
         selected_name = st.selectbox(
@@ -848,7 +847,7 @@ section[data-testid="stSidebar"] > div:first-child { padding-top: 0.5rem !import
                             st.caption("Wikipedia photo unavailable.")
 
                     with col_info:
-                        st.markdown(f"## {target_name}")
+                        st.markdown(f'<div style="font-size:1.3rem;font-weight:700;color:#111827;">{target_name}</div>', unsafe_allow_html=True)
                         if wiki.get("birth_date"):
                             st.markdown(f"**Born:** {wiki['birth_date']}")
                         else:
@@ -865,7 +864,7 @@ section[data-testid="stSidebar"] > div:first-child { padding-top: 0.5rem !import
                     source_label = "Dataset + Wikipedia" if has_wiki_data else "Dataset only"
                     st.caption(f"Profile source: {source_label}")
 
-                    st.divider()
+                    st.markdown('<div style="border-top:1px solid #E5E7EB;margin:1.5rem 0;"></div>', unsafe_allow_html=True)
 
                     # --- Oscar Stats (styled gradient cards) ---
                     _wins_display = profile["num_wins"] if profile["num_wins"] else "0"
@@ -928,7 +927,7 @@ section[data-testid="stSidebar"] > div:first-child { padding-top: 0.5rem !import
                     st.markdown("**Categories Nominated In:** " + ", ".join(profile["categories"]))
 
                     # --- Nominations Table ---
-                    st.subheader("All Nominations")
+                    st.markdown('<div class="section-header">All Nominations</div>', unsafe_allow_html=True)
                     st.caption("Look for the \U0001F3C6 trophy icon in the Result column to spot wins.")
                     rows = []
                     for n in profile["nominations"]:
@@ -946,7 +945,7 @@ section[data-testid="stSidebar"] > div:first-child { padding-top: 0.5rem !import
                     # --- Did You Know? (Bonus) ---
                     facts = generate_fun_facts(session, profile, wiki)
                     if facts:
-                        st.subheader("\U0001F4A1 Did You Know?")
+                        st.markdown('<div class="section-header">Did You Know?</div>', unsafe_allow_html=True)
                         for fact in facts:
                             st.markdown(f"- {fact}")
 
@@ -957,14 +956,14 @@ section[data-testid="stSidebar"] > div:first-child { padding-top: 0.5rem !import
     # Task 2.3 - Discoveries
     # ===================================================================
     with tab_discoveries:
-        st.subheader("Interesting Findings from the Oscar Dataset")
+        st.markdown('<div class="section-header">Interesting Findings from the Oscar Dataset</div>', unsafe_allow_html=True)
 
         session = get_session()
         try:
             # ---------------------------------------------------------------
             # Discovery 1: Most Nominated Without a Win
             # ---------------------------------------------------------------
-            st.markdown("### 1. Most Nominated Without a Win")
+            st.markdown('<div class="section-header">1. Most Nominated Without a Win</div>', unsafe_allow_html=True)
             st.markdown(
                 "Which people have received the most Oscar nominations but have **never won**?"
             )
@@ -1040,12 +1039,12 @@ section[data-testid="stSidebar"] > div:first-child { padding-top: 0.5rem !import
                         language="python",
                     )
 
-            st.divider()
+            st.markdown('<div style="border-top:1px solid #E5E7EB;margin:1.5rem 0;"></div>', unsafe_allow_html=True)
 
             # ---------------------------------------------------------------
             # Discovery 2: Longest Wait for First Win
             # ---------------------------------------------------------------
-            st.markdown("### 2. Longest Wait for First Win")
+            st.markdown('<div class="section-header">2. Longest Wait for First Win</div>', unsafe_allow_html=True)
             st.markdown(
                 "Who waited the longest between their **first nomination** and "
                 "their **first win**?"
@@ -1178,12 +1177,12 @@ section[data-testid="stSidebar"] > div:first-child { padding-top: 0.5rem !import
                         language="python",
                     )
 
-            st.divider()
+            st.markdown('<div style="border-top:1px solid #E5E7EB;margin:1.5rem 0;"></div>', unsafe_allow_html=True)
 
             # ---------------------------------------------------------------
             # Discovery 3: Multi-Category Nominees
             # ---------------------------------------------------------------
-            st.markdown("### 3. Multi-Category Nominees")
+            st.markdown('<div class="section-header">3. Multi-Category Nominees</div>', unsafe_allow_html=True)
             st.markdown(
                 "Who has been nominated in the **most different categories**? "
                 "These versatile artists have been recognized across multiple disciplines."
@@ -1276,7 +1275,7 @@ section[data-testid="stSidebar"] > div:first-child { padding-top: 0.5rem !import
             session.close()
 
     with tab_schema:
-        st.header("Database Schema & ORM Design")
+        st.markdown('<div class="section-header">Database Schema and ORM Design</div>', unsafe_allow_html=True)
         st.markdown("""\
 **Tables (normalized ORM schema):**
 
@@ -1305,7 +1304,7 @@ clear relationship modeling (`relationship`, `joinedload`), and smooth integrati
 with Streamlit for cached sessions and query composition. All data access is via ORM
 queries (no raw SQL for Task 2 logic).
 """)
-        st.subheader("ORM Model Code")
+        st.markdown('<div class="section-header">ORM Model Code</div>', unsafe_allow_html=True)
         st.code("""\
 class Person(Base):
     __tablename__ = "people"

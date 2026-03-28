@@ -801,7 +801,7 @@ def render_battle_card(p: dict, is_active: bool = False):
 # ---------------------------------------------------------------------------
 
 def page_battle():
-    st.header("\U0001f3df\ufe0f Pokemon Battle Arena")
+    st.markdown('<div class="section-header">Pokemon Battle Arena</div>', unsafe_allow_html=True)
 
     # Initialize session state
     if "battle_state" not in st.session_state:
@@ -815,13 +815,13 @@ def page_battle():
 
     # ---- TEAM SELECTION ----
     if st.session_state.battle_state == "select":
-        st.subheader("Choose Your Team")
+        st.markdown('<div class="section-header">Choose Your Team</div>', unsafe_allow_html=True)
 
         team_size = st.selectbox("Team size", [1, 2, 3], index=0)
         stat_maxima = get_selection_stat_maxima()
 
-        st.markdown("---")
-        st.subheader("Your Team")
+        st.markdown('<div style="border-top:1px solid #E5E7EB;margin:1.5rem 0;"></div>', unsafe_allow_html=True)
+        st.markdown('<div class="section-header">Your Team</div>', unsafe_allow_html=True)
 
         # One column per slot " selectbox + preview card together
         slot_cols = st.columns(team_size)
@@ -930,7 +930,7 @@ def page_battle():
             for p in ai_team:
                 render_battle_card(p, is_active=(p["name"] == _a_fastest))
 
-        st.markdown("---")
+        st.markdown('<div style="border-top:1px solid #E5E7EB;margin:1.5rem 0;"></div>', unsafe_allow_html=True)
 
         turn_count = len([e for e in st.session_state.battle_log if e.startswith("**Turn")])
         bar_l, bar_c, bar_r = st.columns([1.2, 2.8, 1.2])
@@ -1087,8 +1087,8 @@ def page_battle():
 
         # Cheat audit
         if st.session_state.cheats_used:
-            st.markdown("---")
-            st.subheader("\U0001f50d Cheat Audit")
+            st.markdown('<div style="border-top:1px solid #E5E7EB;margin:1.5rem 0;"></div>', unsafe_allow_html=True)
+            st.markdown('<div class="section-header">Cheat Audit</div>', unsafe_allow_html=True)
             st.markdown(f"**Cheats used this battle:** {', '.join(st.session_state.cheats_used)}")
             audit = run_cheat_audit()
             for title, df in audit.items():
@@ -1102,7 +1102,7 @@ def page_battle():
         restore_pokemon_db()
 
         # Battle history
-        st.markdown("---")
+        st.markdown('<div style="border-top:1px solid #E5E7EB;margin:1.5rem 0;"></div>', unsafe_allow_html=True)
         st.markdown(
             """<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
                 <span style="font-size:1.3rem;font-weight:800;color:#1E1B4B;">Battle History</span>
@@ -1197,12 +1197,12 @@ def execute_turn(player_team, ai_team):
 # ---------------------------------------------------------------------------
 
 def page_analysis():
-    st.header("\U0001f4ca Pokemon Analysis")
+    st.markdown('<div class="section-header">Pokemon Analysis</div>', unsafe_allow_html=True)
 
     conn = get_conn()
 
     # --- 3.4.1 Most Overpowered Type Combination ---
-    st.subheader("1. Most Overpowered Type Combinations")
+    st.markdown('<div class="section-header">1. Most Overpowered Type Combinations</div>', unsafe_allow_html=True)
     st.markdown("""
     This query calculates the **average total stats** for each Type 1 + Type 2 combination
     and ranks them to find which type pairings produce the strongest Pokemon on average.
@@ -1258,10 +1258,10 @@ def page_analysis():
     else:
         st.info("No data available.")
 
-    st.markdown("---")
+    st.markdown('<div style="border-top:1px solid #E5E7EB;margin:1.5rem 0;"></div>', unsafe_allow_html=True)
 
     # --- 3.4.2 Power Creep Across Generations ---
-    st.subheader("2. Power Creep Across Generations")
+    st.markdown('<div class="section-header">2. Power Creep Across Generations</div>', unsafe_allow_html=True)
     st.markdown("""
     This analysis examines whether later generations of Pokemon have higher base stat
     totals on average, a phenomenon known as **power creep** in game design.
@@ -1353,11 +1353,11 @@ def page_analysis():
 # ---------------------------------------------------------------------------
 
 def page_schema():
-    st.header("\U0001f5c4\ufe0f Database Schema & Info")
+    st.markdown('<div class="section-header">Database Schema and Info</div>', unsafe_allow_html=True)
 
     conn = get_conn()
 
-    st.subheader("Tables")
+    st.markdown('<div class="section-header">Tables</div>', unsafe_allow_html=True)
     tables = pd.read_sql_query(
         "SELECT name FROM sqlite_master WHERE type='table' AND name != 'sqlite_sequence' ORDER BY name",
         conn,
@@ -1371,15 +1371,15 @@ def page_schema():
         count = conn.execute(f"SELECT COUNT(*) FROM [{tbl}]").fetchone()[0]
         st.caption(f"Row count: {count}")
 
-    st.subheader("Indexes")
+    st.markdown('<div class="section-header">Indexes</div>', unsafe_allow_html=True)
     indexes = pd.read_sql_query("SELECT name, tbl_name, sql FROM sqlite_master WHERE type='index' AND sql IS NOT NULL", conn)
     st.dataframe(indexes, use_container_width=True)
 
-    st.subheader("Sample: pokemon (first 10 rows)")
+    st.markdown('<div class="section-header">Sample: pokemon (first 10 rows)</div>', unsafe_allow_html=True)
     sample = pd.read_sql_query("SELECT * FROM pokemon LIMIT 10", conn)
     st.dataframe(sample, use_container_width=True)
 
-    st.subheader("Sample: type_effectiveness (Fire matchups)")
+    st.markdown('<div class="section-header">Sample: type_effectiveness (Fire matchups)</div>', unsafe_allow_html=True)
     te = pd.read_sql_query("SELECT * FROM type_effectiveness WHERE attacking_type = 'Fire'", conn)
     st.dataframe(te, use_container_width=True)
 
@@ -1387,7 +1387,7 @@ def page_schema():
 
 
 def page_battle_mechanics():
-    st.header("⚙️ Battle Mechanics")
+    st.markdown('<div class="section-header">Battle Mechanics</div>', unsafe_allow_html=True)
 
     # --- Damage Formula Card ---
     st.markdown(
@@ -1397,7 +1397,7 @@ def page_battle_mechanics():
                     background:linear-gradient(135deg,#EEF2FF 0%,#F5F3FF 50%,#FDF4FF 100%);
                     box-shadow:0 4px 20px rgba(99,102,241,0.15);">
             <div style="text-align:center;margin-bottom:1rem;">
-                <span style="font-size:1.4rem;font-weight:800;color:#4338CA;">⚡ Damage Formula</span>
+                <span style="font-size:1.4rem;font-weight:800;color:#4338CA;">Damage Formula</span>
                 <span style="font-size:0.75rem;color:#6B7280;display:block;margin-top:2px;">Based on Pokemon Gen V simplified</span>
             </div>
             <div style="background:#1E1B4B !important;border-radius:12px;padding:1.1rem 1.4rem;margin-bottom:1rem;text-align:center;color:#A5B4FC !important;font-family:'SF Mono',Consolas,'Courier New',monospace;font-size:0.88rem;line-height:2;">
@@ -1431,7 +1431,7 @@ def page_battle_mechanics():
             <div style="border:1px solid #D1D5DB;border-radius:14px;padding:1.2rem;
                         background:linear-gradient(135deg,#F0FDF4 0%,#ECFDF5 100%);height:100%;">
                 <div style="font-size:1.1rem;font-weight:700;color:#065F46;margin-bottom:0.8rem;text-align:center;">
-                    🏃 Turn Order
+                    Turn Order
                 </div>
                 <div style="font-size:0.85rem;color:#374151;line-height:1.7;">
                     <div style="background:rgba(255,255,255,0.7);border-radius:8px;padding:6px 10px;margin-bottom:6px;">
@@ -1457,7 +1457,7 @@ def page_battle_mechanics():
             <div style="border:1px solid #D1D5DB;border-radius:14px;padding:1.2rem;
                         background:linear-gradient(135deg,#FEF3C7 0%,#FFFBEB 100%);height:100%;">
                 <div style="font-size:1.1rem;font-weight:700;color:#92400E;margin-bottom:0.8rem;text-align:center;">
-                    🎯 Type Effectiveness
+                    Type Effectiveness
                 </div>
                 <div style="font-size:0.85rem;color:#374151;line-height:1.7;">
                     <div style="background:rgba(16,185,129,0.15);border-radius:8px;padding:6px 10px;margin-bottom:6px;">
@@ -1481,7 +1481,7 @@ def page_battle_mechanics():
     st.markdown("<div style='height:1.5rem;'></div>", unsafe_allow_html=True)
 
     # --- Interactive Type Effectiveness Heatmap ---
-    st.subheader("🗺️ Full 18×18 Type Effectiveness Chart")
+    st.markdown('<div class="section-header">Full 18x18 Type Effectiveness Chart</div>', unsafe_allow_html=True)
 
     # Build the matrix from TYPE_CHART
     types = ALL_TYPES
@@ -1550,8 +1550,8 @@ def page_battle_mechanics():
     st.plotly_chart(fig_heatmap, use_container_width=True)
 
     # --- Damage Calculator ---
-    st.markdown("---")
-    st.subheader("🧮 Damage Calculator")
+    st.markdown('<div style="border-top:1px solid #E5E7EB;margin:1.5rem 0;"></div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-header">Damage Calculator</div>', unsafe_allow_html=True)
     st.markdown("Pick two Pokemon and see the calculated damage for one attack.")
 
     all_names = get_all_pokemon_names()
@@ -1632,8 +1632,8 @@ def main():
     st.markdown(
         """
 <div class="sticky-page-header">
-  <div class="sticky-page-title">⚔️ Pokemon Battle Arena</div>
-  <div class="sticky-page-subtitle">Battle, analyze, and explore Pokemon data with SQL.</div>
+  <div class="sticky-page-title">Pokemon Battle Arena</div>
+  <div class="sticky-page-subtitle">Battle, analyze, and explore Pokemon data with SQL</div>
 </div>
 """,
         unsafe_allow_html=True,
@@ -1662,36 +1662,35 @@ def main():
 
     st.markdown("""
 <style>
-.block-container { padding: 0.8rem 1.5rem 2rem !important; }
+.block-container { padding: 1rem 2rem 2.5rem !important; max-width: 1100px !important; margin: 0 auto !important; }
 .sticky-page-header {
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-    background: rgba(255, 255, 255, 0.97);
-    border: 1px solid #e5e7eb;
-    border-radius: 14px;
-    padding: 0.9rem 1.2rem;
-    margin: 0 auto 1rem auto;
-    max-width: 980px;
+    position: sticky; top: 0; z-index: 1000;
+    background: rgba(255,255,255,0.97);
+    border-bottom: 2px solid #E5E7EB;
+    padding: 1rem 1.5rem;
+    margin: 0 -2rem 1.5rem -2rem;
     text-align: center;
 }
-.sticky-page-title { font-size: 2rem; font-weight: 800; line-height: 1.15; text-align: center; }
-.sticky-page-subtitle { font-size: 1.05rem; color: #4b5563; margin-top: 0.3rem; text-align: center; }
-.sticky-page-section { font-size: 0.95rem; color: #111827; margin-top: 0.4rem; font-weight: 600; }
+.sticky-page-title { font-size: 1.5rem; font-weight: 700; color: #111827; line-height: 1.3; }
+.sticky-page-subtitle { font-size: 0.9rem; color: #6B7280; margin-top: 0.25rem; font-weight: 400; }
 .main .block-container { text-align: center; }
 h1, h2, h3, h4, h5, h6, p, label, li { text-align: center; }
 [data-testid="stHorizontalBlock"] { justify-content: center; }
 div[data-testid="stTabs"] [data-baseweb="tab-list"] { justify-content: center; }
-div[data-testid="stTabs"] [data-baseweb="tab"] { margin: 0 0.2rem; }
+div[data-testid="stTabs"] [data-baseweb="tab"] { margin: 0 0.15rem; }
 div.stButton > button { display: block; margin-left: auto; margin-right: auto; }
 div[data-testid="stTextInput"], div[data-testid="stTextArea"], div[data-testid="stSelectbox"], div[data-testid="stRadio"] { margin-left: auto; margin-right: auto; }
 section[data-testid="stSidebar"] > div:first-child { padding-top: 0.5rem !important; }
 [data-testid="stSidebarContent"] { padding-top: 0.5rem !important; }
+.section-header { font-size: 1.15rem; font-weight: 600; color: #1F2937; margin: 1.5rem 0 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px solid #E5E7EB; }
+.section-desc { font-size: 0.88rem; color: #6B7280; margin-bottom: 1rem; line-height: 1.5; }
+.insight-box { background: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 8px; padding: 0.9rem 1.1rem; margin: 0.75rem 0; font-size: 0.85rem; color: #374151; line-height: 1.6; text-align: left; }
+.insight-box b, .insight-box strong { color: #111827; }
 </style>
 """, unsafe_allow_html=True)
 
     with st.sidebar:
-        st.header("About This App")
+        st.markdown('<div style="font-size:0.95rem;font-weight:600;color:#1F2937;margin-bottom:0.5rem;">About</div>', unsafe_allow_html=True)
         st.markdown(
             "This app loads the [Pokemon dataset]"
             "(https://www.kaggle.com/datasets/abcsds/pokemon) "

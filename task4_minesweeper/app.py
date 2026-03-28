@@ -1389,31 +1389,28 @@ def inject_css():
     st.markdown("""
 <style>
 #MainMenu, footer, header { visibility: hidden; }
-.block-container { padding: 0.8rem 1.5rem 2rem !important; }
+.block-container { padding: 1rem 2rem 2.5rem !important; max-width: 1100px !important; margin: 0 auto !important; }
 .sticky-page-header {
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-    background: linear-gradient(145deg, rgba(255,255,255,0.98), rgba(240,242,245,0.97));
-    border: 1px solid #dde1e6;
-    border-radius: 16px;
-    padding: 1.1rem 1.35rem;
-    margin: 0 auto 1rem auto;
-    max-width: 980px;
+    position: sticky; top: 0; z-index: 1000;
+    background: rgba(255,255,255,0.97);
+    border-bottom: 2px solid #E5E7EB;
+    padding: 1rem 1.5rem;
+    margin: 0 -2rem 1.5rem -2rem;
     text-align: center;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
-    backdrop-filter: blur(12px);
 }
-.sticky-page-title { font-size: 2.25rem; font-weight: 800; line-height: 1.12; }
-.sticky-page-subtitle { font-size: 1.18rem; color: #4b5563; margin-top: 0.35rem; text-align: center; }
-.sticky-page-section { font-size: 0.95rem; color: #111827; margin-top: 0.4rem; font-weight: 600; }
+.sticky-page-title { font-size: 1.5rem; font-weight: 700; color: #111827; line-height: 1.3; }
+.sticky-page-subtitle { font-size: 0.9rem; color: #6B7280; margin-top: 0.25rem; font-weight: 400; }
 .main .block-container { text-align: center; }
 h1, h2, h3, h4, h5, h6, p, label, li { text-align: center; }
 [data-testid="stHorizontalBlock"] { justify-content: center; }
 div[data-testid="stTabs"] [data-baseweb="tab-list"] { justify-content: center; }
-div[data-testid="stTabs"] [data-baseweb="tab"] { margin: 0 0.2rem; }
+div[data-testid="stTabs"] [data-baseweb="tab"] { margin: 0 0.15rem; }
 div.stButton > button { display: block; margin-left: auto; margin-right: auto; }
 div[data-testid="stTextInput"], div[data-testid="stTextArea"], div[data-testid="stSelectbox"], div[data-testid="stRadio"] { margin-left: auto; margin-right: auto; }
+.section-header { font-size: 1.15rem; font-weight: 600; color: #1F2937; margin: 1.5rem 0 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px solid #E5E7EB; }
+.section-desc { font-size: 0.88rem; color: #6B7280; margin-bottom: 1rem; line-height: 1.5; }
+.insight-box { background: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 8px; padding: 0.9rem 1.1rem; margin: 0.75rem 0; font-size: 0.85rem; color: #374151; line-height: 1.6; text-align: left; }
+.insight-box b, .insight-box strong { color: #111827; }
 
 /* Hide click bridge input */
 [data-testid="stTextInput"]:has(input[placeholder="MS_CLICK_BRIDGE"]) {
@@ -1497,7 +1494,7 @@ def render_timer():
         elapsed_txt = format_time(time.time() - ss.ms_start_time)
     st.markdown(
         f"""<div class="ms-stat-box">
-            <div class="ms-stat-label">\u23F1 Time</div>
+            <div class="ms-stat-label">Time</div>
             <div class="ms-stat-value">{elapsed_txt}</div>
         </div>""",
         unsafe_allow_html=True,
@@ -1514,17 +1511,17 @@ def render_stats():
         c1, c2, c3, c4 = st.columns(4)
         with c1:
             st.markdown(
-                f"""<div class="ms-stat-box"><div class="ms-stat-label">\U0001F4A3 Mines Left</div><div class="ms-stat-value">{remaining}</div></div>""",
+                f"""<div class="ms-stat-box"><div class="ms-stat-label">Mines Left</div><div class="ms-stat-value">{remaining}</div></div>""",
                 unsafe_allow_html=True,
             )
         with c2:
             st.markdown(
-                f"""<div class="ms-stat-box"><div class="ms-stat-label">\U0001F6A9 Flags</div><div class="ms-stat-value">{flags}</div></div>""",
+                f"""<div class="ms-stat-box"><div class="ms-stat-label">Flags</div><div class="ms-stat-value">{flags}</div></div>""",
                 unsafe_allow_html=True,
             )
         with c3:
             st.markdown(
-                f"""<div class="ms-stat-box"><div class="ms-stat-label">\U0001F4A5 Rescues</div><div class="ms-stat-value">{ss.ms_mine_hit_count}</div></div>""",
+                f"""<div class="ms-stat-box"><div class="ms-stat-label">Rescues</div><div class="ms-stat-value">{ss.ms_mine_hit_count}</div></div>""",
                 unsafe_allow_html=True,
             )
         with c4:
@@ -1774,13 +1771,13 @@ def render_end_screen(conn):
     with center_wrap:
         c1, c2, c3, c4 = st.columns(4)
         with c1:
-            st.markdown(f"""<div class="ms-stat-box"><div class="ms-stat-label">\u23F1 Time</div><div class="ms-stat-value">{format_time(elapsed)}</div></div>""", unsafe_allow_html=True)
+            st.markdown(f"""<div class="ms-stat-box"><div class="ms-stat-label">Time</div><div class="ms-stat-value">{format_time(elapsed)}</div></div>""", unsafe_allow_html=True)
         with c2:
-            st.markdown(f"""<div class="ms-stat-box"><div class="ms-stat-label">\U0001F4A3 Rescues</div><div class="ms-stat-value">{ss.ms_mine_hit_count}</div></div>""", unsafe_allow_html=True)
+            st.markdown(f"""<div class="ms-stat-box"><div class="ms-stat-label">Rescues</div><div class="ms-stat-value">{ss.ms_mine_hit_count}</div></div>""", unsafe_allow_html=True)
         with c3:
-            st.markdown(f"""<div class="ms-stat-box"><div class="ms-stat-label">\U0001F9E0 Max SQL Level</div><div class="ms-stat-value">{max_sql_level}</div></div>""", unsafe_allow_html=True)
+            st.markdown(f"""<div class="ms-stat-box"><div class="ms-stat-label">Max SQL Level</div><div class="ms-stat-value">{max_sql_level}</div></div>""", unsafe_allow_html=True)
         with c4:
-            st.markdown(f"""<div class="ms-stat-box"><div class="ms-stat-label">\u2B50 Score</div><div class="ms-stat-value">{score}</div></div>""", unsafe_allow_html=True)
+            st.markdown(f"""<div class="ms-stat-box"><div class="ms-stat-label">Score</div><div class="ms-stat-value">{score}</div></div>""", unsafe_allow_html=True)
 
     if ss.ms_won and not ss.ms_saved and ss.ms_nickname:
         save_to_leaderboard(conn, ss.ms_nickname, ss.ms_difficulty, elapsed,
@@ -1790,7 +1787,7 @@ def render_end_screen(conn):
 
 
 def render_leaderboard(conn):
-    st.subheader("\U0001F3C6 Leaderboard")
+    st.markdown('<div class="section-header">Leaderboard</div>', unsafe_allow_html=True)
     tabs = st.tabs(["Easy", "Medium", "Expert"])
     for i, diff in enumerate(["Easy", "Medium", "Expert"]):
         with tabs[i]:
@@ -1842,7 +1839,8 @@ def main():
     st.markdown(
         """
 <div class="sticky-page-header">
-  <div class="sticky-page-title">\U0001F4A3 SQL Minesweeper</div>
+  <div class="sticky-page-title">SQL Minesweeper</div>
+  <div class="sticky-page-subtitle">Classic Minesweeper with NBA SQL rescue challenges</div>
 </div>
 """,
         unsafe_allow_html=True,
