@@ -38,7 +38,7 @@ BASE_DIR = Path(__file__).resolve().parent
 DB_ROOT = Path(os.getenv("OSCAR_DB_DIR", Path(tempfile.gettempdir()) / "oscar_explorer"))
 DB_ROOT.mkdir(parents=True, exist_ok=True)
 DB_PATH = DB_ROOT / "oscar.db"
-CSV_PATH = BASE_DIR / "full_data.csv"
+CSV_PATH = BASE_DIR / "the_oscar_award.csv"
 
 # ---------------------------------------------------------------------------
 # Task 2.1 - SQLAlchemy ORM Model
@@ -114,30 +114,26 @@ class Nomination(Base):
 # ---------------------------------------------------------------------------
 
 def _load_csv() -> pd.DataFrame:
-    """Load the Oscar CSV from the local full_data.csv file."""
+    """Load the Oscar CSV from the local the_oscar_award.csv file."""
     if not CSV_PATH.exists():
         raise FileNotFoundError(
             f"CSV file not found at {CSV_PATH}. "
-            "Please place full_data.csv in the task2_oscar/ folder and restart the app."
+            "Please place the_oscar_award.csv in the task2_oscar/ folder and restart the app."
         )
-    # full_data.csv is tab-separated
-    df = pd.read_csv(CSV_PATH, sep="\t")
-    # Normalise column names to what the app expects
-    rename = {
-        "Ceremony": "ceremony",
-        "Year": "year_film",
-        "Category": "category",
-        "Film": "film",
-        "Name": "name",
-        "Winner": "winner",
-    }
-    df = df.rename(columns=rename)
+    df = pd.read_csv(CSV_PATH)
+    # Normalise column names to lowercase
+    df.columns = [c.strip().lower().replace(" ", "_") for c in df.columns]
+    # Ensure expected columns exist
+    if "year_film" not in df.columns and "year" in df.columns:
+        df = df.rename(columns={"year": "year_film"})
+    if "year_ceremony" not in df.columns:
+        df["year_ceremony"] = df["ceremony"].astype(int) + 1928
     # year_film might be "1927/28" - take the first 4 chars
     df["year_film"] = df["year_film"].astype(str).str[:4].astype(int)
-    # Create year_ceremony from ceremony number + 1927
-    df["year_ceremony"] = df["ceremony"].astype(int) + 1928
-    # Winner: True/NaN -> bool
-    df["winner"] = df["winner"].fillna(False).astype(bool)
+    df["year_ceremony"] = df["year_ceremony"].astype(int)
+    # Winner: True/False/NaN -> bool
+    df["winner"] = df["winner"].fillna(False)
+    df["winner"] = df["winner"].apply(lambda x: str(x).strip().lower() in ("true", "1", "yes"))
     # Keep only the columns we need
     df = df[["year_film", "year_ceremony", "ceremony", "category", "name", "film", "winner"]]
     df = df.dropna(subset=["name"])
@@ -279,40 +275,24 @@ def get_session() -> Session:
 # All distinct names (cached for autocomplete)
 # ---------------------------------------------------------------------------
 
-# Categories for actors and directors only
-PERSON_CATEGORIES_PATTERN = (
-    "ACTOR%", "ACTRESS%", "DIRECTING%",
-)
-
-
 @st.cache_data(ttl=600)
 def get_all_names() -> list[str]:
-    """Return a sorted list of all distinct nominee names (people only, not studios/countries)."""
+    """Return a sorted list of all distinct nominee names."""
     session = get_session()
-    from sqlalchemy import or_
     try:
-        filters = [Category.name.like(pat) for pat in PERSON_CATEGORIES_PATTERN]
         names = [
             r[0] for r in session.query(distinct(Person.name))
-            .join(Nomination, Nomination.person_id == Person.id)
-            .join(Category, Nomination.category_id == Category.id)
-            .filter(or_(*filters))
             .order_by(Person.name)
             .all()
             if r[0]
         ]
         return names
     except OperationalError:
-        # Cached engine may point to a bad DB from a previous run.
         session.close()
         get_engine.clear()
         session = get_session()
-        filters = [Category.name.like(pat) for pat in PERSON_CATEGORIES_PATTERN]
         return [
             r[0] for r in session.query(distinct(Person.name))
-            .join(Nomination, Nomination.person_id == Person.id)
-            .join(Category, Nomination.category_id == Category.id)
-            .filter(or_(*filters))
             .order_by(Person.name)
             .all()
             if r[0]
