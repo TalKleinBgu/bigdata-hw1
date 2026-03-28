@@ -39,6 +39,7 @@ DB_ROOT = Path(os.getenv("OSCAR_DB_DIR", Path(tempfile.gettempdir()) / "oscar_ex
 DB_ROOT.mkdir(parents=True, exist_ok=True)
 DB_PATH = DB_ROOT / "oscar.db"
 CSV_PATH = BASE_DIR / "the_oscar_award.csv"
+DATA_VERSION = "canon-category-v1"
 
 # ---------------------------------------------------------------------------
 # Task 2.1 - SQLAlchemy ORM Model
@@ -126,6 +127,8 @@ def _load_csv() -> pd.DataFrame:
     # Ensure expected columns exist
     if "year_film" not in df.columns and "year" in df.columns:
         df = df.rename(columns={"year": "year_film"})
+    if "canon_category" not in df.columns:
+        df["canon_category"] = df["category"]
     if "year_ceremony" not in df.columns:
         df["year_ceremony"] = df["ceremony"].astype(int) + 1928
     # year_film might be "1927/28" - take the first 4 chars
@@ -134,6 +137,8 @@ def _load_csv() -> pd.DataFrame:
     # Winner: True/False/NaN -> bool
     df["winner"] = df["winner"].fillna(False)
     df["winner"] = df["winner"].apply(lambda x: str(x).strip().lower() in ("true", "1", "yes"))
+    # Use canonical category labels so renamed Oscar categories stay grouped together.
+    df["category"] = df["canon_category"].fillna(df["category"])
     # Keep only the columns we need
     df = df[["year_film", "year_ceremony", "ceremony", "category", "name", "film", "winner"]]
     df = df.dropna(subset=["name"])
@@ -144,12 +149,40 @@ def _init_db(engine):
     """Create tables and populate from CSV if the DB is empty."""
     Base.metadata.create_all(engine)
 
+    def ensure_metadata_table():
+        with engine.begin() as conn:
+            conn.exec_driver_sql(
+                """
+                CREATE TABLE IF NOT EXISTS app_metadata (
+                    key TEXT PRIMARY KEY,
+                    value TEXT NOT NULL
+                )
+                """
+            )
+
+    def get_data_version() -> str | None:
+        ensure_metadata_table()
+        with engine.connect() as conn:
+            row = conn.exec_driver_sql(
+                "SELECT value FROM app_metadata WHERE key = 'data_version'"
+            ).fetchone()
+            return row[0] if row else None
+
+    def set_data_version(value: str):
+        ensure_metadata_table()
+        with engine.begin() as conn:
+            conn.exec_driver_sql(
+                "INSERT OR REPLACE INTO app_metadata (key, value) VALUES ('data_version', ?)",
+                (value,),
+            )
+
     def has_normalized_schema() -> bool:
         """Return True when all normalized tables/columns exist."""
+        ensure_metadata_table()
         with engine.connect() as conn:
             table_rows = conn.exec_driver_sql("SELECT name FROM sqlite_master WHERE type='table'").fetchall()
             tables = {r[0] for r in table_rows}
-            required_tables = {"people", "films", "categories", "nominations"}
+            required_tables = {"people", "films", "categories", "nominations", "app_metadata"}
             if not required_tables.issubset(tables):
                 return False
 
@@ -170,9 +203,10 @@ def _init_db(engine):
             )
 
     # Migration guard: rebuild if an old flat nominations schema exists.
-    if not has_normalized_schema():
+    if not has_normalized_schema() or get_data_version() != DATA_VERSION:
         Base.metadata.drop_all(engine)
         Base.metadata.create_all(engine)
+        ensure_metadata_table()
 
     session_cls = sessionmaker(bind=engine)
     session = session_cls()
@@ -236,6 +270,9 @@ def _init_db(engine):
         if batch:
             session.bulk_insert_mappings(Nomination, batch)
             session.commit()
+        set_data_version(DATA_VERSION)
+    elif get_data_version() != DATA_VERSION:
+        set_data_version(DATA_VERSION)
     session.close()
 
 
