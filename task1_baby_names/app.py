@@ -153,7 +153,7 @@ st.set_page_config(
 st.markdown(
     """
 <div class="sticky-page-header">
-  <div class="sticky-page-title"> Baby Names Explorer</div>
+  <div class="sticky-page-title">👶 Baby Names Explorer</div>
   <div class="sticky-page-subtitle">Exploring US baby-name trends by state from the Social Security Administration (1910 -- present)</div>
 </div>
 """,
@@ -222,7 +222,7 @@ tab_explore, tab_sql, tab_diversity, tab_patterns, tab_schema = st.tabs(
 
 # ===== TAB A: Name Popularity Over Time ====================================
 with tab_explore:
-    st.header("A. Name Popularity Over Time")
+    st.header("Name Popularity Over Time")
     st.markdown("Enter one or more names (comma-separated) to see how their popularity changed across the years.")
 
     outer_l, center_col, outer_r = st.columns([1, 4, 1])
@@ -289,7 +289,7 @@ with tab_explore:
 
 # ===== TAB B: Custom SQL Query Panel =======================================
 with tab_sql:
-    st.header("B. Custom SQL Query Panel")
+    st.header("Custom SQL Query Panel")
     st.markdown(
         "Run any **SELECT** query against the `national_names` table. "
         "Non-SELECT statements are blocked for safety."
@@ -435,7 +435,7 @@ with tab_sql:
 
 # ===== TAB C: Name Diversity Over Time =====================================
 with tab_diversity:
-    st.header("C. Name Diversity Over Time")
+    st.header("Name Diversity Over Time")
     st.markdown(
         "How many **unique names** were registered each year, and what is the "
         "**average count per name**? A rising unique-name count signals increasing "
@@ -656,7 +656,7 @@ with tab_patterns:
 
 # ===== TAB E: Schema =======================================================
 with tab_schema:
-    st.header("Database Schema (Task 1.1)")
+    st.header("Database Schema")
     st.code(
         """CREATE TABLE national_names (
     Id     INTEGER PRIMARY KEY AUTOINCREMENT,

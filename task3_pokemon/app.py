@@ -1117,15 +1117,31 @@ def page_analysis():
     """, conn)
 
     if not df_types.empty:
-        fig1 = px.bar(
-            df_types, x="type_combo", y="avg_total",
-            color="avg_total",
-            color_continuous_scale="Viridis",
-            text="avg_total",
-            labels={"type_combo": "Type Combination", "avg_total": "Avg Total Stats"},
-            title="Top 10 Most Overpowered Type Combinations (min 2 Pokemon)",
+        fig1 = go.Figure()
+        colors = px.colors.sequential.Viridis
+        n = len(df_types)
+        bar_colors = [colors[int(i / (n - 1) * (len(colors) - 1))] if n > 1 else colors[-1] for i in range(n)]
+
+        fig1.add_trace(go.Bar(
+            x=df_types["type_combo"],
+            y=df_types["avg_total"],
+            text=df_types.apply(lambda r: f"<b>{r['avg_total']}</b><br>{int(r['count'])} Pokémon", axis=1),
+            textposition="outside",
+            marker=dict(
+                color=bar_colors,
+                line=dict(color="rgba(0,0,0,0.15)", width=1),
+                cornerradius=6,
+            ),
+            hovertemplate="<b>%{x}</b><br>Avg Total: %{y}<extra></extra>",
+        ))
+        fig1.update_layout(
+            title=dict(text="Top 10 Most Overpowered Type Combinations (min 2 Pokémon)", font=dict(size=16)),
+            xaxis=dict(title="Type Combination", tickangle=-40),
+            yaxis=dict(title="Avg Total Stats", gridcolor="#E5E7EB"),
+            height=520,
+            plot_bgcolor="rgba(0,0,0,0)",
+            bargap=0.25,
         )
-        fig1.update_layout(xaxis_tickangle=-45, height=500)
         st.plotly_chart(fig1, use_container_width=True)
 
         st.markdown("""
@@ -1163,26 +1179,52 @@ def page_analysis():
 
     if not df_gen.empty:
         fig2 = go.Figure()
+        # Area fill for total stats
         fig2.add_trace(go.Scatter(
             x=df_gen["generation"], y=df_gen["avg_total"],
-            mode="lines+markers", name="Avg Total",
-            line=dict(color="#FF6347", width=3), marker=dict(size=10)
+            mode="lines+markers+text", name="Avg Total",
+            line=dict(color="#6366F1", width=3, shape="spline"),
+            marker=dict(size=12, symbol="diamond", line=dict(width=2, color="white")),
+            fill="tozeroy", fillcolor="rgba(99,102,241,0.08)",
+            text=df_gen["avg_total"].apply(lambda x: f"{x:.0f}"),
+            textposition="top center",
+            textfont=dict(size=10, color="#6366F1"),
         ))
         fig2.add_trace(go.Scatter(
             x=df_gen["generation"], y=df_gen["avg_attack"],
             mode="lines+markers", name="Avg Attack",
-            line=dict(color="#4FC3F7", width=2), marker=dict(size=7)
+            line=dict(color="#EF4444", width=2.5, shape="spline", dash="dot"),
+            marker=dict(size=8, symbol="triangle-up"),
+        ))
+        fig2.add_trace(go.Scatter(
+            x=df_gen["generation"], y=df_gen["avg_hp"],
+            mode="lines+markers", name="Avg HP",
+            line=dict(color="#10B981", width=2.5, shape="spline", dash="dot"),
+            marker=dict(size=8, symbol="circle"),
         ))
         fig2.add_trace(go.Scatter(
             x=df_gen["generation"], y=df_gen["avg_speed"],
             mode="lines+markers", name="Avg Speed",
-            line=dict(color="#81C784", width=2), marker=dict(size=7)
+            line=dict(color="#F59E0B", width=2.5, shape="spline", dash="dot"),
+            marker=dict(size=8, symbol="square"),
+        ))
+        # Pokemon count as bar in background
+        fig2.add_trace(go.Bar(
+            x=df_gen["generation"], y=df_gen["count"],
+            name="# Pokémon",
+            marker=dict(color="rgba(209,213,219,0.35)"),
+            yaxis="y2",
+            hovertemplate="Gen %{x}: %{y} Pokémon<extra></extra>",
         ))
         fig2.update_layout(
-            title="Average Stats Across Generations",
-            xaxis_title="Generation",
-            yaxis_title="Average Stat Value",
-            height=500,
+            title=dict(text="Power Creep: Average Stats Across Generations", font=dict(size=16)),
+            xaxis=dict(title="Generation", dtick=1, gridcolor="#F3F4F6"),
+            yaxis=dict(title="Average Stat Value", gridcolor="#E5E7EB"),
+            yaxis2=dict(title="# Pokémon", overlaying="y", side="right", showgrid=False, range=[0, df_gen["count"].max() * 3]),
+            height=540,
+            plot_bgcolor="rgba(0,0,0,0)",
+            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="center", x=0.5),
+            hovermode="x unified",
         )
         st.plotly_chart(fig2, use_container_width=True)
 
@@ -1242,31 +1284,239 @@ def page_schema():
 
 
 def page_battle_mechanics():
-    st.header(" Battle Mechanics")
-    _, center, _ = st.columns([1, 3, 1])
-    with center:
+    st.header("⚙️ Battle Mechanics")
+
+    # --- Damage Formula Card ---
+    st.markdown(
+        """
+        <div style="max-width:720px;margin:0 auto 1.5rem auto;border:2px solid #6366F1;
+                    border-radius:16px;padding:1.5rem 2rem;
+                    background:linear-gradient(135deg,#EEF2FF 0%,#F5F3FF 50%,#FDF4FF 100%);
+                    box-shadow:0 4px 20px rgba(99,102,241,0.15);">
+            <div style="text-align:center;margin-bottom:1rem;">
+                <span style="font-size:1.4rem;font-weight:800;color:#4338CA;">⚡ Damage Formula</span>
+                <span style="font-size:0.75rem;color:#6B7280;display:block;margin-top:2px;">Based on Pokemon Gen V simplified</span>
+            </div>
+            <div style="background:#1E1B4B;border-radius:12px;padding:1rem 1.2rem;margin-bottom:1rem;text-align:center;">
+                <code style="color:#A5B4FC;font-size:0.85rem;line-height:1.8;">
+                    <span style="color:#C4B5FD;">base</span> = ((<span style="color:#FDE68A;">2</span>×<span style="color:#FDE68A;">Level</span>/<span style="color:#FDE68A;">5</span> + <span style="color:#FDE68A;">2</span>) × <span style="color:#93C5FD;">Power</span> × <span style="color:#6EE7B7;">A</span>/<span style="color:#FCA5A5;">D</span>) / <span style="color:#FDE68A;">50</span> + <span style="color:#FDE68A;">2</span><br>
+                    <span style="color:#C4B5FD;">damage</span> = <span style="color:#C4B5FD;">base</span> × <span style="color:#F9A8D4;">type_mult</span> × <span style="color:#D1D5DB;">rand</span>(<span style="color:#FDE68A;">0.85</span>, <span style="color:#FDE68A;">1.0</span>)
+                </code>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:0.82rem;">
+                <div style="background:rgba(255,255,255,0.7);border-radius:8px;padding:8px 10px;">
+                    <span style="color:#6EE7B7;font-weight:700;">A</span> = max(Attack, Sp.Atk) of attacker
+                </div>
+                <div style="background:rgba(255,255,255,0.7);border-radius:8px;padding:8px 10px;">
+                    <span style="color:#FCA5A5;font-weight:700;">D</span> = Defense or Sp.Def (matching A)
+                </div>
+                <div style="background:rgba(255,255,255,0.7);border-radius:8px;padding:8px 10px;">
+                    <span style="color:#FDE68A;font-weight:700;">Level</span> = 50 &nbsp;|&nbsp; <span style="color:#93C5FD;font-weight:700;">Power</span> = 60
+                </div>
+                <div style="background:rgba(255,255,255,0.7);border-radius:8px;padding:8px 10px;">
+                    <span style="color:#F9A8D4;font-weight:700;">type_mult</span> = Type1 vs Type1 × Type2
+                </div>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    # --- Turn Order & Effectiveness Cards ---
+    col_turn, col_eff = st.columns(2)
+    with col_turn:
         st.markdown(
             """
-            <div style="text-align:center;">
-              <h4 style="margin-bottom:0.4rem;">Damage Formula:</h4>
-              <pre style="display:inline-block;text-align:left;background:#f6f8fa;border:1px solid #e5e7eb;border-radius:10px;padding:0.75rem 1rem;margin:0.2rem auto 0.8rem auto;">
-base = ((2*50/5 + 2) * 60 * (A/D)) / 50 + 2
-damage = base * type_mult * rand(0.85, 1.0)
-              </pre>
-              <p><b>Where:</b></p>
-              <p><b>A</b> = max(Attack, Sp.Atk) of attacker</p>
-              <p><b>D</b> = Defense or Sp.Def of defender (matching A)</p>
-              <p><b>type_mult</b> = product of type effectiveness for attacker's Type1 vs defender's Type1 and Type2</p>
-              <p><b>Turn Order:</b> Higher Speed goes first. Ties broken randomly.</p>
-              <h4 style="margin:0.8rem 0 0.35rem 0;">Type Effectiveness:</h4>
-              <p>x2.0 = Super effective!</p>
-              <p>x1.0 = Normal</p>
-              <p>x0.5 = Not very effective...</p>
-              <p>x0.0 = No effect (immune)</p>
+            <div style="border:1px solid #D1D5DB;border-radius:14px;padding:1.2rem;
+                        background:linear-gradient(135deg,#F0FDF4 0%,#ECFDF5 100%);height:100%;">
+                <div style="font-size:1.1rem;font-weight:700;color:#065F46;margin-bottom:0.8rem;text-align:center;">
+                    🏃 Turn Order
+                </div>
+                <div style="font-size:0.85rem;color:#374151;line-height:1.7;">
+                    <div style="background:rgba(255,255,255,0.7);border-radius:8px;padding:6px 10px;margin-bottom:6px;">
+                        <b>1.</b> All alive Pokemon act each turn
+                    </div>
+                    <div style="background:rgba(255,255,255,0.7);border-radius:8px;padding:6px 10px;margin-bottom:6px;">
+                        <b>2.</b> Sorted by <b>Speed</b> (highest first)
+                    </div>
+                    <div style="background:rgba(255,255,255,0.7);border-radius:8px;padding:6px 10px;margin-bottom:6px;">
+                        <b>3.</b> Equal speed → random order
+                    </div>
+                    <div style="background:rgba(255,255,255,0.7);border-radius:8px;padding:6px 10px;">
+                        <b>4.</b> Target = best type matchup, then lowest HP
+                    </div>
+                </div>
             </div>
             """,
             unsafe_allow_html=True,
         )
+    with col_eff:
+        st.markdown(
+            """
+            <div style="border:1px solid #D1D5DB;border-radius:14px;padding:1.2rem;
+                        background:linear-gradient(135deg,#FEF3C7 0%,#FFFBEB 100%);height:100%;">
+                <div style="font-size:1.1rem;font-weight:700;color:#92400E;margin-bottom:0.8rem;text-align:center;">
+                    🎯 Type Effectiveness
+                </div>
+                <div style="font-size:0.85rem;color:#374151;line-height:1.7;">
+                    <div style="background:rgba(16,185,129,0.15);border-radius:8px;padding:6px 10px;margin-bottom:6px;">
+                        <b style="color:#059669;">×2.0</b> — Super effective! 💥
+                    </div>
+                    <div style="background:rgba(255,255,255,0.7);border-radius:8px;padding:6px 10px;margin-bottom:6px;">
+                        <b style="color:#6B7280;">×1.0</b> — Normal damage
+                    </div>
+                    <div style="background:rgba(234,179,8,0.15);border-radius:8px;padding:6px 10px;margin-bottom:6px;">
+                        <b style="color:#D97706;">×0.5</b> — Not very effective...
+                    </div>
+                    <div style="background:rgba(239,68,68,0.12);border-radius:8px;padding:6px 10px;">
+                        <b style="color:#DC2626;">×0.0</b> — No effect (immune) 🛡️
+                    </div>
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+    st.markdown("<div style='height:1.5rem;'></div>", unsafe_allow_html=True)
+
+    # --- Interactive Type Effectiveness Heatmap ---
+    st.subheader("🗺️ Full 18×18 Type Effectiveness Chart")
+
+    # Build the matrix from TYPE_CHART
+    types = ALL_TYPES
+    matrix = []
+    for atk in types:
+        row = []
+        for dfn in types:
+            row.append(TYPE_CHART.get(atk, {}).get(dfn, 1.0))
+        matrix.append(row)
+
+    type_labels = [f"{TYPE_EMOJIS.get(t, '')} {t}" for t in types]
+
+    # Custom colorscale: red(0) -> orange(0.5) -> white(1.0) -> green(2.0)
+    colorscale = [
+        [0.0, "#1F2937"],     # 0.0 - immune (dark)
+        [0.25, "#EF4444"],    # 0.5 - not very effective (red)
+        [0.5, "#FFFFFF"],     # 1.0 - normal (white)
+        [1.0, "#10B981"],     # 2.0 - super effective (green)
+    ]
+
+    # Annotation text
+    annotations_text = []
+    for row in matrix:
+        text_row = []
+        for val in row:
+            if val == 0.0:
+                text_row.append("0")
+            elif val == 0.5:
+                text_row.append("½")
+            elif val == 1.0:
+                text_row.append("")
+            elif val == 2.0:
+                text_row.append("2")
+            else:
+                text_row.append(str(val))
+        annotations_text.append(text_row)
+
+    fig_heatmap = go.Figure(data=go.Heatmap(
+        z=matrix,
+        x=type_labels,
+        y=type_labels,
+        text=annotations_text,
+        texttemplate="%{text}",
+        textfont={"size": 11, "color": "#111827"},
+        colorscale=colorscale,
+        zmin=0,
+        zmax=2,
+        hovertemplate="<b>%{y}</b> → %{x}<br>Multiplier: <b>%{z}×</b><extra></extra>",
+        colorbar=dict(
+            title="Multiplier",
+            tickvals=[0, 0.5, 1.0, 2.0],
+            ticktext=["0× Immune", "0.5× Weak", "1× Normal", "2× Super"],
+            len=0.6,
+        ),
+    ))
+
+    fig_heatmap.update_layout(
+        title=dict(text="Attacking Type (row) → Defending Type (column)", font=dict(size=14)),
+        xaxis=dict(title="Defending Type", tickangle=-45, side="bottom", dtick=1),
+        yaxis=dict(title="Attacking Type", autorange="reversed", dtick=1),
+        height=700,
+        width=900,
+        margin=dict(l=120, r=40, t=60, b=120),
+    )
+
+    st.plotly_chart(fig_heatmap, use_container_width=True)
+
+    # --- Damage Calculator ---
+    st.markdown("---")
+    st.subheader("🧮 Damage Calculator")
+    st.markdown("Pick two Pokemon and see the calculated damage for one attack.")
+
+    all_names = get_all_pokemon_names()
+    calc_col1, calc_col2 = st.columns(2)
+    with calc_col1:
+        atk_name = st.selectbox("Attacker", all_names, key="calc_atk")
+    with calc_col2:
+        def_name = st.selectbox("Defender", all_names, index=min(1, len(all_names) - 1), key="calc_def")
+
+    if st.button("Calculate Damage", type="primary"):
+        attacker = get_pokemon_by_name(atk_name)
+        defender = get_pokemon_by_name(def_name)
+        if attacker and defender:
+            # Determine A/D
+            if attacker["sp_atk"] > attacker["attack"]:
+                a_val, a_label = attacker["sp_atk"], "Sp.Atk"
+                d_val, d_label = defender["sp_def"], "Sp.Def"
+            else:
+                a_val, a_label = attacker["attack"], "Attack"
+                d_val, d_label = defender["defense"], "Defense"
+            if d_val == 0:
+                d_val = 1
+
+            type_mult = get_type_multiplier(attacker["type1"], defender["type1"], defender.get("type2", ""))
+            base = ((2 * 50 / 5 + 2) * 60 * (a_val / d_val)) / 50 + 2
+            dmg_min = int(base * type_mult * 0.85)
+            dmg_max = int(base * type_mult * 1.0)
+
+            if type_mult == 0:
+                eff_color, eff_text = "#DC2626", "No effect! (Immune)"
+            elif type_mult >= 2:
+                eff_color, eff_text = "#059669", f"Super effective! (×{type_mult})"
+            elif type_mult > 1:
+                eff_color, eff_text = "#059669", f"Super effective! (×{type_mult})"
+            elif type_mult < 1:
+                eff_color, eff_text = "#D97706", f"Not very effective (×{type_mult})"
+            else:
+                eff_color, eff_text = "#6B7280", "Normal (×1.0)"
+
+            r1, r2, r3 = st.columns(3)
+            with r1:
+                st.markdown(
+                    f"""<div style="border:1px solid #d1d5db;border-radius:12px;padding:1rem;
+                    background:#F0FDF4;text-align:center;">
+                    <div style="font-size:0.75rem;color:#6B7280;">Attacker</div>
+                    <div style="font-size:1.1rem;font-weight:700;">{attacker['name']}</div>
+                    <div style="font-size:0.82rem;color:#555;">{type_badge(attacker['type1'])}</div>
+                    <div style="font-size:0.82rem;margin-top:4px;">{a_label}: <b>{a_val}</b></div>
+                    </div>""", unsafe_allow_html=True)
+            with r2:
+                st.markdown(
+                    f"""<div style="border:2px solid {eff_color};border-radius:12px;padding:1rem;
+                    background:#FAFAFA;text-align:center;">
+                    <div style="font-size:0.75rem;color:#6B7280;">Damage Range</div>
+                    <div style="font-size:1.6rem;font-weight:800;color:{eff_color};">{dmg_min} – {dmg_max}</div>
+                    <div style="font-size:0.82rem;color:{eff_color};font-weight:600;">{eff_text}</div>
+                    </div>""", unsafe_allow_html=True)
+            with r3:
+                st.markdown(
+                    f"""<div style="border:1px solid #d1d5db;border-radius:12px;padding:1rem;
+                    background:#FEF2F2;text-align:center;">
+                    <div style="font-size:0.75rem;color:#6B7280;">Defender</div>
+                    <div style="font-size:1.1rem;font-weight:700;">{defender['name']}</div>
+                    <div style="font-size:0.82rem;color:#555;">{type_badge(defender['type1'])}</div>
+                    <div style="font-size:0.82rem;margin-top:4px;">{d_label}: <b>{d_val}</b> | HP: <b>{defender['hp']}</b></div>
+                    </div>""", unsafe_allow_html=True)
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
@@ -1281,7 +1531,7 @@ def main():
     st.markdown(
         """
 <div class="sticky-page-header">
-  <div class="sticky-page-title">Pokemon Battle Arena</div>
+  <div class="sticky-page-title">⚔️ Pokemon Battle Arena</div>
   <div class="sticky-page-subtitle">Battle, analyze, and explore Pokemon data with SQL.</div>
 </div>
 """,

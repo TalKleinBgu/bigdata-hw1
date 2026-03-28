@@ -724,7 +724,7 @@ def main():
     st.markdown(
         """
 <div class="sticky-page-header">
-  <div class="sticky-page-title"> Oscar Actor Explorer</div>
+  <div class="sticky-page-title">🎬 Oscar Actor Explorer</div>
   <div class="sticky-page-subtitle">Explore Oscar nomination history, actor profiles, and interesting discoveries.</div>
 </div>
 """,
@@ -1187,7 +1187,7 @@ section[data-testid="stSidebar"] > div:first-child { padding-top: 0.5rem !import
             session.close()
 
     with tab_schema:
-        st.header("Database Schema & ORM Design (Task 2.1)")
+        st.header("Database Schema & ORM Design")
         st.markdown("""\
 **Tables (normalized ORM schema):**
 
