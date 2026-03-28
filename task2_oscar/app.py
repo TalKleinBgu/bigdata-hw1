@@ -372,19 +372,34 @@ def get_all_names() -> list[str]:
 # ---------------------------------------------------------------------------
 
 def search_wikipedia_titles(name: str, limit: int = 5) -> list[str]:
-    """Return candidate Wikipedia page titles for a person name."""
+    """Return candidate Wikipedia page titles whose titles match the searched name."""
     import requests
 
     try:
         resp = requests.get(
             "https://en.wikipedia.org/w/api.php",
-            params={"action": "opensearch", "search": name, "limit": limit, "format": "json"},
+            params={
+                "action": "query",
+                "list": "search",
+                "srsearch": f'intitle:"{name}"',
+                "srlimit": limit,
+                "format": "json",
+            },
             headers={"User-Agent": "OscarExplorerApp/1.0"},
             timeout=8,
         )
         data = resp.json()
-        titles = data[1] if isinstance(data, list) and len(data) > 1 else []
-        return [t for t in titles if isinstance(t, str) and t.strip()]
+        rows = data.get("query", {}).get("search", [])
+        normalized_query = " ".join(name.strip().casefold().split())
+        titles = []
+        for row in rows:
+            title = row.get("title", "")
+            normalized_title = " ".join(title.strip().casefold().split())
+            if not title:
+                continue
+            if normalized_query in normalized_title or normalized_title in normalized_query:
+                titles.append(title)
+        return titles
     except Exception:
         return []
 
