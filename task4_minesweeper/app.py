@@ -1234,15 +1234,16 @@ def _cell_style_content(cell, game_over):
 def generate_board_html(board, rows, cols, game_over, locked):
     cell_px = max(28, min(40, 580 // cols))
 
-    cells_html = ""
+    parts = []
+    _append = parts.append
     for r in range(rows):
         for c in range(cols):
             cls, content = _cell_style_content(board[r][c], game_over)
-            if not locked and "unrevealed" in cls or "flagged" in cls:
-                data = f'data-r="{r}" data-c="{c}"'
+            if not locked and ("unrevealed" in cls or "flagged" in cls):
+                _append(f'<div class="ms-cell {cls}" data-r="{r}" data-c="{c}">{content}</div>')
             else:
-                data = ""
-            cells_html += f'<div class="ms-cell {cls}" {data}>{content}</div>\n'
+                _append(f'<div class="ms-cell {cls}">{content}</div>')
+    cells_html = "".join(parts)
 
     return f"""<!DOCTYPE html>
 <html>
@@ -1546,6 +1547,7 @@ def render_stats():
             render_timer()
 
 
+@st.fragment
 def render_board_component(conn):
     ss = st.session_state
     locked = ss.ms_game_over or ss.ms_sql_rescue
@@ -1554,17 +1556,27 @@ def render_board_component(conn):
 
     if click_val:
         parts = click_val.split(",")
+        needs_full_rerun = False
         if len(parts) == 3:
             try:
                 r, c, action = int(parts[0]), int(parts[1]), parts[2]
                 if action == "reveal" and not locked:
                     handle_cell_click(r, c, conn)
+                    # Mine hit or game over need full page rerun (dialog / end screen)
+                    if ss.ms_sql_rescue or ss.ms_game_over:
+                        needs_full_rerun = True
                 elif action == "flag" and not locked:
                     handle_flag_click(r, c)
             except ValueError:
                 pass
         ss.ms_click_bridge_nonce += 1
-        st.rerun()
+        if needs_full_rerun:
+            st.rerun(scope="app")
+        else:
+            st.rerun()
+
+    # Inline stats so they update with the fragment
+    render_stats()
 
     board_html = generate_board_html(ss.ms_board, ss.ms_rows, ss.ms_cols, ss.ms_game_over, locked)
     cell_px = max(28, min(40, 580 // ss.ms_cols))
@@ -1946,7 +1958,6 @@ def main():
             unsafe_allow_html=True,
         )
 
-        render_stats()
         st.markdown("<div style='height:0.7rem;'></div>", unsafe_allow_html=True)
         _, c_restart, c_back, _ = st.columns([3, 1, 1, 3])
         with c_restart:
