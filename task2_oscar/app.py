@@ -367,6 +367,19 @@ def get_all_names() -> list[str]:
         session.close()
 
 
+def normalize_name(value: str) -> str:
+    """Normalize names for exact-match search."""
+    return " ".join(str(value).strip().casefold().split())
+
+
+def get_exact_name_matches(query: str, names: list[str]) -> list[str]:
+    """Return only exact matches for the typed query."""
+    normalized_query = normalize_name(query)
+    if not normalized_query:
+        return []
+    return [name for name in names if normalize_name(name) == normalized_query]
+
+
 # ---------------------------------------------------------------------------
 # Wikipedia helper
 # ---------------------------------------------------------------------------
@@ -822,14 +835,25 @@ section[data-testid="stSidebar"] > div:first-child { padding-top: 0.5rem !import
     with tab_profile:
         st.markdown('<div class="section-header">Search for a Name</div>', unsafe_allow_html=True)
 
-        selected_name = st.selectbox(
+        search_query = st.text_input(
             "Type a name to search",
-            options=[""] + all_names,
-            index=0,
-            placeholder="Start typing a name...",
+            value="",
+            placeholder="For example: Brad Pitt",
         )
 
-        target_name = selected_name
+        matching_names = get_exact_name_matches(search_query, all_names)
+        selected_name = st.selectbox(
+            "Exact dataset matches",
+            options=matching_names if matching_names else [""],
+            index=0,
+            disabled=not matching_names,
+            placeholder="Exact matches will appear here",
+        )
+
+        if search_query and not matching_names:
+            st.warning("No exact match found in the dataset.")
+
+        target_name = selected_name if selected_name else ""
 
         if target_name:
             session = get_session()
@@ -984,7 +1008,7 @@ section[data-testid="stSidebar"] > div:first-child { padding-top: 0.5rem !import
             # ---------------------------------------------------------------
             st.markdown('<div class="section-header">1. Most Nominated Without a Win</div>', unsafe_allow_html=True)
             st.markdown(
-                "Which people have received the most Oscar nominations but have **never won**?"
+                "Which actors/directors have received the most acting/directing Oscar nominations but have **never won**?"
             )
 
             no_win = discovery_most_nominated_no_win(session, top_n=15)
@@ -1068,7 +1092,7 @@ section[data-testid="stSidebar"] > div:first-child { padding-top: 0.5rem !import
             # ---------------------------------------------------------------
             st.markdown('<div class="section-header">2. Longest Wait for First Win</div>', unsafe_allow_html=True)
             st.markdown(
-                "Who waited the longest between their **first nomination** and "
+                "Which actors/directors waited the longest between their **first nomination** and "
                 "their **first win**?"
             )
 
@@ -1209,8 +1233,8 @@ section[data-testid="stSidebar"] > div:first-child { padding-top: 0.5rem !import
             # ---------------------------------------------------------------
             st.markdown('<div class="section-header">3. Multi-Category Nominees</div>', unsafe_allow_html=True)
             st.markdown(
-                "Who has been nominated in the **most different categories**? "
-                "These versatile artists have been recognized across multiple disciplines."
+                "Which actors/directors have been nominated in the **most different acting/directing categories**? "
+                "These versatile artists have been recognized across multiple performance or directing lanes."
             )
 
             multi = discovery_multi_category(session, top_n=15)
@@ -1253,7 +1277,7 @@ section[data-testid="stSidebar"] > div:first-child { padding-top: 0.5rem !import
                         session.query(distinct(Category.name))
                         .join(Nomination, Nomination.category_id == Category.id)
                         .join(Person, Nomination.person_id == Person.id)
-                        .filter(Person.name == row[0])
+                        .filter(Person.name == row[0], profile_category_filter())
                         .all()
                     )
                     cats = [c[0] for c in person_cats]
@@ -1331,6 +1355,12 @@ by person/category. I chose **SQLAlchemy ORM** because it has strong ecosystem s
 clear relationship modeling (`relationship`, `joinedload`), and smooth integration
 with Streamlit for cached sessions and query composition. All data access is via ORM
 queries (no raw SQL for Task 2 logic).
+
+**Import Notes:** During import, the app uses the dataset's `canon_category` field when
+available so renamed Oscar categories stay grouped consistently over time. It also splits
+shared credits like `Brad Pitt/Dede Gardner/Jeremy Kleiner` into separate people before
+loading the normalized tables, which makes person-level profiles and discovery results
+match the dataset more accurately.
 """)
         st.markdown('<div class="section-header">ORM Model Code</div>', unsafe_allow_html=True)
         st.code("""\
