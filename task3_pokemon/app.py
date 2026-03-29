@@ -60,9 +60,17 @@ ALL_TYPES = list(TYPE_CHART.keys())
 # Database helpers
 # ---------------------------------------------------------------------------
 
+@st.cache_resource
 def get_conn():
     """Return a SQLite connection (cached per session to avoid re-opening)."""
     return sqlite3.connect(DB_PATH, check_same_thread=False)
+
+
+@st.cache_resource
+def _init_db_once():
+    """Initialize database once per server session."""
+    init_database()
+    return True
 
 
 def load_csv() -> pd.DataFrame:
@@ -157,8 +165,6 @@ def init_database():
     te_count = cur.execute("SELECT COUNT(*) FROM type_effectiveness").fetchone()[0]
     if te_count == 0:
         load_type_effectiveness(conn)
-
-    conn.close()
 
 
 def load_pokemon_data(conn: sqlite3.Connection):
@@ -1620,9 +1626,8 @@ def main():
         unsafe_allow_html=True,
     )
 
-    # Initialize DB
-    with st.spinner("Initializing database..."):
-        init_database()
+    # Initialize DB (runs once per server session, cached)
+    _init_db_once()
 
     # Navigation
     tab1, tab2, tab3, tab4 = st.tabs([

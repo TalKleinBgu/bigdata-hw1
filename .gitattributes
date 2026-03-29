@@ -1,2 +1,4 @@
 *.csv filter=lfs diff=lfs merge=lfs -text
+task1_baby_names/baby_names.db filter=lfs diff=lfs merge=lfs -text
+task2_oscar/oscar.db filter=lfs diff=lfs merge=lfs -text
 *.db filter=lfs diff=lfs merge=lfs -text

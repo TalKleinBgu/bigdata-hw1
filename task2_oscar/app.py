@@ -7,7 +7,6 @@ dataset stored in SQLite and enriches actor profiles with live Wikipedia data.
 """
 
 import os
-import tempfile
 import textwrap
 from pathlib import Path
 
@@ -34,9 +33,7 @@ from sqlalchemy.exc import OperationalError
 # Constants
 # ---------------------------------------------------------------------------
 BASE_DIR = Path(__file__).resolve().parent
-DB_ROOT = Path(os.getenv("OSCAR_DB_DIR", Path(tempfile.gettempdir()) / "oscar_explorer"))
-DB_ROOT.mkdir(parents=True, exist_ok=True)
-DB_PATH = DB_ROOT / "oscar.db"
+DB_PATH = BASE_DIR / "oscar.db"
 CSV_PATH = BASE_DIR / "the_oscar_award.csv"
 DATA_VERSION = "canon-category-v2"
 PROFILE_CATEGORIES = ("ACTOR", "ACTRESS", "DIRECTING")
