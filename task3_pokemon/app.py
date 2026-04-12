@@ -820,6 +820,8 @@ def page_battle():
         st.session_state.battle_log = []
     if "cheats_used" not in st.session_state:
         st.session_state.cheats_used = []
+    if "cheat_feedback" not in st.session_state:
+        st.session_state.cheat_feedback = None  # (success: bool, message: str)
 
     all_names = get_all_pokemon_names()
 
@@ -989,10 +991,19 @@ def page_battle():
                         st.session_state.battle_log.append(
                             f"\U0001f3ae **CHEAT ACTIVATED**: {result}"
                         )
-                        st.success(f"Cheat applied: {result}")
+                        st.session_state.cheat_feedback = (True, f"Cheat applied: {result}")
                         st.rerun()
                     else:
-                        st.error("Invalid cheat code!")
+                        st.session_state.cheat_feedback = (False, "Invalid cheat code!")
+                        st.rerun()
+            # Show feedback from previous action (survives rerun)
+            if st.session_state.cheat_feedback is not None:
+                ok, msg = st.session_state.cheat_feedback
+                if ok:
+                    st.success(msg)
+                else:
+                    st.error(msg)
+                st.session_state.cheat_feedback = None
         render_battle_log(
             st.session_state.battle_log,
             title="Battle Log",
