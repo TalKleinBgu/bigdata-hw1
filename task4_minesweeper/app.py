@@ -1730,7 +1730,9 @@ def sql_rescue_dialog(conn):
             ss.ms_sql_wrong_attempts += 1
             ss.ms_feedback = f"Not quite! Attempt #{ss.ms_sql_wrong_attempts}. Try refining your query or check the hint."
             # Clear the input box so the user gets a fresh field for the next attempt.
-            st.session_state[ans_key] = ""
+            # Must delete (not assign) because the widget is already rendered this run.
+            if ans_key in st.session_state:
+                del st.session_state[ans_key]
             st.rerun()
 
     # Display feedback after submit processing so it shows immediately
