@@ -227,20 +227,17 @@ def restore_pokemon_db():
     # Remove any stolen pokemon rows
     conn.execute("DELETE FROM pokemon WHERE name LIKE '%_stolen'")
     conn.commit()
-    conn.close()
 
 
 def get_all_pokemon_names() -> list:
     conn = get_conn()
     names = [r[0] for r in conn.execute("SELECT name FROM pokemon ORDER BY name").fetchall()]
-    conn.close()
     return names
 
 
 def get_pokemon_by_name(name: str) -> dict | None:
     conn = get_conn()
     row = conn.execute("SELECT * FROM pokemon WHERE name = ?", (name,)).fetchone()
-    conn.close()
     if row is None:
         return None
     cols = ["id", "name", "type1", "type2", "hp", "attack", "defense",
@@ -265,7 +262,6 @@ def get_selection_stat_maxima() -> dict:
         FROM pokemon_original
         """
     ).fetchone()
-    conn.close()
 
     if not row:
         return {
@@ -307,7 +303,6 @@ def get_type_multiplier(atk_type: str, def_type1: str, def_type2: str) -> float:
         ).fetchone()
         if row:
             mult *= row[0]
-    conn.close()
     return mult
 
 
@@ -322,7 +317,6 @@ def save_battle_result(p1_team, p2_team, winner_side, cheats_used):
         (p1_names, p2_names, winner_names, cheats_str, datetime.now().isoformat())
     )
     conn.commit()
-    conn.close()
 
 
 # ---------------------------------------------------------------------------
@@ -409,7 +403,6 @@ def apply_cheat(code: str, player_team: list, ai_team: list) -> str | None:
             p["hp"] *= 2
             p["max_hp"] = p["hp"]
             p["current_hp"] = p["hp"]
-        conn.close()
         return CHEAT_DESCRIPTIONS[code]
 
     elif code == "GODMODE":
@@ -420,7 +413,6 @@ def apply_cheat(code: str, player_team: list, ai_team: list) -> str | None:
         for p in player_team:
             p["defense"] = 999
             p["sp_def"] = 999
-        conn.close()
         return CHEAT_DESCRIPTIONS[code]
 
     elif code == "STEAL":
@@ -433,7 +425,6 @@ def apply_cheat(code: str, player_team: list, ai_team: list) -> str | None:
             FROM pokemon WHERE name = ?
         """, (strongest["name"],))
         conn.commit()
-        conn.close()
         # Add to player team
         stolen = copy.deepcopy(strongest)
         stolen["name"] = stolen_name
@@ -451,10 +442,8 @@ def apply_cheat(code: str, player_team: list, ai_team: list) -> str | None:
             p["attack"] = p["attack"] // 2
             p["sp_atk"] = p["sp_atk"] // 2
             p["speed"] = p["speed"] // 2
-        conn.close()
         return CHEAT_DESCRIPTIONS[code]
 
-    conn.close()
     return None
 
 
@@ -498,7 +487,6 @@ def run_cheat_audit() -> dict:
     """, conn)
     results["Suspiciously High HP"] = df3
 
-    conn.close()
     return results
 
 
@@ -1115,7 +1103,6 @@ def page_battle():
         )
         conn = get_conn()
         hist = pd.read_sql_query("SELECT * FROM battle_history ORDER BY id DESC LIMIT 20", conn)
-        conn.close()
         if hist.empty:
             st.info("No battles yet.")
         else:
@@ -1332,8 +1319,6 @@ def page_analysis():
     else:
         st.info("No data available.")
 
-    conn.close()
-
 
 # ---------------------------------------------------------------------------
 # Page: Database Schema
@@ -1369,8 +1354,6 @@ def page_schema():
     st.markdown('<div class="section-header">Sample: type_effectiveness (Fire matchups)</div>', unsafe_allow_html=True)
     te = pd.read_sql_query("SELECT * FROM type_effectiveness WHERE attacking_type = 'Fire'", conn)
     st.dataframe(te, use_container_width=True)
-
-    conn.close()
 
 
 def page_battle_mechanics():
