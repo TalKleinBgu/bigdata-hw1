@@ -60,10 +60,11 @@ ALL_TYPES = list(TYPE_CHART.keys())
 # Database helpers
 # ---------------------------------------------------------------------------
 
-@st.cache_resource
 def get_conn():
-    """Return a SQLite connection (cached per session to avoid re-opening)."""
-    return sqlite3.connect(DB_PATH, check_same_thread=False)
+    """Return a new SQLite connection. Creates one per call for thread safety."""
+    conn = sqlite3.connect(DB_PATH, check_same_thread=False, timeout=30)
+    conn.execute("PRAGMA journal_mode=WAL")
+    return conn
 
 
 @st.cache_resource
@@ -88,6 +89,8 @@ def init_database():
     """Create tables, download data if needed, and populate the DB."""
     conn = get_conn()
     cur = conn.cursor()
+    # WAL mode for concurrency
+    conn.execute("PRAGMA journal_mode=WAL")
 
     # ---- pokemon table ----
     cur.execute("""
@@ -165,6 +168,7 @@ def init_database():
     te_count = cur.execute("SELECT COUNT(*) FROM type_effectiveness").fetchone()[0]
     if te_count == 0:
         load_type_effectiveness(conn)
+    conn.close()
 
 
 def load_pokemon_data(conn: sqlite3.Connection):
@@ -219,25 +223,34 @@ def load_type_effectiveness(conn: sqlite3.Connection):
 def restore_pokemon_db():
     """Restore pokemon table from pokemon_original (undo all cheats)."""
     conn = get_conn()
-    conn.execute("DELETE FROM pokemon")
-    conn.execute("""
-        INSERT INTO pokemon
-        SELECT * FROM pokemon_original
-    """)
-    # Remove any stolen pokemon rows
-    conn.execute("DELETE FROM pokemon WHERE name LIKE '%_stolen'")
-    conn.commit()
+    try:
+        conn.execute("DELETE FROM pokemon")
+        conn.execute("""
+            INSERT INTO pokemon
+            SELECT * FROM pokemon_original
+        """)
+        # Remove any stolen pokemon rows
+        conn.execute("DELETE FROM pokemon WHERE name LIKE '%_stolen'")
+        conn.commit()
+    finally:
+        conn.close()
 
 
 def get_all_pokemon_names() -> list:
     conn = get_conn()
-    names = [r[0] for r in conn.execute("SELECT name FROM pokemon ORDER BY name").fetchall()]
+    try:
+        names = [r[0] for r in conn.execute("SELECT name FROM pokemon ORDER BY name").fetchall()]
+    finally:
+        conn.close()
     return names
 
 
 def get_pokemon_by_name(name: str) -> dict | None:
     conn = get_conn()
-    row = conn.execute("SELECT * FROM pokemon WHERE name = ?", (name,)).fetchone()
+    try:
+        row = conn.execute("SELECT * FROM pokemon WHERE name = ?", (name,)).fetchone()
+    finally:
+        conn.close()
     if row is None:
         return None
     cols = ["id", "name", "type1", "type2", "hp", "attack", "defense",
@@ -249,19 +262,22 @@ def get_pokemon_by_name(name: str) -> dict | None:
 def get_selection_stat_maxima() -> dict:
     """Global maxima for each stat, used to normalize preview bars."""
     conn = get_conn()
-    row = conn.execute(
-        """
-        SELECT
-            MAX(hp),
-            MAX(attack),
-            MAX(defense),
-            MAX(sp_atk),
-            MAX(sp_def),
-            MAX(speed),
-            MAX(total)
-        FROM pokemon_original
-        """
-    ).fetchone()
+    try:
+        row = conn.execute(
+            """
+            SELECT
+                MAX(hp),
+                MAX(attack),
+                MAX(defense),
+                MAX(sp_atk),
+                MAX(sp_def),
+                MAX(speed),
+                MAX(total)
+            FROM pokemon_original
+            """
+        ).fetchone()
+    finally:
+        conn.close()
 
     if not row:
         return {
@@ -288,35 +304,41 @@ def get_selection_stat_maxima() -> dict:
 def get_type_multiplier(atk_type: str, def_type1: str, def_type2: str) -> float:
     """Look up combined type multiplier from DB."""
     conn = get_conn()
-    mult = 1.0
-    if atk_type and def_type1:
-        row = conn.execute(
-            "SELECT multiplier FROM type_effectiveness WHERE attacking_type=? AND defending_type=?",
-            (atk_type, def_type1)
-        ).fetchone()
-        if row:
-            mult *= row[0]
-    if atk_type and def_type2:
-        row = conn.execute(
-            "SELECT multiplier FROM type_effectiveness WHERE attacking_type=? AND defending_type=?",
-            (atk_type, def_type2)
-        ).fetchone()
-        if row:
-            mult *= row[0]
+    try:
+        mult = 1.0
+        if atk_type and def_type1:
+            row = conn.execute(
+                "SELECT multiplier FROM type_effectiveness WHERE attacking_type=? AND defending_type=?",
+                (atk_type, def_type1)
+            ).fetchone()
+            if row:
+                mult *= row[0]
+        if atk_type and def_type2:
+            row = conn.execute(
+                "SELECT multiplier FROM type_effectiveness WHERE attacking_type=? AND defending_type=?",
+                (atk_type, def_type2)
+            ).fetchone()
+            if row:
+                mult *= row[0]
+    finally:
+        conn.close()
     return mult
 
 
 def save_battle_result(p1_team, p2_team, winner_side, cheats_used):
     conn = get_conn()
-    p1_names = ", ".join([p["name"] for p in p1_team])
-    p2_names = ", ".join([p["name"] for p in p2_team])
-    winner_names = p1_names if winner_side == "player" else p2_names
-    cheats_str = ", ".join(cheats_used) if cheats_used else "None"
-    conn.execute(
-        "INSERT INTO battle_history (pokemon1_name, pokemon2_name, winner_name, cheats_used, timestamp) VALUES (?,?,?,?,?)",
-        (p1_names, p2_names, winner_names, cheats_str, datetime.now().isoformat())
-    )
-    conn.commit()
+    try:
+        p1_names = ", ".join([p["name"] for p in p1_team])
+        p2_names = ", ".join([p["name"] for p in p2_team])
+        winner_names = p1_names if winner_side == "player" else p2_names
+        cheats_str = ", ".join(cheats_used) if cheats_used else "None"
+        conn.execute(
+            "INSERT INTO battle_history (pokemon1_name, pokemon2_name, winner_name, cheats_used, timestamp) VALUES (?,?,?,?,?)",
+            (p1_names, p2_names, winner_names, cheats_str, datetime.now().isoformat())
+        )
+        conn.commit()
+    finally:
+        conn.close()
 
 
 # ---------------------------------------------------------------------------
@@ -392,59 +414,58 @@ def apply_cheat(code: str, player_team: list, ai_team: list) -> str | None:
     """Apply cheat code via SQL. Returns description or None if invalid."""
     code = code.strip().upper()
     conn = get_conn()
+    try:
+        if code == "UPUPDOWNDOWN":
+            names = [p["name"] for p in player_team]
+            placeholders = ",".join(["?"] * len(names))
+            conn.execute(f"UPDATE pokemon SET hp = hp * 2 WHERE name IN ({placeholders})", names)
+            conn.commit()
+            for p in player_team:
+                p["hp"] *= 2
+                p["max_hp"] = p["hp"]
+                p["current_hp"] = p["hp"]
+            return CHEAT_DESCRIPTIONS[code]
 
-    if code == "UPUPDOWNDOWN":
-        names = [p["name"] for p in player_team]
-        placeholders = ",".join(["?"] * len(names))
-        conn.execute(f"UPDATE pokemon SET hp = hp * 2 WHERE name IN ({placeholders})", names)
-        conn.commit()
-        # Update session state team
-        for p in player_team:
-            p["hp"] *= 2
-            p["max_hp"] = p["hp"]
-            p["current_hp"] = p["hp"]
-        return CHEAT_DESCRIPTIONS[code]
+        elif code == "GODMODE":
+            names = [p["name"] for p in player_team]
+            placeholders = ",".join(["?"] * len(names))
+            conn.execute(f"UPDATE pokemon SET defense = 999, sp_def = 999 WHERE name IN ({placeholders})", names)
+            conn.commit()
+            for p in player_team:
+                p["defense"] = 999
+                p["sp_def"] = 999
+            return CHEAT_DESCRIPTIONS[code]
 
-    elif code == "GODMODE":
-        names = [p["name"] for p in player_team]
-        placeholders = ",".join(["?"] * len(names))
-        conn.execute(f"UPDATE pokemon SET defense = 999, sp_def = 999 WHERE name IN ({placeholders})", names)
-        conn.commit()
-        for p in player_team:
-            p["defense"] = 999
-            p["sp_def"] = 999
-        return CHEAT_DESCRIPTIONS[code]
+        elif code == "STEAL":
+            strongest = max(ai_team, key=lambda x: x.get("total", 0))
+            stolen_name = strongest["name"] + "_stolen"
+            conn.execute("""
+                INSERT INTO pokemon (id, name, type1, type2, hp, attack, defense, sp_atk, sp_def, speed, generation, legendary, total)
+                SELECT (SELECT MAX(id) FROM pokemon) + 1, name || '_stolen', type1, type2, hp, attack, defense, sp_atk, sp_def, speed, generation, legendary, total
+                FROM pokemon WHERE name = ?
+            """, (strongest["name"],))
+            conn.commit()
+            stolen = copy.deepcopy(strongest)
+            stolen["name"] = stolen_name
+            stolen["current_hp"] = stolen["hp"]
+            stolen["max_hp"] = stolen["hp"]
+            player_team.append(stolen)
+            return f"Stole {strongest['name']} (added as {stolen_name})"
 
-    elif code == "STEAL":
-        # Find opponent's strongest by total
-        strongest = max(ai_team, key=lambda x: x.get("total", 0))
-        stolen_name = strongest["name"] + "_stolen"
-        conn.execute("""
-            INSERT INTO pokemon (id, name, type1, type2, hp, attack, defense, sp_atk, sp_def, speed, generation, legendary, total)
-            SELECT (SELECT MAX(id) FROM pokemon) + 1, name || '_stolen', type1, type2, hp, attack, defense, sp_atk, sp_def, speed, generation, legendary, total
-            FROM pokemon WHERE name = ?
-        """, (strongest["name"],))
-        conn.commit()
-        # Add to player team
-        stolen = copy.deepcopy(strongest)
-        stolen["name"] = stolen_name
-        stolen["current_hp"] = stolen["hp"]
-        stolen["max_hp"] = stolen["hp"]
-        player_team.append(stolen)
-        return f"Stole {strongest['name']} (added as {stolen_name})"
+        elif code == "NERF":
+            names = [p["name"] for p in ai_team]
+            placeholders = ",".join(["?"] * len(names))
+            conn.execute(f"UPDATE pokemon SET attack = attack / 2, sp_atk = sp_atk / 2, speed = speed / 2 WHERE name IN ({placeholders})", names)
+            conn.commit()
+            for p in ai_team:
+                p["attack"] = p["attack"] // 2
+                p["sp_atk"] = p["sp_atk"] // 2
+                p["speed"] = p["speed"] // 2
+            return CHEAT_DESCRIPTIONS[code]
 
-    elif code == "NERF":
-        names = [p["name"] for p in ai_team]
-        placeholders = ",".join(["?"] * len(names))
-        conn.execute(f"UPDATE pokemon SET attack = attack / 2, sp_atk = sp_atk / 2, speed = speed / 2 WHERE name IN ({placeholders})", names)
-        conn.commit()
-        for p in ai_team:
-            p["attack"] = p["attack"] // 2
-            p["sp_atk"] = p["sp_atk"] // 2
-            p["speed"] = p["speed"] // 2
-        return CHEAT_DESCRIPTIONS[code]
-
-    return None
+        return None
+    finally:
+        conn.close()
 
 
 # ---------------------------------------------------------------------------
@@ -454,38 +475,38 @@ def apply_cheat(code: str, player_team: list, ai_team: list) -> str | None:
 def run_cheat_audit() -> dict:
     """Run SQL queries to detect cheating. Returns dict of DataFrames."""
     conn = get_conn()
-    results = {}
+    try:
+        results = {}
 
-    # 1. Pokemon with stats exceeding original natural maximums
-    df1 = pd.read_sql_query("""
-        SELECT p.name, p.hp, p.attack, p.defense, p.sp_atk, p.sp_def, p.speed,
-               o.hp AS orig_hp, o.attack AS orig_attack, o.defense AS orig_defense
-        FROM pokemon p
-        LEFT JOIN pokemon_original o ON p.name = o.name
-        WHERE p.hp > COALESCE(o.hp, 0) * 1
-           OR p.defense > COALESCE(o.defense, 0) * 1
-           OR p.sp_def > COALESCE(o.sp_def, 0) * 1
-           OR p.attack < COALESCE(o.attack, 0)
-           OR p.sp_atk < COALESCE(o.sp_atk, 0)
-    """, conn)
-    results["Modified Stats (compared to original)"] = df1
+        df1 = pd.read_sql_query("""
+            SELECT p.name, p.hp, p.attack, p.defense, p.sp_atk, p.sp_def, p.speed,
+                   o.hp AS orig_hp, o.attack AS orig_attack, o.defense AS orig_defense
+            FROM pokemon p
+            LEFT JOIN pokemon_original o ON p.name = o.name
+            WHERE p.hp > COALESCE(o.hp, 0) * 1
+               OR p.defense > COALESCE(o.defense, 0) * 1
+               OR p.sp_def > COALESCE(o.sp_def, 0) * 1
+               OR p.attack < COALESCE(o.attack, 0)
+               OR p.sp_atk < COALESCE(o.sp_atk, 0)
+        """, conn)
+        results["Modified Stats (compared to original)"] = df1
 
-    # 2. Stolen Pokemon
-    df2 = pd.read_sql_query("""
-        SELECT name, type1, type2, total, hp, attack, defense
-        FROM pokemon
-        WHERE name LIKE '%_stolen'
-    """, conn)
-    results["Stolen Pokemon"] = df2
+        df2 = pd.read_sql_query("""
+            SELECT name, type1, type2, total, hp, attack, defense
+            FROM pokemon
+            WHERE name LIKE '%_stolen'
+        """, conn)
+        results["Stolen Pokemon"] = df2
 
-    # 3. Suspiciously high HP
-    df3 = pd.read_sql_query("""
-        SELECT p.name, p.hp, o.hp AS original_hp
-        FROM pokemon p
-        JOIN pokemon_original o ON p.name = o.name
-        WHERE p.hp > o.hp
-    """, conn)
-    results["Suspiciously High HP"] = df3
+        df3 = pd.read_sql_query("""
+            SELECT p.name, p.hp, o.hp AS original_hp
+            FROM pokemon p
+            JOIN pokemon_original o ON p.name = o.name
+            WHERE p.hp > o.hp
+        """, conn)
+        results["Suspiciously High HP"] = df3
+    finally:
+        conn.close()
 
     return results
 
@@ -626,15 +647,17 @@ def build_battle_summary(log_entries: list[str], winner: str | None = None) -> s
     return summary
 
 
-def render_battle_log(log_entries: list[str], title: str, key_prefix: str, height: int = 340):
+def render_battle_log(log_entries: list[str], title: str, key_prefix: str, height: int = 360):
     """Render styled battle log with filters and ordering."""
-    st.markdown(f"### {title}")
-    filter_col, order_col = st.columns([2, 1])
+    st.markdown(f'<div class="section-header">{html.escape(title)}</div>', unsafe_allow_html=True)
+
+    filter_col, order_col = st.columns([3, 1])
     with filter_col:
         selected_filter = st.selectbox(
-            "Show",
-            ["All", "Damage", "Turns", "KOs", "Cheats", "Results"],
+            "Filter",
+            ["All", "Turns", "Damage", "KOs", "Cheats", "Results"],
             key=f"{key_prefix}_filter",
+            label_visibility="collapsed",
         )
     with order_col:
         newest_first = st.toggle("Newest first", value=True, key=f"{key_prefix}_newest")
@@ -642,24 +665,9 @@ def render_battle_log(log_entries: list[str], title: str, key_prefix: str, heigh
     normalized = []
     for entry in log_entries:
         kind, label, accent, bg = classify_log_entry(entry)
-        normalized.append(
-            {
-                "entry": entry,
-                "kind": kind,
-                "label": label,
-                "accent": accent,
-                "bg": bg,
-            }
-        )
+        normalized.append({"entry": entry, "kind": kind, "label": label, "accent": accent, "bg": bg})
 
-    filter_map = {
-        "All": None,
-        "Damage": "damage",
-        "Turns": "turn",
-        "KOs": "ko",
-        "Cheats": "cheat",
-        "Results": "result",
-    }
+    filter_map = {"All": None, "Damage": "damage", "Turns": "turn", "KOs": "ko", "Cheats": "cheat", "Results": "result"}
     target_kind = filter_map[selected_filter]
     if target_kind:
         normalized = [n for n in normalized if n["kind"] == target_kind]
@@ -667,32 +675,41 @@ def render_battle_log(log_entries: list[str], title: str, key_prefix: str, heigh
     if newest_first:
         normalized = list(reversed(normalized))
 
+    # Icon per kind
+    kind_icon = {"turn": "&#9654;", "damage": "&#9889;", "ko": "&#128128;", "cheat": "&#127918;", "result": "&#127942;"}
+
     cards = []
-    for item in normalized:
+    for i, item in enumerate(normalized):
         clean = item["entry"].replace("**", "").replace("*", "")
         clean = html.escape(clean)
-        cards.append(
-            f"""
-            <div style="border-left:4px solid {item['accent']}; background:{item['bg']};
-                        border-radius:8px; padding:8px 10px; margin-bottom:7px;">
-                <div style="font-size:0.66rem; font-weight:800; color:{item['accent']}; letter-spacing:0.3px;">
-                    {item['label']}
-                </div>
-                <div style="font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-                            font-size:0.82rem; color:#111827; white-space:pre-wrap;">
-                    {clean}
-                </div>
-            </div>
-            """
-        )
+        icon = kind_icon.get(item["kind"], "&#8226;")
+        # Turn headers get a wider, bolder style
+        if item["kind"] == "turn":
+            cards.append(
+f'<div style="display:flex;align-items:center;gap:8px;margin:14px 0 4px 0;">'
+f'<div style="flex:1;height:1px;background:linear-gradient(90deg,{item["accent"]}44,transparent);"></div>'
+f'<div style="font-size:0.72rem;font-weight:800;color:{item["accent"]};letter-spacing:1px;white-space:nowrap;">{icon} {clean}</div>'
+f'<div style="flex:1;height:1px;background:linear-gradient(90deg,transparent,{item["accent"]}44);"></div>'
+f'</div>'
+            )
+        else:
+            cards.append(
+f'<div style="display:flex;gap:0;margin-bottom:5px;border-radius:8px;overflow:hidden;'
+f'box-shadow:0 1px 3px rgba(0,0,0,0.06);">'
+f'<div style="width:4px;flex-shrink:0;background:{item["accent"]};border-radius:4px 0 0 4px;"></div>'
+f'<div style="flex:1;background:{item["bg"]};padding:7px 10px;">'
+f'<span style="font-size:0.62rem;font-weight:800;color:{item["accent"]};letter-spacing:0.5px;'
+f'text-transform:uppercase;margin-right:6px;">{icon} {item["label"]}</span>'
+f'<span style="font-size:0.83rem;color:#1F2937;">{clean}</span>'
+f'</div>'
+f'</div>'
+            )
 
     if cards:
+        inner = "".join(cards)
         st.markdown(
-            f"""
-            <div style="height:{height}px; overflow-y:auto; padding:6px 4px 4px 0;">
-                {''.join(cards)}
-            </div>
-            """,
+f'<div style="height:{height}px;overflow-y:auto;padding:4px 6px 4px 2px;'
+f'background:#FAFAFA;border:1px solid #E5E7EB;border-radius:10px;">{inner}</div>',
             unsafe_allow_html=True,
         )
     else:
@@ -1101,7 +1118,10 @@ def page_battle():
             unsafe_allow_html=True,
         )
         conn = get_conn()
-        hist = pd.read_sql_query("SELECT * FROM battle_history ORDER BY id DESC LIMIT 20", conn)
+        try:
+            hist = pd.read_sql_query("SELECT * FROM battle_history ORDER BY id DESC LIMIT 20", conn)
+        finally:
+            conn.close()
         if hist.empty:
             st.info("No battles yet.")
         else:
@@ -1188,6 +1208,31 @@ def page_analysis():
     st.markdown('<div class="section-header">Pokemon Analysis</div>', unsafe_allow_html=True)
 
     conn = get_conn()
+    try:
+        df_types = pd.read_sql_query("""
+            SELECT type1 || ' / ' || CASE WHEN type2 = '' THEN 'Pure' ELSE type2 END AS type_combo,
+                   ROUND(AVG(total), 1) AS avg_total,
+                   COUNT(*) AS count
+            FROM pokemon_original
+            GROUP BY type1, type2
+            HAVING COUNT(*) >= 2
+            ORDER BY avg_total DESC
+            LIMIT 10
+        """, conn)
+        df_gen = pd.read_sql_query("""
+            SELECT generation,
+                   ROUND(AVG(total), 1) AS avg_total,
+                   ROUND(AVG(hp), 1) AS avg_hp,
+                   ROUND(AVG(attack), 1) AS avg_attack,
+                   ROUND(AVG(speed), 1) AS avg_speed,
+                   COUNT(*) AS count
+            FROM pokemon_original
+            WHERE generation IS NOT NULL
+            GROUP BY generation
+            ORDER BY generation
+        """, conn)
+    finally:
+        conn.close()
 
     # --- 3.4.1 Most Overpowered Type Combination ---
     st.markdown('<div class="section-header">1. Most Overpowered Type Combinations</div>', unsafe_allow_html=True)
@@ -1195,17 +1240,6 @@ def page_analysis():
     This query calculates the **average total stats** for each Type 1 + Type 2 combination
     and ranks them to find which type pairings produce the strongest Pokemon on average.
     """)
-
-    df_types = pd.read_sql_query("""
-        SELECT type1 || ' / ' || CASE WHEN type2 = '' THEN 'Pure' ELSE type2 END AS type_combo,
-               ROUND(AVG(total), 1) AS avg_total,
-               COUNT(*) AS count
-        FROM pokemon_original
-        GROUP BY type1, type2
-        HAVING COUNT(*) >= 2
-        ORDER BY avg_total DESC
-        LIMIT 10
-    """, conn)
 
     if not df_types.empty:
         fig1 = go.Figure()
@@ -1247,19 +1281,6 @@ def page_analysis():
     This analysis examines whether later generations of Pokemon have higher base stat
     totals on average, a phenomenon known as **power creep** in game design.
     """)
-
-    df_gen = pd.read_sql_query("""
-        SELECT generation,
-               ROUND(AVG(total), 1) AS avg_total,
-               ROUND(AVG(hp), 1) AS avg_hp,
-               ROUND(AVG(attack), 1) AS avg_attack,
-               ROUND(AVG(speed), 1) AS avg_speed,
-               COUNT(*) AS count
-        FROM pokemon_original
-        WHERE generation IS NOT NULL
-        GROUP BY generation
-        ORDER BY generation
-    """, conn)
 
     if not df_gen.empty:
         fig2 = go.Figure()
@@ -1327,32 +1348,34 @@ def page_schema():
     st.markdown('<div class="section-header">Database Schema and Info</div>', unsafe_allow_html=True)
 
     conn = get_conn()
+    try:
+        st.markdown('<div class="section-header">Tables</div>', unsafe_allow_html=True)
+        tables = pd.read_sql_query(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name != 'sqlite_sequence' ORDER BY name",
+            conn,
+        )
+        st.dataframe(tables, use_container_width=True)
 
-    st.markdown('<div class="section-header">Tables</div>', unsafe_allow_html=True)
-    tables = pd.read_sql_query(
-        "SELECT name FROM sqlite_master WHERE type='table' AND name != 'sqlite_sequence' ORDER BY name",
-        conn,
-    )
-    st.dataframe(tables, use_container_width=True)
+        for tbl in tables["name"]:
+            st.markdown(f"#### Table: `{tbl}`")
+            info = pd.read_sql_query(f"PRAGMA table_info({tbl})", conn)
+            st.dataframe(info[["name", "type", "pk"]], use_container_width=True)
+            count = conn.execute(f"SELECT COUNT(*) FROM [{tbl}]").fetchone()[0]
+            st.caption(f"Row count: {count}")
 
-    for tbl in tables["name"]:
-        st.markdown(f"#### Table: `{tbl}`")
-        info = pd.read_sql_query(f"PRAGMA table_info({tbl})", conn)
-        st.dataframe(info[["name", "type", "pk"]], use_container_width=True)
-        count = conn.execute(f"SELECT COUNT(*) FROM [{tbl}]").fetchone()[0]
-        st.caption(f"Row count: {count}")
+        st.markdown('<div class="section-header">Indexes</div>', unsafe_allow_html=True)
+        indexes = pd.read_sql_query("SELECT name, tbl_name, sql FROM sqlite_master WHERE type='index' AND sql IS NOT NULL", conn)
+        st.dataframe(indexes, use_container_width=True)
 
-    st.markdown('<div class="section-header">Indexes</div>', unsafe_allow_html=True)
-    indexes = pd.read_sql_query("SELECT name, tbl_name, sql FROM sqlite_master WHERE type='index' AND sql IS NOT NULL", conn)
-    st.dataframe(indexes, use_container_width=True)
+        st.markdown('<div class="section-header">Sample: pokemon (first 10 rows)</div>', unsafe_allow_html=True)
+        sample = pd.read_sql_query("SELECT * FROM pokemon LIMIT 10", conn)
+        st.dataframe(sample, use_container_width=True)
 
-    st.markdown('<div class="section-header">Sample: pokemon (first 10 rows)</div>', unsafe_allow_html=True)
-    sample = pd.read_sql_query("SELECT * FROM pokemon LIMIT 10", conn)
-    st.dataframe(sample, use_container_width=True)
-
-    st.markdown('<div class="section-header">Sample: type_effectiveness (Fire matchups)</div>', unsafe_allow_html=True)
-    te = pd.read_sql_query("SELECT * FROM type_effectiveness WHERE attacking_type = 'Fire'", conn)
-    st.dataframe(te, use_container_width=True)
+        st.markdown('<div class="section-header">Sample: type_effectiveness (Fire matchups)</div>', unsafe_allow_html=True)
+        te = pd.read_sql_query("SELECT * FROM type_effectiveness WHERE attacking_type = 'Fire'", conn)
+        st.dataframe(te, use_container_width=True)
+    finally:
+        conn.close()
 
 
 def page_battle_mechanics():
