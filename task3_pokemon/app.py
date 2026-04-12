@@ -768,8 +768,7 @@ def render_battle_card(p: dict, is_active: bool = False):
         opacity: {opacity};
         margin-bottom: 10px;
         box-shadow: {box_shadow};
-        {glow_css}
-        transition: box-shadow 0.3s, transform 0.15s;
+        transition: box-shadow 0.3s, transform 0.15s; {glow_css}
     ">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
             <span style="font-weight:800;font-size:1.05rem;letter-spacing:-0.2px;">{p['name']}</span>
