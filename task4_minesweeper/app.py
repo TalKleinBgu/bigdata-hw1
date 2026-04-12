@@ -1523,7 +1523,8 @@ def render_timer():
 def render_stats():
     ss = st.session_state
     flags = count_flags(ss.ms_board, ss.ms_rows, ss.ms_cols)
-    remaining = ss.ms_mines - flags
+    defused = sum(ss.ms_board[r][c]["defused"] for r in range(ss.ms_rows) for c in range(ss.ms_cols))
+    remaining = ss.ms_mines - flags - defused
 
     _, center, _ = st.columns([1, 6, 1])
     with center:
