@@ -154,7 +154,7 @@ st.set_page_config(
 st.markdown("""
 <div class="sticky-page-header">
   <div class="sticky-page-title">Baby Names Explorer</div>
-  <div class="sticky-page-subtitle">US baby-name trends from the Social Security Administration, 1910 to present</div>
+  <div class="sticky-page-subtitle">US baby-name trends from the Social Security Administration, 1910 to 2014</div>
 </div>
 """, unsafe_allow_html=True)
 
@@ -288,8 +288,7 @@ with tab_explore:
                 dragmode=False,
                 plot_bgcolor="rgba(0,0,0,0)",
                 xaxis=dict(showspikes=True, spikemode="across", spikethickness=1, title="Year"),
-                yaxis=dict(showspikes=True, spikemode="across", spikethickness=1,
-                           gridcolor="#E5E7EB", title=y_label),
+                yaxis=dict(gridcolor="#E5E7EB", title=y_label),
                 legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="center", x=0.5),
             )
             st.plotly_chart(fig, use_container_width=True)
@@ -433,7 +432,7 @@ with tab_sql:
                             template="plotly_white", dragmode=False,
                             hovermode="x unified", yaxis_title=y_label,
                             xaxis=dict(showspikes=True, spikemode="across", spikethickness=1),
-                            yaxis=dict(showspikes=True, spikemode="across", spikethickness=1, showgrid=False),
+                            yaxis=dict(showgrid=False),
                         )
                         st.plotly_chart(chart, use_container_width=True)
             except Exception as exc:
