@@ -525,8 +525,7 @@ with tab_patterns:
         plot_bgcolor="rgba(0,0,0,0)",
         dragmode=False, hovermode="x unified",
         xaxis=dict(showspikes=True, spikemode="across", spikethickness=1, title="Year"),
-        yaxis=dict(showspikes=True, spikemode="across", spikethickness=1,
-                   gridcolor="#E5E7EB", title="Unique Names"),
+        yaxis=dict(gridcolor="#E5E7EB", title="Unique Names"),
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="center", x=0.5),
     )
     st.plotly_chart(fig_p1, use_container_width=True)
@@ -571,8 +570,7 @@ with tab_patterns:
         plot_bgcolor="rgba(0,0,0,0)",
         dragmode=False, hovermode="x unified",
         xaxis=dict(showspikes=True, spikemode="across", spikethickness=1, title="Year"),
-        yaxis=dict(showspikes=True, spikemode="across", spikethickness=1,
-                   gridcolor="#E5E7EB", title="Births"),
+        yaxis=dict(gridcolor="#E5E7EB", title="Births"),
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="center", x=0.5),
     )
     st.plotly_chart(fig_p2, use_container_width=True)
@@ -630,8 +628,7 @@ with tab_patterns:
             dragmode=False,
             hovermode="x unified",
             xaxis=dict(showspikes=True, spikemode="across", spikethickness=1, title="Top Name"),
-            yaxis=dict(showspikes=True, spikemode="across", spikethickness=1,
-                       gridcolor="#E5E7EB", title="Number of States"),
+            yaxis=dict(gridcolor="#E5E7EB", title="Number of States"),
             legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="center", x=0.5),
         )
         st.plotly_chart(fig_p3_topname_states, use_container_width=True)
@@ -668,8 +665,7 @@ with tab_patterns:
             plot_bgcolor="rgba(0,0,0,0)",
             dragmode=False, hovermode="x unified",
             xaxis=dict(showspikes=True, spikemode="across", spikethickness=1, title="Year"),
-            yaxis=dict(showspikes=True, spikemode="across", spikethickness=1,
-                       gridcolor="#E5E7EB", title="Births"),
+            yaxis=dict(gridcolor="#E5E7EB", title="Births"),
             legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="center", x=0.5),
         )
         st.plotly_chart(fig_p3, use_container_width=True)
