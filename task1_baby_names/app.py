@@ -578,9 +578,9 @@ with tab_patterns:
     st.plotly_chart(fig_p2, use_container_width=True)
     with st.expander("Show SQL query"):
         st.code(p2_sql, language="sql")
-    st.markdown("""<div class="insight-box"><strong>Finding:</strong> The name <em>Arya</em> surged after 2011, indicating a strong pop-culture effect on naming choices.</div>""", unsafe_allow_html=True)
+    st.markdown("""<div class="insight-box"><strong>Finding:</strong> The name <em>Arya</em> surged after 2011, coinciding with the premiere of <em>Game of Thrones</em> (HBO, 2011) and its breakout character Arya Stark — a clear example of television driving naming trends.</div>""", unsafe_allow_html=True)
 
-    st.markdown("""<div class="insight-box"><strong>Interpretation:</strong> In this dataset, <em>Arya</em> is nearly absent for many years (first appears at <strong>5 births in 1982</strong>) and then rises sharply around the early 2010s (<strong>249 in 2010</strong>, <strong>422 in 2011</strong>), reaching a peak of <strong>1,574 in 2014</strong>. This timing supports a strong pop-culture effect, where media exposure can rapidly increase adoption of a previously uncommon name.</div>""", unsafe_allow_html=True)
+    st.markdown("""<div class="insight-box"><strong>Interpretation:</strong> In this dataset, <em>Arya</em> is nearly absent for many years (first appears at <strong>5 births in 1982</strong>) and then rises sharply around the early 2010s (<strong>249 in 2010</strong>, <strong>422 in 2011</strong>), reaching a peak of <strong>1,574 in 2014</strong>. The timing aligns precisely with <em>Game of Thrones</em> Season 1 airing in April 2011, demonstrating how a beloved TV character can rapidly popularize a previously uncommon name.</div>""", unsafe_allow_html=True)
 
     st.markdown('<div style="border-top:1px solid #E5E7EB;margin:1.5rem 0;"></div>', unsafe_allow_html=True)
 
