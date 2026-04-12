@@ -1705,7 +1705,9 @@ def sql_rescue_dialog(conn):
 
     # Answer section
     st.divider()
-    ans_key = f"ms_answer_{ss.ms_mine_hit_count}_{ss.ms_sql_wrong_attempts}"
+    # Stable key per mine — does not change on wrong attempts so Streamlit
+    # reliably captures the typed value on every submit.
+    ans_key = f"ms_answer_{ss.ms_mine_hit_count}"
     if q["validator_type"] == "dataframe_match":
         st.markdown("**Answer:** Run a query that produces the expected output, then click Submit.")
         answer_input = ""
@@ -1727,6 +1729,9 @@ def sql_rescue_dialog(conn):
         else:
             ss.ms_sql_wrong_attempts += 1
             ss.ms_feedback = f"Not quite! Attempt #{ss.ms_sql_wrong_attempts}. Try refining your query or check the hint."
+            # Clear the input box so the user gets a fresh field for the next attempt.
+            st.session_state[ans_key] = ""
+            st.rerun()
 
     # Display feedback after submit processing so it shows immediately
     if ss.ms_feedback:
