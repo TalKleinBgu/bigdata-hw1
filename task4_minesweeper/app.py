@@ -1883,6 +1883,17 @@ def main():
 
     with game_tab:
         if not ss.ms_started:
+            # --- How it works ---
+            st.markdown("""
+<div style="background:#f0f6ff; border:1px solid #bcd4f5; border-radius:10px; padding:0.85rem 1.1rem; margin-bottom:1.1rem; font-size:0.88rem; color:#1c2f45; line-height:1.7;">
+<strong>How it works:</strong>
+Reveal cells by clicking. If you uncover a mine, the game pauses and you must answer an NBA SQL challenge to continue.
+Answer correctly to defuse the mine and resume — or <em>give up</em> to end the game and reveal the board.
+SQL difficulty increases with each mine hit (5 levels: basic SELECT &rarr; WHERE &rarr; ORDER BY &rarr; GROUP BY &rarr; JOIN).
+Clear the board without giving up to win and post your score to the leaderboard.
+</div>
+""", unsafe_allow_html=True)
+
             # --- Nickname ---
             _, center_col, _ = st.columns([1, 2, 1])
             with center_col:
